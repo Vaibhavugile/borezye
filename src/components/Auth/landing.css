@@ -1,0 +1,775 @@
+/* General styles */
+body, html {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #F6F9FC;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #ffffff;
+  
+}
+
+.navbar .logo {
+ height: 40px;
+}
+
+.navbar nav {
+  
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  
+}
+
+
+.navbar nav a{
+  font-family: 'Public Sans';
+font-style: normal;
+font-weight: 400;
+font-size: 15px;
+line-height: 18px;
+text-decoration: none;
+color: #000000;
+
+
+}
+
+.navbar nav a:hover{
+  text-decoration: underline;
+  color:#7F59A9 ;
+
+}
+
+.navbar .sign-in {
+  background: linear-gradient(187.36deg, #B371AE 5.38%, #7F59A9 93.96%);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+}
+
+/* Hero Section */
+/* Hero Section Animation */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+  background-color: #ffffff;
+  background: linear-gradient(98.97deg, #E2FAFF 0.84%, #FDDFFC 99.14%), #FFFFFF;
+  height: 50vh; /* Full viewport height */
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+/* Image Animation */
+.hero-image {
+  margin-right: -20%;
+  margin-bottom: 0%;
+  max-height: 118%; /* Ensures it doesn't exceed the hero's height */
+  object-fit: contain; /* Maintains aspect ratio */
+  width: 90%;
+  animation: slideInFromRight 1.2s ease-out;
+}
+
+/* Content Animation */
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  animation: slideInFromLeft 1.2s ease-out;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  animation: slideInFromLeft 1.5s ease-out;
+}
+
+.hero-content .demo-button {
+  font-size: 1rem;
+  padding: 0.7rem 1.5rem;
+  border: none;
+  background: linear-gradient(187.36deg, #B371AE 5.38%, #7F59A9 93.96%);
+  box-shadow: 4px 4px 19.1px rgba(0, 0, 0, 0.25);
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+/* Keyframes for Animations */
+
+/* Fade-in for the hero section */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Float effect for the image */
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Slide-in for hero content */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Pulse effect for the button */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+
+/* Features */
+/* Features Section */
+.features {
+  padding: 2rem;
+  background-color: #f6f9fc;
+}
+
+.features{
+  text-align: center;
+}
+
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 cards in one row */
+  gap: 3rem; /* Spacing between cards */
+}
+
+.feature-card {
+  display: flex; /* Enables Flexbox */
+  flex-direction: column; /* Ensures items stack vertically */
+  justify-content: center; /* Centers items vertically */
+  align-items: center; /* Centers items horizontally */
+  padding: 2rem; /* Increases padding for larger content space */
+  box-shadow: 1px 1px 3px rgba(121, 121, 121, 0.25);
+  min-height: 15rem; /* Ensures consistent card height */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  opacity: 0; /* Initially hidden */
+  transform: translateY(30px); /* Start slightly below */
+  animation: fadeInUp 0.5s ease-out forwards; /* Animation applied */
+  animation-delay: 0.2s; /* Delay to make cards appear one after another */
+  background: #ffffff;
+  border-radius: 15px;
+}
+
+/* Adjust image styles */
+.feature-card img {
+  width: 50px; /* Set the width of the image */
+  height: 50px; /* Set the height of the image */
+  margin-bottom: 1rem; /* Adds space between the image and the text */
+}
+
+
+.feature-card:nth-child(1) {
+  animation-delay: 0.2s; /* Delay for first card */
+}
+.feature-card:nth-child(2) {
+  animation-delay: 0.4s; /* Delay for second card */
+}
+.feature-card:nth-child(3) {
+  animation-delay: 0.6s; /* Delay for third card */
+}
+.feature-card:nth-child(4) {
+  animation-delay: 0.8s; /* Delay for fourth card */
+}
+
+.feature-card:nth-child(5) {
+  animation-delay: 1s; /* Delay for first card */
+}
+.feature-card:nth-child(6) {
+  animation-delay: 1.2s; /* Delay for second card */
+}
+.feature-card:nth-child(7) {
+  animation-delay: 1.4s; /* Delay for third card */
+}
+.feature-card:nth-child(8) {
+  animation-delay: 1.6s; /* Delay for fourth card */
+}
+
+/* Hover Effect */
+
+
+.feature-card:hover {
+  transform: translateY(-5px) scale(1.05); /* Lift and slightly scale up on hover */
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+  opacity: 0.9; /* Slight fade effect */
+}
+
+/* Add animation for smooth transition */
+@keyframes cardHoverAnimation {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-5px) scale(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+
+
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .feature-cards {
+    grid-template-columns: repeat(3, 1fr); /* 3 cards in a row for large tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-cards {
+    grid-template-columns: repeat(2, 1fr); /* 2 cards in a row for tablets */
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-cards {
+    grid-template-columns: 1fr; /* 1 card per row for smaller screens */
+  }
+}
+
+/* Keyframes for Animations */
+
+/* Fade-in and slide-up effect for feature cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pricing {
+  padding: 2rem 2rem;
+}
+
+.pricing h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.pricing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.pricing-card h5,
+.pricing-card h3,
+.pricing-card button {
+  margin: 0.5rem 0;
+}
+
+.pricing-card:hover {
+  transform: scale(1.05);
+  border: 1px solid #7F59A9;
+box-shadow: 2px 2px 8.1px rgba(0, 0, 0, 0.25);
+}
+
+.pricing-card .price {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000000;
+  
+}
+
+.pricing-card button {
+  padding: 0.5rem 1rem;
+  background-color: #6a0dad;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pricing-card button:hover {
+  background-color: #5500a3;
+  
+}
+
+
+
+/* Contact Section */
+
+/* Footer */
+footer {
+  background: #343a40;
+  color: #fff;
+  padding: 2rem;
+}
+
+
+.feature-card:hover {
+  transform: scale(1.05);
+}
+
+
+
+
+
+
+
+.faq {
+  padding: 50px 20px;
+  max-width: 100vw;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.faq h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #000;
+}
+
+.faq-item {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin: 0px 40px 15px 40px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.faq-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.faq-item.active {
+  background-color: #ffffff;
+  border-color: #7F59A9;
+}
+
+.faq-header {
+  display: flex;
+  justify-content: space-between; /* Ensures even spacing between the h5 and the icon */
+  align-items: center; /* Centers the items vertically */
+  text-align: center; /* Ensures text is centered inside the h5 */
+  padding: 5px; /* Optional padding for better spacing */
+}
+.faq-header h5 {
+  flex: 1; /* Allows h5 to take up available space */
+  margin: 0; /* Removes default margin for proper centering */
+  text-align: center; /* Ensures the text is centered horizontally */
+}
+
+
+.faq-item h5 {
+  
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 20px;
+  margin: 0;
+}
+
+
+
+.faq-item p {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  display: none;
+  margin-top: 10px;
+}
+
+.faq-item.active p {
+  display: block;
+}
+
+.faq-icon {
+  color: #7F59A9;
+}
+@media (max-width: 600px) {
+  .faq h2 {
+    font-size: 1.5rem;
+  }
+
+  .faq-item h5 {
+    font-size: 1rem;
+  }
+
+  .faq-arrow {
+    font-size: 1rem;
+  }
+
+  .faq-item p {
+    font-size: 0.85rem;
+  }
+}
+
+
+
+
+
+.modal-overlay1 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards; /* Fade-in animation */
+  z-index: 1000;
+}
+
+/* Modal content with scale-up animation */
+.modal-content1 {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+  transform: scale(0.8);
+  animation: scaleUp 0.3s forwards; /* Scale-up animation */
+  position: relative;
+}
+
+.modal-content1 h2{
+  text-align: center;
+}
+/* Close button */
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  
+}
+
+.close-button:hover {
+  color: #000;
+  background-color: #ffffff;
+}
+
+/* Form styling */
+.demo-form input,
+.demo-form button {
+  display: block;
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.demo-form input:focus {
+  outline: none;
+  background-color: #fff;
+}
+
+.demo-form button {
+  background: linear-gradient(187.36deg, #B371AE 5.38%, #7F59A9 93.96%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.demo-form button:hover {
+  background: linear-gradient(187.36deg,  #7F59A9 5.38%, #B371AE 93.96%);
+  color: #ffffff;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+
+.cell{
+  -moz-appearance: textfield; /* For Firefox */
+}
+
+.cell::-webkit-inner-spin-button, 
+.cell::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* For Chrome, Safari, Edge */
+  margin: 0; /* Removes default margin */
+}
+
+.contact {
+  
+  background-color: #f9f9f9;
+  border-radius: 20px;
+  
+}
+
+.contact-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch; /* Ensures both the image and form stretch to the same height */
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+}
+
+.contact-image {
+  padding: 20px 20px;
+  margin-bottom: 40px;
+  flex: 0 0 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 500px; /* Limits the maximum height */
+  background-color: #ffffff;
+}
+
+.contact-image img {
+  width: 60%;
+  height: 90%; /* Ensures the image fills the height of its container */
+  object-fit:cover; /* Maintains the image's aspect ratio while filling the container */
+  border-radius: 15px;
+}
+
+.contact-form {
+  flex: 1;
+  background: #ffffff;
+  padding: 20px 30px;
+  margin-bottom: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 500px; /* Limits the maximum height */
+}
+
+.contact-form h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #000;
+}
+
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.contact-form textarea {
+  resize: vertical;
+  height: 100px;
+}
+
+.contact-form button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(187.36deg, #B371AE 5.38%, #7F59A9 93.96%);  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.contact-form button:hover {
+  background: linear-gradient(187.36deg, #B371AE 5.38%, #7F59A9 93.96%);  border: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact-image,
+  .contact-form {
+    flex: none;
+    width: 100%;
+    height: auto; /* Ensures proper height adjustment on smaller screens */
+  }
+
+  .contact-image img {
+    height: auto; /* Allow image height to adjust naturally on smaller screens */
+  }
+}
+
+
+
+/* Footer */
+.footer {
+  background-color: #000000;
+  color: #f1faee;
+  padding: 40px 20px;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 30px; /* Increased gap for better spacing */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 220px; /* Ensure sections don't shrink too much */
+  text-align: center; /* Align text to the left for consistency */
+}
+
+.footer-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #a8dadc;
+}
+
+.footer-section p,
+.footer-section ul {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+  text-decoration: none;
+  color: #f1faee;
+  transition: color 0.3s;
+}
+
+.footer-section ul li a:hover {
+  color: #7F59A9;
+}
+
+.social-media .social-icons {
+  display: flex;
+  gap: 15px;
+  justify-content: center; /* Align icons to the left */
+}
+
+.social-media .social-icons a {
+  color: #f1faee;
+  font-size: 1.5rem;
+  transition: color 0.3s;
+}
+
+.social-media .social-icons a:hover {
+  color: #7F59A9;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 20px;
+  border-top: 1px solid #457b9d;
+  padding-top: 15px;
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column; /* Stack sections vertically on smaller screens */
+    align-items: center; /* Center-align content */
+    gap: 20px; /* Reduce gap for compact layout */
+  }
+
+  .footer-section {
+    text-align: center; /* Center-align text for smaller screens */
+  }
+
+  .social-media .social-icons {
+    justify-content: center; /* Center social icons */
+  }
+}

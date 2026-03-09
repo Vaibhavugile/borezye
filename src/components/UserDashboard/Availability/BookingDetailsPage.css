@@ -1,0 +1,753 @@
+/* =====================================================
+   THEME VARIABLES (PREMIUM TUNED)
+===================================================== */
+:root {
+  /* Backgrounds */
+  --bg-main: #f4f6fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f8fafc;
+
+  /* Text */
+  --text-main: #0b1220;
+  --text-muted: #6b7280;
+
+  /* Brand */
+  --primary: #2563eb;
+  --success: #22c55e;
+  --warning: #d97706;
+
+  /* Borders */
+  --border-soft: #e6e9f0;
+
+  /* Radius */
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+
+  /* Shadows */
+  --shadow-soft:
+    0 10px 22px rgba(15, 23, 42, 0.06),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+
+  --shadow-light:
+    0 4px 10px rgba(15, 23, 42, 0.05);
+}
+
+/* =====================================================
+   RESET
+===================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(180deg, var(--bg-main) 0%, #eef2f7 100%);
+  color: var(--text-main);
+}
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+.booking-details-container {
+  max-width: 1550px;
+  margin: 22px auto;
+  padding: 0 20px;
+}
+
+/* =====================================================
+   TOP BAR
+===================================================== */
+.saas-topbar {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 16px 22px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.back-icon {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.topbar-left h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.stage-pill {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+}
+
+button:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-light);
+}
+
+.print-button {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+}
+
+.whatsapp-btn {
+  background: var(--success);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* =====================================================
+   LAYOUT
+===================================================== */
+.saas-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+}
+
+/* =====================================================
+   ACTIVITY LOG (PREMIUM AUDIT TIMELINE)
+===================================================== */
+.activity-log-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-soft);
+  position: sticky;
+  top: 110px;
+  border-left: 4px solid #eef2ff;
+}
+
+.activity-log-container h3 {
+  margin: 0 0 16px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
+}
+
+.timeline-item:hover {
+  background: var(--bg-soft);
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 6px;
+  box-shadow: 0 0 0 4px #eef2ff;
+}
+
+.timeline-item p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.timeline-item small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =====================================================
+   CARD (PREMIUM FRAMING)
+===================================================== */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 36px rgba(15, 23, 42, 0.08),
+    0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+.card + .card {
+  margin-top: 6px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* subtle divider */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: auto 22px 0 22px;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-soft),
+    transparent
+  );
+}
+
+/* =====================================================
+   INFO ROWS (HIERARCHY POLISHED)
+===================================================== */
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.info-row p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.info-row strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.info-row span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* =====================================================
+   LABELS & INPUTS
+===================================================== */
+label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  font-size: 14px;
+  background: #ffffff;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* =====================================================
+   FORM ACTIONS
+===================================================== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* =====================================================
+   PAYMENT SECTION (EXECUTIVE POLISH)
+===================================================== */
+.payment-info {
+  background: linear-gradient(180deg, #ffffff 0%, var(--bg-soft) 100%);
+}
+
+.payment-info .info-row:not(:last-child) {
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--border-soft);
+}
+
+/* =====================================================
+   PRODUCT CARDS (PREMIUM COMMERCE)
+===================================================== */
+/* =====================================================
+   PRODUCT CARDS (CLEAN, SCALABLE, FASHION-SAFE)
+===================================================== */
+
+/* =====================================================
+   PREMIUM PRODUCT TABLE (IMAGE + MANY PRODUCTS SAFE)
+===================================================== */
+
+.product-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+/* TABLE BASE */
+.product-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+/* HEADER */
+.product-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* BODY ROWS */
+.product-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.product-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* CELLS */
+.product-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* EMPTY STATE */
+.product-table .empty-row td {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* =====================================================
+   IMAGE CELL
+===================================================== */
+
+.product-table-img {
+  width: 56px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f1f3f7;
+  padding: 4px;
+  border: 1px solid var(--border-soft);
+}
+
+/* =====================================================
+   TYPOGRAPHY TWEAKS
+===================================================== */
+
+.product-table td[data-label="Product"] {
+  font-weight: 600;
+  max-width: 220px;
+  white-space: normal;
+}
+
+.product-table tbody td[data-label="Code"] {
+  color: #16a34a; /* green */
+  font-size: 12px;
+  font-weight: 900;
+}
+
+
+
+/* =====================================================
+   PRICE EMPHASIS
+===================================================== */
+
+.product-table td[data-label="Rent"],
+.product-table td[data-label="Deposit"] {
+  font-weight: 600;
+}
+
+.product-table td[data-label="Extra Rent"] {
+  color: #b45309;
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE (STACKED TABLE)
+===================================================== */
+
+@media (max-width: 900px) {
+  .product-table {
+    display: block;
+  }
+
+  .product-table thead {
+    display: none;
+  }
+
+  .product-table tbody,
+  .product-table tr,
+  .product-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .product-table tr {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-light);
+    margin-bottom: 14px;
+    padding: 12px;
+  }
+
+  .product-table td {
+    border: none;
+    padding: 6px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    white-space: normal;
+  }
+
+  .product-table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .product-table-img {
+    width: 70px;
+    height: 90px;
+  }
+}
+
+/* =====================================================
+   PRINT SAFE
+===================================================== */
+
+@media print {
+  .product-table-wrapper {
+    overflow: visible;
+  }
+
+  .product-table {
+    font-size: 11px;
+  }
+
+  .product-table-img {
+    width: 45px;
+    height: 60px;
+  }
+
+  .product-table thead th {
+    background: #ffffff;
+    color: #000000;
+  }
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+
+.modal-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  z-index: 101;
+}
+/* ===============================
+   PRINT HEADER (HIDDEN ON SCREEN)
+=============================== */
+.print-header {
+  display: none;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.print-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+
+.print-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+.print-button {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.print-button:hover {
+  background: #e5e7eb;
+}
+/* =================================
+   GLOBAL BUTTON VISIBILITY FIX
+================================= */
+button {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Hover feedback */
+button:hover {
+  background: #e5e7eb;
+}
+
+/* Optional focus ring */
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* =====================================================
+   PRINT MODE
+===================================================== */
+/* =====================================================
+   PRINT MODE
+===================================================== */
+/* =====================================================
+   FINAL PRINT MODE (CLEAN TABLE RECEIPT)
+===================================================== */
+@media print {
+
+  /* Page base */
+  body {
+    background: #ffffff !important;
+  }
+
+  /* ✅ SHOW PRINT HEADER */
+  .print-header {
+    display: block !important;
+  }
+
+  /* ❌ HIDE NON-PRINT UI */
+  .saas-topbar,
+  .activity-log-container,
+  button,
+  .whatsapp-btn {
+    display: none !important;
+  }
+
+  /* Layout fix */
+  .saas-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* =========================
+     CARD → FLAT CONTAINER
+  ========================== */
+  .card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+    padding: 14px !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* =========================
+     PRODUCT TABLE (REAL TABLE)
+  ========================== */
+  .product-table-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .product-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 11px !important;
+  }
+
+  .product-table th,
+  .product-table td {
+    border: 1px solid #000 !important;
+    padding: 6px 6px !important;
+    vertical-align: middle !important;
+  }
+
+  /* 🔒 Prevent row splitting across pages */
+  .product-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* =========================
+     PRODUCT IMAGE (PRINT SAFE)
+  ========================== */
+  .product-table-img {
+    width: 38px !important;
+    height: 52px !important;
+    object-fit: contain !important;
+    padding: 2px !important;
+    background: none !important;
+    border: 1px solid #000 !important;
+  }
+
+  /* ❌ Remove hover / fancy UI */
+  .product-table tbody tr:hover {
+    background: none !important;
+  }
+}
+/* ================= IMAGE PREVIEW MODAL ================= */
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview-modal {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.image-preview-modal img {
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* Close button */
+.image-preview-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #111;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* Cursor hint */
+.product-table-img {
+  cursor: zoom-in;
+}

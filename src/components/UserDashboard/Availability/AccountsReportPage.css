@@ -1,0 +1,184 @@
+/* AccountsReportPage.css */
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.total-row:last-child {
+  border-bottom: none;
+}
+
+.amount {
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.date-picker-wrapper {
+  margin-bottom: 1rem;
+}
+
+.date-label {
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.date-picker {
+  padding: 6px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.info-text {
+  padding: 0.5rem;
+  font-size: 14px;
+  color: #666;
+}
+
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-entry {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  background: #fafafa;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+  font-size: 14px;
+}
+
+.payment-badge {
+  padding: 4px 8px;
+  font-weight: 500;
+  border-radius: 6px;
+  text-align: right;
+}
+
+.payment-badge.rent {
+  color: #0a7f33;
+  background-color: #e6f4ea;
+}
+
+.payment-badge.deposit {
+  color: #1b4e9b;
+  background-color: #e8f0fe;
+}
+
+.payment-badge.negative {
+  color: #d93025;
+  background-color: #fdecea;
+}
+
+.payment-table-wrapper {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.payment-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payment-table-header {
+  display: flex;
+  background-color: #f5f5f5;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+}
+
+.payment-table-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  padding: 8px 0;
+}
+
+.payment-column {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+}
+
+.payment-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.payment-badge.rent {
+  background-color: #e0f7fa;
+  color: #00796b;
+}
+
+.payment-badge.deposit {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+.payment-table-footer {
+  display: flex;
+  font-weight: bold;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+}
+
+.total-label {
+  padding: 10px;
+  text-align: center;
+  background-color: #f0f0f0;
+}
+
+.total-amount {
+  padding: 10px;
+  text-align: center;
+}
+
+.total-amount.rent {
+  color: #00796b;
+}
+
+.total-amount.deposit {
+  color: #ef6c00;
+}
+.payment-badge.deposit.negative {
+    color: red;
+    font-weight: bold;
+}

@@ -1,0 +1,358 @@
+/* =====================================================
+   PRODUCT SAAS THEME (PREMIUM / CLEAN / SCALABLE)
+===================================================== */
+
+.prd-wrapper {
+  --bg-main: #f6f8fc;
+  --panel: #ffffff;
+  --panel-soft: #f9fafb;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --primary: #2563eb;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --border: #e5e7eb;
+
+  --radius-xl: 20px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 18px 50px rgba(15, 23, 42, 0.12);
+
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+}
+
+/* =====================================================
+   LAYOUT
+===================================================== */
+
+.prd-content {
+  padding-top: 64px;
+  transition: margin-left 0.3s ease;
+}
+
+.prd-wrapper.sidebar-open .prd-content {
+  margin-left: 250px;
+}
+
+.prd-page-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.prd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.prd-header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.prd-header p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.prd-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.prd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.prd-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.prd-btn.success {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* =====================================================
+   TOOLBAR
+===================================================== */
+
+.prd-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.prd-search-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.prd-search-select {
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.prd-search-input {
+  padding: 10px 14px;
+  border: none;
+  font-size: 14px;
+  width: 260px;
+}
+
+.prd-search-input:focus,
+.prd-search-select:focus {
+  outline: none;
+}
+
+.prd-muted-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   PRODUCT GRID
+===================================================== */
+
+.prd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+/* =====================================================
+   PRODUCT CARD
+===================================================== */
+
+.prd-item-card {
+  background: var(--panel);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.prd-item-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* IMAGE */
+.prd-item-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+/* BODY */
+.prd-item-body {
+  padding: 16px 18px 18px;
+}
+
+.prd-item-body h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.prd-code {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* META */
+.prd-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.prd-meta strong {
+  color: var(--text-main);
+}
+
+/* PRICE */
+.prd-price {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.prd-price small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.prd-price strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* CUSTOM FIELDS */
+.prd-custom-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.prd-custom-fields span {
+  background: var(--panel-soft);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   CARD ACTIONS
+===================================================== */
+
+.prd-item-actions {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.85));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.prd-item-card:hover .prd-item-actions {
+  opacity: 1;
+}
+
+.prd-item-actions button {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.prd-item-actions button:hover {
+  color: var(--primary);
+}
+
+.prd-item-actions .danger:hover {
+  color: var(--danger);
+}
+
+/* =====================================================
+   STATES
+===================================================== */
+
+.prd-loading-state,
+.prd-empty-state {
+  padding: 30px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+  .prd-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .prd-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .prd-search-input {
+    width: 100%;
+  }
+}
+.zip-progress-wrapper {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.zip-progress-text {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.zip-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.zip-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.25s ease;
+}
+.prd-code {
+  display: inline-block;
+  background: rgba(255, 107, 0, 0.12);
+  color: #ff6b00;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+

@@ -1,0 +1,261 @@
+/* =====================================================
+   THEME VARIABLES (ENTERPRISE SAAS)
+===================================================== */
+:root {
+  --bg-main: #f6f8fc;
+  --bg-card: #ffffff;
+  --bg-soft: #f9fafb;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --primary: #2563eb;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --info: #0ea5e9;
+
+  --border-soft: #e5e7eb;
+
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+
+  --shadow-soft: 0 12px 28px rgba(15, 23, 42, 0.08);
+  --shadow-light: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
+/* =====================================================
+   RESET
+===================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+  color: var(--text-main);
+}
+
+/* =====================================================
+   LAYOUT
+===================================================== */
+.dashboard-container {
+  display: flex;
+  width: 100%;
+}
+
+.reports-container {
+  flex: 1;
+  padding: 24px 28px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar-open .reports-container {
+  margin-left: 250px;
+}
+
+/* =====================================================
+   DASHBOARD SECTIONS
+===================================================== */
+.dashboard-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 24px;
+}
+
+.section-header {
+  margin-bottom: 18px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   KPI CARDS
+===================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-light);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.kpi-card span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.kpi-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* KPI COLOR ACCENTS */
+.kpi-card.primary { border-left: 4px solid var(--primary); }
+.kpi-card.success { border-left: 4px solid var(--success); }
+.kpi-card.warning { border-left: 4px solid var(--warning); }
+.kpi-card.info { border-left: 4px solid var(--info); }
+.kpi-card.neutral { border-left: 4px solid #94a3b8; }
+
+/* =====================================================
+   TABLE CARD
+===================================================== */
+.table-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-light);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--bg-soft);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+td {
+  padding: 10px;
+  font-size: 14px;
+  text-align: center;
+  border-top: 1px solid var(--border-soft);
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+/* =====================================================
+   PRODUCT IMAGE
+===================================================== */
+.product-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+.modal-overlayy {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-boxx {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  width: 95%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 26px;
+  box-shadow: var(--shadow-soft);
+  animation: slideUp 0.35s ease;
+}
+
+.modall-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.modall-close-btn:hover {
+  opacity: 0.85;
+}
+
+.modal-boxx h4 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 18px;
+  }
+
+  .kpi-card strong {
+    font-size: 22px;
+  }
+
+  th, td {
+    font-size: 13px;
+  }
+}
+.receipt-link {
+ 
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.receipt-link:hover {
+  text-decoration: underline;
+}

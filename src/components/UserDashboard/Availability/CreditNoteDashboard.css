@@ -1,0 +1,304 @@
+/* =====================================================
+   DESIGN TOKENS – SAAS STYLE
+===================================================== */
+:root {
+  --bg-page: #f6f8fb;
+  --bg-card: #ffffff;
+
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --border: #e5e7eb;
+
+  --success: #16a34a;
+  --danger: #dc2626;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 12px 30px rgba(0,0,0,0.08);
+}
+
+/* =====================================================
+   PAGE BASE
+===================================================== */
+.dashboard-content.creditnote-page {
+  background: var(--bg-page);
+  padding: 16px 18px 24px;
+  min-height: 100vh;
+}
+
+.creditnote-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+/* =====================================================
+   KPI CARDS
+===================================================== */
+.creditnote-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-card h4 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.kpi-card p {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.kpi-card.highlight {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.kpi-card.highlight h4,
+.kpi-card.highlight p {
+  color: #ffffff;
+}
+
+/* =====================================================
+   TOOLBAR
+===================================================== */
+.creditnote-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 12px;
+  margin-bottom: 18px;
+
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =====================================================
+   SEARCH
+===================================================== */
+.creditnote-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 10px;
+  background: #f1f5f9;
+  border-radius: var(--radius-sm);
+
+  max-width: 380px;
+  flex: 1;
+}
+
+.creditnote-search img {
+  width: 14px;
+  opacity: 0.6;
+}
+
+.creditnote-search select {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-muted);
+  outline: none;
+  cursor: pointer;
+}
+
+.creditnote-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-main);
+  width: 100%;
+}
+
+/* =====================================================
+   ACTION BUTTONS
+===================================================== */
+.creditnote-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.creditnote-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+
+  transition: all 0.15s ease;
+}
+
+/* Primary */
+.creditnote-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  border: none;
+}
+
+/* Secondary */
+.creditnote-btn.secondary {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+}
+
+.creditnote-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* =====================================================
+   CARD GRID
+===================================================== */
+.creditnote-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* =====================================================
+   CREDIT NOTE CARD
+===================================================== */
+.creditnote-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.creditnote-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+}
+
+/* Header */
+.creditnote-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.creditnote-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Status */
+.status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.status.active {
+  background: #dcfce7;
+  color: var(--success);
+}
+
+.status.inactive {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+/* Body */
+.card-body p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.card-body strong {
+  font-weight: 600;
+}
+
+.card-body .comment {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   CARD ACTIONS
+===================================================== */
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.card-actions svg {
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.card-actions svg:hover {
+  color: var(--danger);
+  transform: scale(1.1);
+}
+
+/* =====================================================
+   LOADING
+===================================================== */
+.creditnote-loading {
+  text-align: center;
+  padding: 30px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 900px) {
+  .creditnote-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .creditnote-search {
+    max-width: 100%;
+  }
+
+  .creditnote-actions {
+    justify-content: flex-end;
+  }
+}

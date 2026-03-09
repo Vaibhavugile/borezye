@@ -1,0 +1,729 @@
+/* =====================================================
+   DESIGN TOKENS (CALM + PREMIUM)
+===================================================== */
+:root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+
+  --primary: #1e40af;
+  --primary-soft: #e0e7ff;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --border-soft: #e5e7eb;
+
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+
+  --danger-bg: #fee2e2;
+  --danger-text: #991b1b;
+
+  --shadow-sm: 0 6px 18px rgba(0,0,0,0.06);
+  --shadow-md: 0 14px 40px rgba(0,0,0,0.1);
+}
+
+/* =====================================================
+   BASE
+===================================================== */
+body {
+  background: var(--bg-main);
+  font-family: 'Inter', 'Public Sans', system-ui, sans-serif;
+  color: var(--text-main);
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 28px;
+}
+
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 500;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: white;
+  border: 1px solid var(--border-soft);
+  color: var(--text-main);
+  padding: 10px 18px;
+  border-radius: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* =====================================================
+   VIEW TOGGLE
+===================================================== */
+.view-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.view-toggle button {
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.view-toggle button.active {
+  background: white;
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =====================================================
+   KPI CARDS
+===================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  padding: 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-card.active {
+  background: linear-gradient(135deg, #e0e7ff, #f8fafc);
+  border: 1px solid var(--primary);
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* =====================================================
+   SEARCH BAR + TOOLBAR
+===================================================== */
+.table-card {
+  background: white;
+  border-radius: 22px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.table-toolbar {
+  padding: 18px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 14px;
+  flex: 1;
+}
+
+.search-wrapper select,
+.search-wrapper input {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  color: var(--text-main);
+}
+
+/* =====================================================
+   COLUMN SELECTOR (NEW)
+===================================================== */
+.column-selector {
+  position: relative;
+}
+
+.column-dropdown {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 260px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  padding: 10px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+}
+
+.column-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-radius: 14px;
+
+  background: #f9fafb; /* 👈 soft card */
+  border: 1px solid #e5e7eb;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+
+.column-option:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+.column-option:has(input:checked) {
+  background: #eef2ff;
+  border-color: #4f46e5;
+}
+
+
+/* =====================================================
+   BOOKING CARD LIST
+===================================================== */
+.booking-card-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.booking-card {
+  background: white;
+  border-radius: 22px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 2fr 2.2fr 1fr;
+  gap: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+  cursor: pointer;
+  position: relative;
+  transition: all .25s ease;
+}
+
+/* Premium hover glow */
+.booking-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  box-shadow: 0 0 0 0 rgba(30,64,175,.15);
+  transition: box-shadow .25s ease;
+}
+
+.booking-card:hover::after {
+  box-shadow: 0 0 0 3px rgba(30,64,175,.12);
+}
+
+.booking-card:hover {
+  transform: translateY(-3px);
+}
+
+/* LEFT */
+.booking-receipt {
+  display: inline-block;
+  background: linear-gradient(135deg, #e0e7ff, #f8fafc);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+}
+
+.booking-client {
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.booking-contact {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* CENTER */
+.booking-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.booking-meta > div {
+  padding-left: 12px;
+  border-left: 1px dashed #e5e7eb;
+}
+
+.meta-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* RIGHT */
+.booking-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+/* =====================================================
+   DYNAMIC FIELDS (NEW)
+===================================================== */
+.booking-dynamic-fields {
+  grid-column: 1 / -1;
+  margin-top: 18px;
+  padding: 16px;
+  border-top: 1px dashed var(--border-soft);
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 👈 3 columns ALWAYS */
+  gap: 16px 32px;
+
+  background: #f8fafc;
+  border-radius: 14px;
+}
+
+
+.field-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  align-items: start;
+
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+
+.field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+
+.field-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+/* =====================================================
+   COMPACT MODE
+===================================================== */
+.booking-card-list.compact .booking-card {
+  padding: 14px;
+}
+
+.booking-card-list.compact .booking-client {
+  font-size: 14px;
+}
+
+.booking-card-list.compact .booking-contact {
+  font-size: 12px;
+}
+
+/* Hide dynamic fields in compact mode */
+.booking-card-list.compact .booking-dynamic-fields {
+  display: none;
+}
+
+/* =====================================================
+   STATUS BADGES
+===================================================== */
+/* =====================================================
+   STATUS COLORS (TEXT + BACKGROUND)
+===================================================== */
+/* =====================================================
+   STATUS PILLS — MATCHING YOUR STATUS NAMES
+===================================================== */
+.status-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  color: #ffffff;
+}
+
+/* Booking – TEAL */
+.status-Booking {
+  background: linear-gradient(135deg, #0f766e, #134e4a);
+}
+
+/* Pickup Pending – YELLOW */
+.status-pickupPending {
+  background: linear-gradient(135deg, #facc15, #ca8a04);
+  color: #1f2933; /* dark text for yellow */
+}
+
+/* Picked Up – BLUE */
+.status-pickup {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+/* Return Pending – ORANGE */
+.status-returnPending {
+  background: linear-gradient(135deg, #f97316, #9a3412);
+}
+
+/* Returned – GRAY */
+.status-return {
+  background: linear-gradient(135deg, #6b7280, #374151);
+}
+
+/* Successful – GREEN */
+.status-successful {
+  background: linear-gradient(135deg, #16a34a, #166534);
+}
+
+/* Cancelled – RED */
+.status-cancelled {
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+}
+
+/* Postponed – PURPLE */
+.status-postponed {
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+}
+
+/* =====================================================
+   ACTION BUTTONS
+===================================================== */
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  transition: all .2s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.25);
+}
+
+.icon-btn.whatsapp {
+  color: #16a34a;
+}
+
+.icon-btn.danger {
+  color: #dc2626;
+}
+
+/* =====================================================
+   EMPTY & LOADING
+===================================================== */
+.empty-state,
+.table-loading {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-muted);
+}
+/* =====================================================
+   CUSTOMIZE FIELDS DROPDOWN (PREMIUM)
+===================================================== */
+/* =====================================================
+   DESIGN TOKENS (CALM + PREMIUM)
+===================================================== */
+
+
+/* =====================================================
+   COLUMN SELECTOR BUTTON (NO DROPDOWN ANYMORE)
+===================================================== */
+.column-selector {
+  position: relative;
+}
+
+/* =====================================================
+   CENTERED CUSTOMIZE FIELDS MODAL
+===================================================== */
+
+/* Overlay */
+.field-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal panel */
+.field-modal {
+  background: #ffffff;
+  width: 720px;
+  max-width: 92vw;
+  max-height: 82vh;
+
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+
+  display: flex;
+  flex-direction: column;
+  animation: modalPop 0.25s ease-out;
+}
+
+/* Entrance animation */
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header */
+.field-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Close button */
+.close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+}
+
+/* Body */
+.field-modal-body {
+  padding: 22px 24px; /* 👈 more breathing space */
+  overflow-y: auto;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* 👈 wider cards */
+  gap: 12px;
+}
+
+/* =====================================================
+   FIELD OPTIONS (REUSED & ENHANCED)
+===================================================== */
+
+.column-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.column-option:hover {
+  background: #f1f5f9;
+}
+
+/* Checkbox */
+.column-option input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 2px solid #cbd5f5;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* Checked */
+.column-option input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: #4f46e5;
+}
+
+.column-option input[type="checkbox"]:checked::after {
+  content: "✓";
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Label */
+.column-option span {
+  text-transform: none; /* 👈 stop shouting */
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+
+/* =====================================================
+   MODAL SCROLLBAR
+===================================================== */
+.field-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.field-modal-body::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 10px;
+}
+
+.field-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+.meta-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+.booking-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* 👈 THIS creates the space */
+}
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* 👈 this creates the space */
+}
+
+.booking-card::after {
+  pointer-events: none;
+}

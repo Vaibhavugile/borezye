@@ -1,0 +1,208 @@
+.card1-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Spacing between card1s */
+  margin: 0; /* Remove all margins */
+  padding: 0; /* Remove all paddings */
+}
+
+.card1-wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%; /* Full width */
+  margin: 0; /* No margin on left or right */
+  align-items: stretch; 
+}
+
+
+.card1 {
+  background: #EEF8FF;
+  border: 0.5px solid #164DC3;
+  border-radius: 10px;
+  padding: 2px;
+  flex: 1; /* Allows card1 to take full width */
+  text-align: left;
+  margin: 0; /* Remove any left margin */
+  width: 100%; /* Ensure the card1 takes full width */
+  box-sizing: border-box; /* Include padding and border in width */
+}
+
+.dashboard-content {
+  margin: 0; /* Remove margins */
+  padding: 0; /* Remove paddings */
+  
+}
+
+
+h2, p {
+  margin-left: 0; /* Align heading and paragraph to the left */
+  padding-left: 10px; /* Optional: Slight padding for readability */
+}
+.action-box {
+  margin-left: 2%;
+
+  position: relative; /* Adjust positioning if needed */
+  width: 5%;
+  background: #E8E8E8;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column; /* Stack icons vertically */
+  align-items: center; /* Center icons horizontally */
+  justify-content: center; /* Center icons vertically */
+  gap: 20px; /* Spacing between icons */
+}
+
+.action-box label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px; /* Adjust icon size */
+  color: #757575; /* Default icon color */
+  transition: color 0.3s ease; /* Smooth hover effect */
+}
+
+.action-box label:hover {
+  color: #000; /* Darker color on hover */
+}
+
+.action-box1 {
+  margin-left: 1%;
+  position: relative; /* Adjust positioning if needed */
+  width: 5%;
+  background: #FFB9B9;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column; /* Stack icons vertically */
+  align-items: center; /* Center icons horizontally */
+  justify-content: center; /* Center icons vertically */
+  gap: 10px; /* Spacing between icons */
+}
+
+.action-box1 label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px; /* Adjust icon size */
+  color: #757575; /* Default icon color */
+  transition: color 0.3s ease; /* Smooth hover effect */
+}
+
+.action-box1 label:hover {
+  color: #000; /* Darker color on hover */
+}
+.toolbar-container6 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  position: relative;
+  right: 20px;
+}
+
+/* Styles for search bar container */
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 33px;
+  background-color: white;
+  border: 1px solid #A39D9D;
+  border-radius: 5px;
+  overflow: hidden;
+  width: 260px;
+}
+
+/* Styles for the search input */
+.search-bar-container input {
+  padding: 10px;
+  width: 100px;
+  border: none;
+  outline: none;
+  font-family: 'Public Sans', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: #666666;
+  background-color: transparent;
+}
+
+/* Styles for the search dropdown */
+.search-dropdown {
+  padding: 25px;
+  width: 150px;
+  border: none;
+  outline: none;
+  font-family: 'Public Sans', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: #2d2c2c;
+  background-color: transparent;
+  cursor: pointer;
+  appearance: none;
+  border-left: 1px solid #A39D9D;
+}
+
+/* Align the search icon */
+.search-icon {
+  position: absolute;
+  left:0px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+
+
+
+.import-button,
+.export-button{
+  background-color: #164DC3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  
+}
+
+
+.import-button svg,
+.export-button svg,
+.add-product-button svg {
+  margin-right: 5px;
+}
+
+.add-product-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+
+/* Create Branch Button */
+.create-branch-container {
+  height: 33px;
+}
+
+.create-branch-container button {
+  height: 33px;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  font-family: 'Public Sans', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #FFFFFF;
+  cursor: pointer;
+  width: 133px;
+}

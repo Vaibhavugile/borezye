@@ -1,0 +1,34 @@
+/* Container for each row of form fields */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Adjust the gap between columns as needed */
+  margin-bottom: 20px; /* Space between rows */
+}
+
+/* Each form group within a row */
+.form-group {
+  flex: 1 1 48%; /* Allows two items per row with some gap */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label styling */
+.form-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* Input field styling */
+.form-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .form-group {
+    flex: 1 1 100%; /* Stack fields vertically on smaller screens */
+  }
+}
