@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../firebaseConfig';
-import { collection, doc, addDoc, getDoc, query, getDocs, orderBy, writeBatch, where, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, doc, addDoc, getDoc, query, getDocs, orderBy, writeBatch, where, setDoc, updateDoc, arrayUnion,setDocs } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL, listAll } from "firebase/storage";
 import { Await, useNavigate } from 'react-router-dom';
 import UserHeader from '../../UserDashboard/UserHeader';
@@ -9,6 +9,7 @@ import { useUser } from '../../Auth/UserContext';
 import { toast, ToastContainer } from 'react-toastify'; // Import react-toastify
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS for react-toastify
 import { FaSearch, FaDownload, FaUpload, FaPlus, FaEdit, FaTrash, FaCopy } from 'react-icons/fa';
+import { serverTimestamp } from "firebase/firestore";
 import "../Availability/Booking.css"
 
 function Booking() {
@@ -920,7 +921,81 @@ newProducts[index].allBookings = allBookings;
           toast.error('Error updating credit note: Credit note not found.');
         }
       }
+      // Create Payment Document for Reports
+const paymentRef = doc(
+  db,
+  `products/${userData.branchCode}/payments`,
+  receiptNumber
+);
 
+await setDoc(paymentRef, {
+
+  // Receipt + Branch
+  receiptNumber: receiptNumber,
+  branchCode: userData.branchCode,
+
+  // Client Info
+  clientName: userDetails.name || "",
+  contact: userDetails.contact || "",
+
+  // Booking Dates (earliest pickup + latest return across products)
+  pickupDate: new Date(
+    Math.min(...products.map(p => new Date(p.pickupDate)))
+  ),
+
+  returnDate: new Date(
+    Math.max(...products.map(p => new Date(p.returnDate)))
+  ),
+
+  // Totals
+  grandTotalRent: Number(userDetails.grandTotalRent || 0),
+  grandTotalDeposit: Number(userDetails.grandTotalDeposit || 0),
+
+  // Discounts
+  discountOnRent: Number(userDetails.discountOnRent || 0),
+  discountOnDeposit: Number(userDetails.discountOnDeposit || 0),
+
+  // Final Charges
+  finalRent: Number(userDetails.finalrent || 0),
+  finalDeposit: Number(userDetails.finaldeposite || 0),
+
+  // Payment Summary
+  totalAmount: Number(userDetails.totalamounttobepaid || 0),
+  amountPaid: Number(userDetails.amountpaid || 0),
+  balance: Number(userDetails.balance || 0),
+
+  // Payment Status
+  paymentStatus: userDetails.paymentstatus || "pending",
+
+  // Payment Methods
+  firstPaymentMode: userDetails.firstpaymentmode || "",
+  firstPaymentDetails: userDetails.firstpaymentdtails || "",
+
+  secondPaymentMode: userDetails.secondpaymentmode || "",
+  secondPaymentDetails: userDetails.secondpaymentdetails || "",
+
+  // Credit Applied
+  appliedCredit: Number(appliedCredit || 0),
+
+  // Booking Stage
+  bookingStage: userDetails.stage || "Booking",
+
+  // Optional Notes
+  specialNote: userDetails.specialnote || "",
+
+  // Products summary for reports
+  productsSummary: products.map(p => ({
+    productCode: p.productCode || "",
+    productName: p.productName || "",
+    quantity: Number(p.quantity || 0),
+    rent: Number(p.price || 0),
+    deposit: Number(p.deposit || 0)
+  })),
+
+  // Timestamp
+  createdAt: serverTimestamp()
+
+});
 
       // Set payment confirmation state and redirect
       setIsPaymentConfirmed(true);

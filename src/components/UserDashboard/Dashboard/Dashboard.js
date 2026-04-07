@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc  } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import './Dahboard.css';
 import { useUser } from '../../Auth/UserContext';
@@ -29,6 +29,118 @@ const Dashboard = () => {
 
   const handleSidebarToggle = () => setSidebarOpen(!sidebarOpen);
 
+
+const generatePaymentsFromOldBookings = async () => {
+
+  try {
+
+    const snapshot = await getDocs(collectionGroup(db, "bookings"));
+
+    const receipts = {};
+
+    snapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+      const receiptNumber = data.receiptNumber;
+
+      if (!receiptNumber) return;
+
+      const details = data.userDetails || {};
+
+      // Extract branchCode safely
+      const branchCode =
+        details.branchCode ||
+        receiptNumber.split("-")[0] ||
+        "";
+
+      // Create receipt entry if it doesn't exist
+      if (!receipts[receiptNumber]) {
+
+        receipts[receiptNumber] = {
+
+          receiptNumber: receiptNumber,
+          branchCode: branchCode,
+
+          clientName: details.name || "",
+          contact: details.contact || "",
+
+          pickupDate: data.pickupDate || null,
+          returnDate: data.returnDate || null,
+
+          grandTotalRent: Number(details.grandTotalRent || 0),
+          grandTotalDeposit: Number(details.grandTotalDeposit || 0),
+
+          discountOnRent: Number(details.discountOnRent || 0),
+          discountOnDeposit: Number(details.discountOnDeposit || 0),
+
+          finalRent: Number(details.finalrent || 0),
+          finalDeposit: Number(details.finaldeposite || 0),
+
+          totalAmount: Number(details.totalamounttobepaid || 0),
+          amountPaid: Number(details.amountpaid || 0),
+          balance: Number(details.balance || 0),
+
+          paymentStatus: details.paymentstatus || "",
+
+          firstPaymentMode: details.firstpaymentmode || "",
+          firstPaymentDetails: details.firstpaymentdtails || "",
+
+          secondPaymentMode: details.secondpaymentmode || "",
+          secondPaymentDetails: details.secondpaymentdetails || "",
+
+          bookingStage: details.stage || "",
+
+          appliedCredit: Number(data.appliedCredit || 0),
+
+          createdAt: data.createdAt || null,
+
+          productsSummary: []
+        };
+      }
+
+      // Add product to productsSummary
+      receipts[receiptNumber].productsSummary.push({
+        productCode: data.productCode || "",
+        quantity: Number(data.quantity || 0),
+        rent: Number(data.price || 0),
+        deposit: Number(data.deposit || 0)
+      });
+
+    });
+
+
+    // Write payments to Firestore
+    for (const receiptNumber in receipts) {
+
+      const paymentData = receipts[receiptNumber];
+
+      const paymentRef = doc(
+        db,
+        `products/${paymentData.branchCode}/payments`,
+        receiptNumber
+      );
+
+      // 🔴 IMPORTANT: Skip if payment already exists
+      const paymentDoc = await getDoc(paymentRef);
+
+      if (paymentDoc.exists()) {
+        console.log(`Skipping existing payment: ${receiptNumber}`);
+        continue;
+      }
+
+      await setDoc(paymentRef, paymentData);
+
+      console.log(`Created payment: ${receiptNumber}`);
+
+    }
+
+    console.log("✅ Payment migration completed successfully");
+
+  } catch (error) {
+    console.error("Migration error:", error);
+  }
+
+};
   /* ================= HELPERS ================= */
 
   const isSameDay = (d1, d2) =>
@@ -236,6 +348,7 @@ const handleShowFilteredBookings = (type) => {
         onMenuClick={handleSidebarToggle}
         isSidebarOpen={sidebarOpen}
       />
+      
 
       {/* =======================
           TODAY'S REPORT
@@ -245,7 +358,9 @@ const handleShowFilteredBookings = (type) => {
           <h4 >Today’s Overview</h4>
           <p className="section-subtitle">Live booking performance</p>
         </header>
-
+<button onClick={generatePaymentsFromOldBookings}>
+Generate Previous Payments
+</button>
         <div className="kpi-grid">
           <div
             className="kpi-card primary"

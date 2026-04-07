@@ -216,7 +216,80 @@
 .prd-meta strong {
   color: var(--text-main);
 }
+.prd-table-section{
+background:#fff;
+padding:20px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
 
+.prd-table-wrapper{
+overflow-x:auto;
+}
+.prd-sort-box{
+margin-left:10px;
+}
+
+.prd-sort-select{
+padding:8px 12px;
+border-radius:8px;
+border:1px solid #e5e7eb;
+background:#fff;
+font-size:14px;
+}
+
+.prd-table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+.prd-table thead{
+background:#f8fafc;
+}
+
+.prd-table th{
+padding:12px;
+text-align:left;
+border-bottom:1px solid #e5e7eb;
+color:#64748b;
+}
+
+.prd-table td{
+padding:12px;
+border-bottom:1px solid #f1f5f9;
+}
+
+.prd-table tr:hover{
+background:#f9fafb;
+}
+
+.prd-table-image{
+width:45px;
+height:45px;
+object-fit:cover;
+border-radius:8px;
+}
+
+.prd-table-code{
+font-family:monospace;
+background:#f1f5f9;
+padding:4px 8px;
+border-radius:6px;
+}
+
+.prd-table-bookings{
+font-weight:700;
+color:#2563eb;
+}
+
+.prd-table-actions button{
+background:none;
+border:none;
+cursor:pointer;
+margin-right:8px;
+font-size:16px;
+}
 /* PRICE */
 .prd-price {
   display: flex;

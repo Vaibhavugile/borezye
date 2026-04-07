@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
-import { db } from '../../firebaseConfig';
+import { collection, collectionGroup, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';import { db } from '../../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 import './Product.css';
@@ -33,8 +32,10 @@ const ProductDashboard = () => {
   const [customFields, setCustomFields] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [zipping, setZipping] = useState(false);
+  const [productBookingCounts, setProductBookingCounts] = useState({});
   const [zipProgress, setZipProgress] = useState({ stage: 'idle', done: 0, total: 0 });
 const [zipUploading, setZipUploading] = useState(false);
+const [sortBy, setSortBy] = useState("bookings");
 
 
   // Firebase Storage
@@ -70,7 +71,48 @@ const [zipUploading, setZipUploading] = useState(false);
     };
     fetchProductsData();
   }, [userData]);
+useEffect(() => {
 
+  const fetchBookingCounts = async () => {
+
+    if (!userData?.branchCode) return;
+
+    try {
+
+      const snapshot = await getDocs(collectionGroup(db, "bookings"));
+
+      const counts = {};
+
+      snapshot.docs.forEach((docSnap) => {
+
+        const data = docSnap.data();
+
+        // path example:
+        // products/BR001/products/CAM01/bookings/booking123
+        const pathParts = docSnap.ref.path.split("/");
+
+        const branchCodeFromPath = pathParts[1];
+        const productCode = pathParts[3];
+
+        if (branchCodeFromPath !== userData.branchCode) return;
+
+        const quantity = parseInt(data.quantity || 1);
+
+        counts[productCode] = (counts[productCode] || 0) + quantity;
+
+      });
+
+      setProductBookingCounts(counts);
+
+    } catch (error) {
+      console.error("Booking count error:", error);
+    }
+
+  };
+
+  fetchBookingCounts();
+
+}, [userData]);
   // --- Search Logic ---
   const handleSearch = () => {
     const lowerCaseQuery = searchQuery.toLowerCase();
@@ -553,6 +595,29 @@ const handleImport = (event) => {
     setZipProgress({ done: 0, total: 0 });
   }
 };
+const sortedProducts = [...products].sort((a, b) => {
+
+  const aBookings = productBookingCounts[a.productCode] || 0;
+  const bBookings = productBookingCounts[b.productCode] || 0;
+
+  if (sortBy === "bookings") {
+    return bBookings - aBookings;
+  }
+
+  if (sortBy === "rent") {
+    return (b.price || 0) - (a.price || 0);
+  }
+
+  if (sortBy === "quantity") {
+    return (b.quantity || 0) - (a.quantity || 0);
+  }
+
+  if (sortBy === "name") {
+    return a.productName.localeCompare(b.productName);
+  }
+
+  return 0;
+});
 
 
 
@@ -666,100 +731,127 @@ const handleImport = (event) => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <div className="prd-sort-box">
+
+<select
+  value={sortBy}
+  onChange={(e) => setSortBy(e.target.value)}
+  className="prd-sort-select"
+>
+
+<option value="bookings">Sort by Bookings</option>
+<option value="rent">Sort by Rent</option>
+<option value="quantity">Sort by Quantity</option>
+<option value="name">Sort by Name</option>
+
+</select>
+
+</div>
 
           <span className="prd-muted-text">
             Showing {products.length} of {allProducts.length}
           </span>
+
         </section>
 
         {/* ================= PRODUCT GRID ================= */}
-        <section className="prd-grid">
-          {loading ? (
-            <div className="prd-loading-state">Loading products…</div>
-          ) : products.length === 0 ? (
-            <div className="prd-empty-state">No products found.</div>
-          ) : (
-            products.map((product) => (
-              <div key={product.id} className="prd-item-card">
-                {/* Image */}
-                <div className="prd-item-image">
-                  <img
-  loading="lazy"
-  src={
-    Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-      ? product.imageUrls[0]
-      : product.imageUrl
-  }
-  alt={product.productName}
-/>
+       {/* ================= PRODUCT TABLE ================= */}
 
-                </div>
+<section className="prd-table-section">
 
-                {/* Content */}
-                <div className="prd-item-body">
-                  <h3>{product.productName}</h3>
-                  <p className="prd-code">{product.productCode}</p>
+<div className="prd-table-wrapper">
 
-                  <div className="prd-meta">
-                    <span>
-                      Qty <strong>{product.quantity}</strong>
-                    </span>
-                    <span>
-                      Brand <strong>{product.brandName}</strong>
-                    </span>
-                  </div>
+<table className="prd-table">
 
-                  <div className="prd-price">
-                    <div>
-                      <small>Rent</small>
-                      <strong>₹{product.price}</strong>
-                    </div>
-                    <div>
-                      <small>Deposit</small>
-                      <strong>₹{product.deposit}</strong>
-                    </div>
-                  </div>
+<thead>
 
-                  {customFields.length > 0 && (
-                    <div className="prd-custom-fields">
-                      {customFields.map((field) => (
-                        <span key={field}>
-                          {product.customFields?.[field] || "-"}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+<tr>
+<th>#</th>
+<th>Product</th>
+<th>Code</th>
+<th>Brand</th>
+<th>Qty</th>
+<th>Rent</th>
+<th>Deposit</th>
+<th>Bookings</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
 
-                {/* Actions */}
-                <div className="prd-item-actions">
-                  <button onClick={() => handlecopy(product)} title="Copy">
-                    <FaCopy />
-                  </button>
+</thead>
 
-                  {userData?.role !== "Subuser" && (
-                    <button
-                      onClick={() => handleEdit(product.id)}
-                      title="Edit"
-                    >
-                      <FaEdit />
-                    </button>
-                  )}
+<tbody>
 
-                  {userData?.role !== "Subuser" && (
-                    <button
-                      className="danger"
-                      onClick={() => handleDelete(product.id)}
-                      title="Delete"
-                    >
-                      <FaTrash />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </section>
+{sortedProducts.map((product, index) => {
+
+const bookings = productBookingCounts[product.productCode] || 0;
+
+let status = "Normal";
+
+if (bookings > 30) status = "🔥 Top";
+else if (bookings > 10) status = "⭐ Popular";
+
+return (
+
+<tr key={product.id}>
+
+<td>{index + 1}</td>
+
+
+
+<td>{product.productName}</td>
+
+<td className="prd-table-code">
+{product.productCode}
+</td>
+
+<td>{product.brandName}</td>
+
+<td>{product.quantity}</td>
+
+<td>₹{product.price}</td>
+
+<td>₹{product.deposit}</td>
+
+<td className="prd-table-bookings">
+{bookings}
+</td>
+
+<td>{status}</td>
+
+<td className="prd-table-actions">
+
+<button onClick={() => handlecopy(product)}>
+<FaCopy />
+</button>
+
+{userData?.role !== "Subuser" && (
+<button onClick={() => handleEdit(product.id)}>
+<FaEdit />
+</button>
+)}
+
+{userData?.role !== "Subuser" && (
+<button onClick={() => handleDelete(product.id)}>
+<FaTrash />
+</button>
+)}
+
+</td>
+
+</tr>
+
+);
+
+})}
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
 
         {/* ================= PAGINATION SLOT ================= */}
         {/* 
