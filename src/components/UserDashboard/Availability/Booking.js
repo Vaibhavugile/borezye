@@ -996,6 +996,33 @@ await setDoc(paymentRef, {
   createdAt: serverTimestamp()
 
 });
+// 🔹 Create first payment transaction (tx1)
+
+const firstPaymentAmount = Number(userDetails.amountpaid || 0);
+
+if (firstPaymentAmount > 0) {
+
+  const transactionDocRef = doc(
+    db,
+    `products/${userData.branchCode}/payments/${receiptNumber}/transactions`,
+    "tx1"
+  );
+
+  await setDoc(transactionDocRef, {
+
+    amount: firstPaymentAmount, // amount paid during booking
+    mode: userDetails.firstpaymentmode || "",
+    details: userDetails.firstpaymentdtails || "",
+
+    paymentNumber: 1,
+    type: "bookingPayment",
+
+    createdAt: serverTimestamp(),
+    createdBy: userData.name || "System"
+
+  });
+
+}
 
       // Set payment confirmation state and redirect
       setIsPaymentConfirmed(true);

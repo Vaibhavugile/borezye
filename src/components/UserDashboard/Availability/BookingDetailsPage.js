@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, updateDoc, doc, arrayUnion, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, arrayUnion, getDoc, addDoc,setDoc
+  } from 'firebase/firestore';
 import backIcon from '../../../assets/arrowiosback_111116.png';
 import { db } from '../../../firebaseConfig';
 import './BookingDetailsPage.css';
@@ -59,7 +60,7 @@ const BookingDetailsPage = () => {
   const navigate = useNavigate(); // Initialize navigate
   const { userData } = useUser(); // Access userData from the context
 const [searchParams] = useSearchParams();
-
+const [paymentTransactions, setPaymentTransactions] = useState([]);
   // State for editing specific fields
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingPayment, setIsEditingPayment] = useState(false);
@@ -68,7 +69,10 @@ const [searchParams] = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-
+const [isAddingPayment, setIsAddingPayment] = useState(false);
+const [newPaymentAmount, setNewPaymentAmount] = useState("");
+const [newPaymentMode, setNewPaymentMode] = useState("");
+const [newPaymentDetails, setNewPaymentDetails] = useState("");
   const [isEditingSecondPayment, setIsEditingSecondPayment] = useState(false);
   const [secondPaymentMode, setSecondPaymentMode] = useState('');
   const [secondPaymentDetails, setSecondPaymentDetails] = useState('');
@@ -84,6 +88,11 @@ const [searchParams] = useSearchParams();
   const [source, setSource] = useState('');
   const [customerBy, setCustomerBy] = useState('');
   const [receiptBy, setReceiptBy] = useState('');
+  const [isReturningDeposit, setIsReturningDeposit] = useState(false);
+
+const [refundAmount, setRefundAmount] = useState("");
+const [refundMode, setRefundMode] = useState("");
+const [refundDetails, setRefundDetails] = useState("");
 
   // Payment Details State
   const [grandTotalRent, setGrandTotalRent] = useState('');
@@ -100,7 +109,7 @@ const [searchParams] = useSearchParams();
   const [firstPaymentMode, setFirstPaymentMode] = useState('');
   const [branchName, setBranchName] = useState('');
   const activityLogs = bookings[0]?.activityLog || [];
-
+const [paymentDoc, setPaymentDoc] = useState(null);
   const location = useLocation();
   const isDeleted = location.state?.isDeleted || false;
   useEffect(() => {
@@ -214,7 +223,35 @@ const [searchParams] = useSearchParams();
 
     fetchBranchName();
   }, [userData?.branchCode]);
+useEffect(() => {
 
+  const fetchPaymentDoc = async () => {
+
+    if (!userData?.branchCode || !receiptNumber) return;
+
+    try {
+
+      const paymentRef = doc(
+        db,
+        `products/${userData.branchCode}/payments`,
+        receiptNumber
+      );
+
+      const paymentSnap = await getDoc(paymentRef);
+
+      if (paymentSnap.exists()) {
+        setPaymentDoc(paymentSnap.data());
+      }
+
+    } catch (error) {
+      console.error("Error fetching payment doc:", error);
+    }
+
+  };
+
+  fetchPaymentDoc();
+
+}, [receiptNumber, userData?.branchCode]);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -244,7 +281,39 @@ const [searchParams] = useSearchParams();
     fetchTemplates();
   }, [userData?.branchCode]);
 
+useEffect(() => {
 
+  const fetchTransactions = async () => {
+
+    if (!userData?.branchCode || !receiptNumber) return;
+
+    try {
+
+      const transactionsRef = collection(
+        db,
+        `products/${userData.branchCode}/payments/${receiptNumber}/transactions`
+      );
+
+      const q = query(transactionsRef, orderBy("paymentNumber", "asc"));
+
+      const snapshot = await getDocs(q);
+
+      const transactions = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      setPaymentTransactions(transactions);
+
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+
+  };
+
+  fetchTransactions();
+
+}, [receiptNumber, userData?.branchCode]);
   // Prevent background scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = isModalOpen ? "hidden" : "auto";
@@ -519,7 +588,164 @@ const [searchParams] = useSearchParams();
     sendWhatsAppMessage(contactNo, message);
     setIsModalOpen(false);
   };
+const handleAddPayment = async () => {
 
+  try {
+
+    const amount = Number(newPaymentAmount);
+
+    if (!amount) {
+      toast.error("Enter payment amount");
+      return;
+    }
+
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const transactionsRef = collection(
+      db,
+      `products/${userData.branchCode}/payments/${receiptNumber}/transactions`
+    );
+
+    // 🔹 Calculate new totals
+    const newPaid = Number(paymentDoc?.amountPaid || 0) + amount;
+    const newBalance = Number(paymentDoc?.totalAmount || 0) - newPaid;
+
+    // 🔹 Get existing transactions
+    const snapshot = await getDocs(transactionsRef);
+
+    // 🔹 Determine next payment number
+    const nextPaymentNumber = snapshot.size + 1;
+
+    const transactionId = `tx${nextPaymentNumber}`;
+
+    const transactionDocRef = doc(
+      db,
+      `products/${userData.branchCode}/payments/${receiptNumber}/transactions`,
+      transactionId
+    );
+
+    // 🔹 Create transaction
+    await setDoc(transactionDocRef, {
+
+      amount: amount,
+      mode: newPaymentMode,
+      details: newPaymentDetails,
+
+      paymentNumber: nextPaymentNumber,
+
+      createdAt: serverTimestamp(),
+      createdBy: userData.name
+
+    });
+
+    // 🔹 Update main payment doc
+    await updateDoc(paymentRef, {
+
+      amountPaid: newPaid,
+      balance: newBalance
+
+    });
+
+    // 🔹 Create activity log
+    const newLogEntry = {
+      action: `Payment Added ₹${amount} via ${newPaymentMode}`,
+      timestamp: new Date().toISOString(),
+      updatedby: userData.name
+    };
+
+    const batch = writeBatch(db);
+
+    bookings.forEach((booking) => {
+
+      const bookingRef = doc(
+        db,
+        `products/${userData.branchCode}/products/${booking.productId}/bookings`,
+        booking.id
+      );
+
+      batch.update(bookingRef, {
+        "userDetails.amountpaid": newPaid,
+        "userDetails.balance": newBalance,
+        activityLog: arrayUnion(newLogEntry)
+      });
+
+    });
+
+    await batch.commit();
+
+    toast.success("Payment added successfully");
+
+    // 🔹 Reset form
+    setIsAddingPayment(false);
+    setNewPaymentAmount("");
+    setNewPaymentMode("");
+    setNewPaymentDetails("");
+
+  } catch (error) {
+
+    console.error(error);
+    toast.error("Failed to add payment");
+
+  }
+
+};
+const handleReturnDeposit = async () => {
+
+try {
+
+const amount = Number(refundAmount);
+
+if(!amount){
+toast.error("Enter refund amount");
+return;
+}
+
+const transactionsRef = collection(
+db,
+`products/${userData.branchCode}/payments/${receiptNumber}/transactions`
+);
+
+const snapshot = await getDocs(transactionsRef);
+
+const nextPaymentNumber = snapshot.size + 1;
+
+const transactionDocRef = doc(
+db,
+`products/${userData.branchCode}/payments/${receiptNumber}/transactions`,
+`tx${nextPaymentNumber}`
+);
+
+await setDoc(transactionDocRef,{
+
+amount,
+mode: refundMode,
+details: refundDetails,
+paymentNumber: nextPaymentNumber,
+type:"depositReturn",
+createdAt: serverTimestamp(),
+createdBy: userData.name
+
+});
+
+toast.success("Deposit refunded");
+
+setRefundAmount("");
+setRefundMode("");
+setRefundDetails("");
+setIsReturningDeposit(false);
+
+}catch(error){
+
+console.error(error);
+toast.error("Refund failed");
+
+}
+
+};
 
   // Handle contact number selection
 
@@ -800,105 +1026,279 @@ const [searchParams] = useSearchParams();
 
             {/* ================= PAYMENT DETAILS (ALL FIELDS) ================= */}
             <section className="card">
-              <div className="card-header">
-                <h3>Payment Details</h3>
-                {!isEditingPayment && userData?.role !== "Subuser" && (
-                  <button onClick={() => setIsEditingPayment(true)}>Edit</button>
-                )}
-              </div>
+  <div className="card-header">
+    <h3>Payment Details</h3>
 
-              {isEditingPayment ? (
-                <>
-                  <div className="info-row">
-                    <label>Grand Total Rent</label>
-                    <input value={grandTotalRent} onChange={(e) => setGrandTotalRent(e.target.value)} />
-                    <label>Grand Total Deposit</label>
-                    <input value={grandTotalDeposit} onChange={(e) => setGrandTotalDeposit(e.target.value)} />
-                  </div>
 
-                  <div className="info-row">
-                    <label>Discount on Rent</label>
-                    <input value={discountOnRent} onChange={(e) => setDiscountOnRent(e.target.value)} />
-                    <label>Discount on Deposit</label>
-                    <input value={discountOnDeposit} onChange={(e) => setDiscountOnDeposit(e.target.value)} />
-                  </div>
+    {!isEditingPayment && userData?.role !== "Subuser" && (
+      <button onClick={() => setIsEditingPayment(true)}>Edit</button>
+    )}
+  </div>
 
-                  <div className="info-row">
-                    <label>Final Rent</label>
-                    <input value={finalRent} onChange={(e) => setFinalRent(e.target.value)} />
-                    <label>Final Deposit</label>
-                    <input value={finalDeposit} onChange={(e) => setFinalDeposit(e.target.value)} />
-                  </div>
 
-                  <div className="info-row">
-                    <label>Amount To Be Paid</label>
-                    <input value={amountToBePaid} onChange={(e) => setAmountToBePaid(e.target.value)} />
-                    <label>Amount Paid</label>
-                    <input value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} />
-                  </div>
+  {isEditingPayment ? (
+    <>
+      <div className="info-row">
+        <label>Grand Total Rent</label>
+        <input value={grandTotalRent} onChange={(e) => setGrandTotalRent(e.target.value)} />
 
-                  <div className="info-row">
-                    <label>Balance</label>
-                    <input value={balance} onChange={(e) => setBalance(e.target.value)} />
-                    <label>Payment Status</label>
-                    <input value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} />
-                  </div>
+        <label>Grand Total Deposit</label>
+        <input value={grandTotalDeposit} onChange={(e) => setGrandTotalDeposit(e.target.value)} />
+      </div>
 
-                  <div className="info-row">
-                    <label>First Payment Details</label>
-                    <input value={firstPaymentDetails} onChange={(e) => setFirstPaymentDetails(e.target.value)} />
-                    <label>First Payment Mode</label>
-                    <input value={firstPaymentMode} onChange={(e) => setFirstPaymentMode(e.target.value)} />
-                  </div>
+      <div className="info-row">
+        <label>Discount on Rent</label>
+        <input value={discountOnRent} onChange={(e) => setDiscountOnRent(e.target.value)} />
 
-                  <div className="form-actions">
-                    <button onClick={handleSavePaymentDetails}>Save</button>
-                    <button onClick={() => setIsEditingPayment(false)}>Cancel</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="info-row">
-                    <p><strong>Grand Total Rent:</strong> ₹{userDetails.grandTotalRent || "N/A"}</p>
-                    <p><strong>Grand Total Deposit:</strong> ₹{userDetails.grandTotalDeposit || "N/A"}</p>
-                  </div>
+        <label>Discount on Deposit</label>
+        <input value={discountOnDeposit} onChange={(e) => setDiscountOnDeposit(e.target.value)} />
+      </div>
 
-                  <div className="info-row">
-                    <p><strong>Discount on Rent:</strong> ₹{userDetails.discountOnRent || "N/A"}</p>
-                    <p><strong>Discount on Deposit:</strong> ₹{userDetails.discountOnDeposit || "N/A"}</p>
-                  </div>
+      <div className="info-row">
+        <label>Final Rent</label>
+        <input value={finalRent} onChange={(e) => setFinalRent(e.target.value)} />
 
-                  <div className="info-row">
-                    <p><strong>Final Rent:</strong> ₹{userDetails.finalrent || "N/A"}</p>
-                    <p><strong>Final Deposit:</strong> ₹{userDetails.finaldeposite || "N/A"}</p>
-                  </div>
+        <label>Final Deposit</label>
+        <input value={finalDeposit} onChange={(e) => setFinalDeposit(e.target.value)} />
+      </div>
 
-                  <div className="info-row">
-                    <p><strong>Amount To Be Paid:</strong> ₹{userDetails.totalamounttobepaid || "N/A"}</p>
-                    <p><strong>Total Credits:</strong> ₹{userDetails.totalcredit || "N/A"}</p>
-                  </div>
+      <div className="info-row">
+        <label>Amount To Be Paid</label>
+        <input value={amountToBePaid} onChange={(e) => setAmountToBePaid(e.target.value)} />
 
-                  <div className="info-row">
-                    <p><strong>Amount Paid:</strong> ₹{userDetails.amountpaid || "N/A"}</p>
-                    <p><strong>Credit Used:</strong> ₹{userDetails.creditNoteAmountAppliedToRent || "N/A"}</p>
-                  </div>
+        <label>Amount Paid</label>
+        <input value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} />
+      </div>
 
-                  <div className="info-row">
-                    <p><strong>Balance:</strong> ₹{userDetails.balance || "N/A"}</p>
-                    <p><strong>Credit Balance:</strong> ₹{userDetails.Balance || "N/A"}</p>
-                  </div>
+      <div className="info-row">
+        <label>Balance</label>
+        <input value={balance} onChange={(e) => setBalance(e.target.value)} />
 
-                  <div className="info-row">
-                    <p><strong>Payment Status:</strong> {userDetails.paymentstatus || "N/A"}</p>
-                    <p><strong>First Payment Details:</strong> ₹{userDetails.firstpaymentdtails || "N/A"}</p>
-                  </div>
+        <label>Payment Status</label>
+        <input value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} />
+      </div>
 
-                  <div className="info-row">
-                    <p><strong>First Payment Mode:</strong> {userDetails.firstpaymentmode || "N/A"}</p>
-                  </div>
-                </>
-              )}
-            </section>
+      <div className="info-row">
+        <label>First Payment Details</label>
+        <input value={firstPaymentDetails} onChange={(e) => setFirstPaymentDetails(e.target.value)} />
+
+        <label>First Payment Mode</label>
+        <input value={firstPaymentMode} onChange={(e) => setFirstPaymentMode(e.target.value)} />
+      </div>
+
+      <div className="form-actions">
+        <button onClick={handleSavePaymentDetails}>Save</button>
+        <button onClick={() => setIsEditingPayment(false)}>Cancel</button>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="info-row">
+        <p><strong>Grand Total Rent:</strong> ₹{paymentDoc?.grandTotalRent || "N/A"}</p>
+        <p><strong>Grand Total Deposit:</strong> ₹{paymentDoc?.grandTotalDeposit || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Discount on Rent:</strong> ₹{paymentDoc?.discountOnRent || "N/A"}</p>
+        <p><strong>Discount on Deposit:</strong> ₹{paymentDoc?.discountOnDeposit || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Final Rent:</strong> ₹{paymentDoc?.finalRent || "N/A"}</p>
+        <p><strong>Final Deposit:</strong> ₹{paymentDoc?.finalDeposit || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Amount To Be Paid:</strong> ₹{paymentDoc?.totalAmount || "N/A"}</p>
+        <p><strong>Applied Credit:</strong> ₹{paymentDoc?.appliedCredit || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Amount Paid:</strong> ₹{paymentDoc?.amountPaid || "N/A"}</p>
+        <p><strong>Balance:</strong> ₹{paymentDoc?.balance || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Payment Status:</strong> {paymentDoc?.paymentStatus || "N/A"}</p>
+        <p><strong>First Payment Mode:</strong> {paymentDoc?.firstPaymentMode || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>First Payment Details:</strong> {paymentDoc?.firstPaymentDetails || "N/A"}</p>
+        <p><strong>Second Payment Mode:</strong> {paymentDoc?.secondPaymentMode || "N/A"}</p>
+      </div>
+
+      <div className="info-row">
+        <p><strong>Second Payment Details:</strong> {paymentDoc?.secondPaymentDetails || "N/A"}</p>
+      </div>
+    </>
+  )}
+</section>
+<section className="card">
+  <div className="payment-history-header">
+  <h3 className="payment-history-title">Payment History</h3>
+
+  <button
+    className="payment-history-add-btn"
+    onClick={() => setIsAddingPayment(true)}
+  >
+    Add Payment
+  </button>
+  <button
+  className="deposit-return-btn"
+  onClick={() => setIsReturningDeposit(true)}
+>
+  Return Deposit
+</button>
+</div>
+
+  {paymentTransactions.length === 0 ? (
+    <p>No payments recorded</p>
+  ) : (
+
+    <table className="product-table">
+      <thead>
+        <tr>
+          <th>Payment #</th>
+          <th>Mode</th>
+          <th>Amount</th>
+          <th>Details</th>
+          <th>CreatedBy</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {paymentTransactions.map((tx) => (
+
+          <tr key={tx.id}>
+<td>
+{tx.type === "depositReturn"
+  ? "Deposit Return"
+  : `Payment ${tx.paymentNumber}`}
+</td>
+            <td>{tx.mode || "N/A"}</td>
+<td className={tx.type === "depositReturn" ? "refund-amount" : ""}>
+₹{tx.amount}
+</td>
+<td className="payment-details-cell" title={tx.details}>
+  {tx.details || "-"}
+</td>      
+            <td>{tx.createdBy|| "N/A"}</td>
+
+   <td>{formatTimestamp(tx.createdAt)}</td>
+          </tr>
+
+        ))}
+
+      </tbody>
+    </table>
+
+  )}
+ {isAddingPayment && (
+  <div className="add-payment-card">
+
+    <h3 className="add-payment-title">Add Payment</h3>
+
+    <div className="add-payment-field">
+      <label className="add-payment-label">Amount</label>
+      <input
+        className="add-payment-input"
+        value={newPaymentAmount}
+        onChange={(e) => setNewPaymentAmount(e.target.value)}
+      />
+    </div>
+
+    <div className="add-payment-field">
+      <label className="add-payment-label">Mode</label>
+      <select
+        className="add-payment-select"
+        value={newPaymentMode}
+        onChange={(e) => setNewPaymentMode(e.target.value)}
+      >
+        <option value="">Select</option>
+        <option value="UPI">UPI</option>
+        <option value="Cash">Cash</option>
+        <option value="Card">Card</option>
+      </select>
+    </div>
+
+    <div className="add-payment-field">
+      <label className="add-payment-label">Details</label>
+      <input
+        className="add-payment-input"
+        value={newPaymentDetails}
+        onChange={(e) => setNewPaymentDetails(e.target.value)}
+      />
+    </div>
+
+    <div className="add-payment-actions">
+      <button className="add-payment-save" onClick={handleAddPayment}>
+        Save Payment
+      </button>
+
+      <button
+        className="add-payment-cancel"
+        onClick={() => setIsAddingPayment(false)}
+      >
+        Cancel
+      </button>
+    </div>
+
+  </div>
+)}
+{isReturningDeposit && (
+
+<div className="deposit-return-card">
+
+<h3>Return Deposit</h3>
+
+<div className="deposit-field">
+<label>Amount</label>
+<input
+value={refundAmount}
+onChange={(e)=>setRefundAmount(e.target.value)}
+/>
+</div>
+
+<div className="deposit-field">
+<label>Mode</label>
+<select
+value={refundMode}
+onChange={(e)=>setRefundMode(e.target.value)}
+>
+<option value="">Select</option>
+<option value="Cash">Cash</option>
+<option value="UPI">UPI</option>
+<option value="Bank">Bank Transfer</option>
+</select>
+</div>
+
+<div className="deposit-field">
+<label>Details</label>
+<input
+value={refundDetails}
+onChange={(e)=>setRefundDetails(e.target.value)}
+/>
+</div>
+
+<div className="deposit-actions">
+
+<button onClick={handleReturnDeposit}>
+Save Refund
+</button>
+
+<button onClick={()=>setIsReturningDeposit(false)}>
+Cancel
+</button>
+
+</div>
+
+</div>
+
+)}
+</section>
 
             {/* ================= CLIENT TYPE ================= */}
             <section className="card">

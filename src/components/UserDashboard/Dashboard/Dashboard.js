@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc  } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc  } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import './Dahboard.css';
 import { useUser } from '../../Auth/UserContext';
@@ -138,6 +138,117 @@ const generatePaymentsFromOldBookings = async () => {
 
   } catch (error) {
     console.error("Migration error:", error);
+  }
+
+};
+const migrateFirstPaymentTransactions = async () => {
+
+  try {
+
+    const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
+
+    for (const paymentDoc of paymentsSnapshot.docs) {
+
+      const paymentData = paymentDoc.data();
+      const receiptNumber = paymentData.receiptNumber;
+      const branchCode = paymentData.branchCode;
+
+      if (!receiptNumber || !branchCode) continue;
+
+      const transactionsRef = collection(
+        db,
+        `products/${branchCode}/payments/${receiptNumber}/transactions`
+      );
+
+      const existingTransactions = await getDocs(transactionsRef);
+
+      // skip if transactions already exist
+      if (!existingTransactions.empty) {
+        console.log(`Transactions already exist for ${receiptNumber}`);
+        continue;
+      }
+
+      const amount = Number(paymentData.amountPaid || 0);
+
+      if (amount <= 0) continue;
+
+      await addDoc(transactionsRef, {
+
+        amount: amount,
+        mode: paymentData.firstPaymentMode || "",
+        details: paymentData.firstPaymentDetails || "",
+
+        createdAt: paymentData.createdAt || serverTimestamp(),
+        createdBy: "Migration",
+
+        paymentNumber: 1
+
+      });
+
+      console.log(`Created tx1 for ${receiptNumber}`);
+
+    }
+
+    console.log("✅ Transaction migration completed");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const cleanupDuplicateTransactions = async () => {
+
+  try {
+
+    const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
+
+    for (const paymentDoc of paymentsSnapshot.docs) {
+
+      const paymentData = paymentDoc.data();
+      const branchCode = paymentData.branchCode;
+      const receiptNumber = paymentData.receiptNumber;
+
+      if (!branchCode || !receiptNumber) continue;
+
+      const transactionsRef = collection(
+        db,
+        `products/${branchCode}/payments/${receiptNumber}/transactions`
+      );
+
+      const snapshot = await getDocs(transactionsRef);
+
+      const seenPayments = new Set();
+
+      for (const docSnap of snapshot.docs) {
+
+        const data = docSnap.data();
+        const paymentNumber = data.paymentNumber;
+
+        if (seenPayments.has(paymentNumber)) {
+
+          // duplicate → delete
+          await deleteDoc(docSnap.ref);
+
+          console.log(`Deleted duplicate tx for ${receiptNumber}`);
+
+        } else {
+
+          seenPayments.add(paymentNumber);
+
+        }
+
+      }
+
+    }
+
+    console.log("✅ Cleanup completed");
+
+  } catch (error) {
+
+    console.error("Cleanup error:", error);
+
   }
 
 };
@@ -358,7 +469,10 @@ const handleShowFilteredBookings = (type) => {
           <h4 >Today’s Overview</h4>
           <p className="section-subtitle">Live booking performance</p>
         </header>
-<button onClick={generatePaymentsFromOldBookings}>
+{/* <button onClick={migrateFirstPaymentTransactions}>
+Generate Previous Payments
+</button> */}
+<button onClick={cleanupDuplicateTransactions}>
 Generate Previous Payments
 </button>
         <div className="kpi-grid">
