@@ -396,10 +396,26 @@ function Booking() {
 
       const querySnapshotLess = await getDocs(qLess);
       const querySnapshotGreater = await getDocs(qGreater);
+      const qAll = query(bookingsRef, orderBy("bookingId", "asc"));
+const querySnapshotAll = await getDocs(qAll);
 
       const bookingsLess = [];
       const bookingsGreater = [];
+const allBookings = [];
 
+
+querySnapshotAll.forEach((doc) => {
+  const bookingData = doc.data();
+
+  allBookings.push({
+    bookingId: bookingData.bookingId,
+    receiptNumber: bookingData.receiptNumber,
+    status: bookingData.userDetails?.stage || "booking",
+    pickupDate: bookingData.pickupDate.toDate(),
+    returnDate: bookingData.returnDate.toDate(),
+    quantity: bookingData.quantity,
+  });
+});
       querySnapshotLess.forEach((doc) => {
         const bookingData = doc.data();
         bookingsLess.push({
@@ -421,6 +437,8 @@ function Booking() {
           quantity: bookingData.quantity,
         });
       });
+
+      
 
       console.log('Bookings Less (Before Current Booking):', bookingsLess);
       console.log('Bookings Greater (After Current Booking):', bookingsGreater);
@@ -494,6 +512,7 @@ function Booking() {
       newProducts[index].errorMessage = ''; // Clear error message if successful
       newProducts[index].bookingsLess = bookingsLess;
 newProducts[index].bookingsGreater = bookingsGreater;
+newProducts[index].allBookings = allBookings;
       setProducts(newProducts);
 
     } catch (error) {
@@ -1248,46 +1267,35 @@ newProducts[index].bookingsGreater = bookingsGreater;
     )
   )}
 </div>
-{(product.bookingsLess?.length > 0 || product.bookingsGreater?.length > 0) && (
+{product.allBookings?.length > 0 && (
   <div className="existing-bookings">
+    <h4>All Bookings</h4>
 
-    <h4>Existing Bookings</h4>
+    {product.allBookings.map((booking, i) => (
+      <div key={i} className="booking-item">
 
-    {[...(product.bookingsLess || []), ...(product.bookingsGreater || [])].map((booking, i) => {
+        <span
+          className="booking-receipt clickable-receipt"
+          onClick={() => navigate(`/booking-details/${booking.receiptNumber}`)}
+        >
+          <strong>{booking.receiptNumber}</strong>
+        </span>
 
-      const status = booking.status?.toLowerCase() || "booking";
+        <span className={`status-badge status-${booking.status}`}>
+          {booking.status}
+        </span>
 
-      return (
-        <div key={i} className="booking-item">
+        <span className="booking-qty">
+          Qty: {booking.quantity}
+        </span>
 
-          {/* Receipt Number */}
-         <span
-  className="booking-receipt clickable-receipt"
-  onClick={() => navigate(`/booking-details/${booking.receiptNumber}`)}
->
-  <strong>{booking.receiptNumber}</strong>
-</span>
+        <span className="booking-date">
+          {booking.pickupDate.toLocaleDateString()} →
+          {booking.returnDate.toLocaleDateString()}
+        </span>
 
-          {/* Status */}
-          <span className={`status-badge status-${status}`}>
-            {status}
-          </span>
-
-          {/* Quantity */}
-          <span className="booking-qty">
-            Qty: {booking.quantity}
-          </span>
-
-          {/* Date */}
-          <span className="booking-date">
-            {booking.pickupDate.toLocaleDateString()} → {booking.returnDate.toLocaleDateString()}
-          </span>
-
-        </div>
-      );
-
-    })}
-
+      </div>
+    ))}
   </div>
 )}
 

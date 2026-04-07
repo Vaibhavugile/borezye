@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {  ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
-import { db } from '../../firebaseConfig'; // Assuming you have Firebase initialized here
+import { db,storage } from '../../firebaseConfig'; // Assuming you have Firebase initialized here
 import { useUser } from '../Auth/UserContext'; // Assuming you're using a UserContext for branchCode
 import '../Product/Addproduct.css';
 import { FaPlus} from 'react-icons/fa';
@@ -88,16 +88,22 @@ function AddProduct() {
     e.preventDefault();
   
     try {
-      const storage = getStorage();
       const imageUrls = [];
-  
-      for (const image of images) {
-        const storageRef = ref(storage, `products/${branchCode}/${image.name}`);
-        await uploadBytes(storageRef, image);
-        const imageUrl = await getDownloadURL(storageRef);
-        imageUrls.push(imageUrl);
-      }
-  
+
+for (const image of images) {
+ const storageRef = ref(
+  storage,
+  `products/${branchCode}/${productCode}/${Date.now()}-${image.name}`
+);
+
+  await uploadBytes(storageRef, image, {
+  contentType: image.type
+});
+
+  const imageUrl = await getDownloadURL(storageRef);
+
+  imageUrls.push(imageUrl);
+}
       const productData = {
         productName,
         brandName,
@@ -157,8 +163,8 @@ function AddProduct() {
             Add new product
           </h2>
 
-      <form className="product-form">
-        <div className="general-info">
+<form className="product-form" onSubmit={handleSubmit}>
+          <div className="general-info">
         <div className='left'>
             <label className='pd'>Product Details</label>
           <label>Product Name</label>
@@ -199,13 +205,14 @@ function AddProduct() {
               </span>
             )}
           </div>
-          <input
-            type="file"
-            multiple
-            onChange={handleImageChange}
-            ref={imageInputRef}
-            style={{ display: 'none' }} // Hide file input
-          />
+         <input
+  type="file"
+  accept="image/*"
+  multiple
+  onChange={handleImageChange}
+  ref={imageInputRef}
+  style={{ display: 'none' }}
+/>
         </div>
 
        
@@ -254,8 +261,7 @@ function AddProduct() {
           <input value={brandName} onChange={(e) => setBrandName(e.target.value)} required />
           <div className="submit-button5" >
           <button onClick={() => navigate('/productdashboard')} type="button" className='can'>Cancel</button>
-          <button onClick={handleSubmit} className='pro'> Add Product</button>
-        </div>
+<button type="submit" className='pro'>Add Product</button>        </div>
           </div>
       </form>
     </div>
