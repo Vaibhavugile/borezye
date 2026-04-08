@@ -62,6 +62,8 @@ const BookingDetailsPage = () => {
 const [searchParams] = useSearchParams();
 const [paymentTransactions, setPaymentTransactions] = useState([]);
   // State for editing specific fields
+  const [paymentLocked, setPaymentLocked] = useState(false);
+const [refundLocked, setRefundLocked] = useState(false);
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingPayment, setIsEditingPayment] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -590,12 +592,17 @@ useEffect(() => {
   };
 const handleAddPayment = async () => {
 
+  if (paymentLocked) return;
+
+  setPaymentLocked(true);
+
   try {
 
     const amount = Number(newPaymentAmount);
 
     if (!amount) {
       toast.error("Enter payment amount");
+      setPaymentLocked(false);
       return;
     }
 
@@ -692,58 +699,75 @@ const handleAddPayment = async () => {
 
   }
 
+  // 🔹 Unlock button after 6 seconds
+  setTimeout(() => {
+    setPaymentLocked(false);
+  }, 6000);
+
 };
 const handleReturnDeposit = async () => {
 
-try {
+  if (refundLocked) return;
 
-const amount = Number(refundAmount);
+  setRefundLocked(true);
 
-if(!amount){
-toast.error("Enter refund amount");
-return;
-}
+  try {
 
-const transactionsRef = collection(
-db,
-`products/${userData.branchCode}/payments/${receiptNumber}/transactions`
-);
+    const amount = Number(refundAmount);
 
-const snapshot = await getDocs(transactionsRef);
+    if(!amount){
+      toast.error("Enter refund amount");
+      setRefundLocked(false);
+      return;
+    }
 
-const nextPaymentNumber = snapshot.size + 1;
+    const transactionsRef = collection(
+      db,
+      `products/${userData.branchCode}/payments/${receiptNumber}/transactions`
+    );
 
-const transactionDocRef = doc(
-db,
-`products/${userData.branchCode}/payments/${receiptNumber}/transactions`,
-`tx${nextPaymentNumber}`
-);
+    const snapshot = await getDocs(transactionsRef);
 
-await setDoc(transactionDocRef,{
+    const nextPaymentNumber = snapshot.size + 1;
 
-amount,
-mode: refundMode,
-details: refundDetails,
-paymentNumber: nextPaymentNumber,
-type:"depositReturn",
-createdAt: serverTimestamp(),
-createdBy: userData.name
+    const transactionDocRef = doc(
+      db,
+      `products/${userData.branchCode}/payments/${receiptNumber}/transactions`,
+      `tx${nextPaymentNumber}`
+    );
 
-});
+    await setDoc(transactionDocRef,{
 
-toast.success("Deposit refunded");
+      amount,
+      mode: refundMode,
+      details: refundDetails,
+      paymentNumber: nextPaymentNumber,
 
-setRefundAmount("");
-setRefundMode("");
-setRefundDetails("");
-setIsReturningDeposit(false);
+      type:"depositReturn",
 
-}catch(error){
+      createdAt: serverTimestamp(),
+      createdBy: userData.name
 
-console.error(error);
-toast.error("Refund failed");
+    });
 
-}
+    toast.success("Deposit refunded");
+
+    setRefundAmount("");
+    setRefundMode("");
+    setRefundDetails("");
+    setIsReturningDeposit(false);
+
+  } catch(error){
+
+    console.error(error);
+    toast.error("Refund failed");
+
+  }
+
+  // 🔒 unlock after 6 seconds
+  setTimeout(()=>{
+    setRefundLocked(false);
+  },6000);
 
 };
 
@@ -1234,9 +1258,13 @@ toast.error("Refund failed");
     </div>
 
     <div className="add-payment-actions">
-      <button className="add-payment-save" onClick={handleAddPayment}>
-        Save Payment
-      </button>
+      <button
+  className="add-payment-save"
+  onClick={handleAddPayment}
+  disabled={paymentLocked}
+>
+{paymentLocked ? "Processing..." : "Save Payment"}
+</button>
 
       <button
         className="add-payment-cancel"
@@ -1285,8 +1313,11 @@ onChange={(e)=>setRefundDetails(e.target.value)}
 
 <div className="deposit-actions">
 
-<button onClick={handleReturnDeposit}>
-Save Refund
+<button
+  onClick={handleReturnDeposit}
+  disabled={refundLocked}
+>
+{refundLocked ? "Processing..." : "Save Refund"}
 </button>
 
 <button onClick={()=>setIsReturningDeposit(false)}>

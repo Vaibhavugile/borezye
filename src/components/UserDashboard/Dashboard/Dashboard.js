@@ -143,59 +143,61 @@ const generatePaymentsFromOldBookings = async () => {
 };
 const migrateFirstPaymentTransactions = async () => {
 
-  try {
+try {
 
-    const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
+const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
 
-    for (const paymentDoc of paymentsSnapshot.docs) {
+for (const paymentDoc of paymentsSnapshot.docs) {
 
-      const paymentData = paymentDoc.data();
-      const receiptNumber = paymentData.receiptNumber;
-      const branchCode = paymentData.branchCode;
+const paymentData = paymentDoc.data();
+const receiptNumber = paymentData.receiptNumber;
+const branchCode = paymentData.branchCode;
 
-      if (!receiptNumber || !branchCode) continue;
+if (!receiptNumber || !branchCode) continue;
 
-      const transactionsRef = collection(
-        db,
-        `products/${branchCode}/payments/${receiptNumber}/transactions`
-      );
+const txRef = doc(
+db,
+`products/${branchCode}/payments/${receiptNumber}/transactions`,
+"tx1"
+);
 
-      const existingTransactions = await getDocs(transactionsRef);
+const existingTx = await getDoc(txRef);
 
-      // skip if transactions already exist
-      if (!existingTransactions.empty) {
-        console.log(`Transactions already exist for ${receiptNumber}`);
-        continue;
-      }
+if (existingTx.exists()) {
 
-      const amount = Number(paymentData.amountPaid || 0);
+console.log(`tx1 already exists for ${receiptNumber}`);
+continue;
 
-      if (amount <= 0) continue;
+}
 
-      await addDoc(transactionsRef, {
+const amount = Number(paymentData.amountPaid || 0);
 
-        amount: amount,
-        mode: paymentData.firstPaymentMode || "",
-        details: paymentData.firstPaymentDetails || "",
+if (amount <= 0) continue;
 
-        createdAt: paymentData.createdAt || serverTimestamp(),
-        createdBy: "Migration",
+await setDoc(txRef,{
 
-        paymentNumber: 1
+amount: amount,
+mode: paymentData.firstPaymentMode || "",
+details: paymentData.firstPaymentDetails || "",
 
-      });
+createdAt: paymentData.createdAt || serverTimestamp(),
+createdBy: "Migration",
 
-      console.log(`Created tx1 for ${receiptNumber}`);
+paymentNumber: 1
 
-    }
+});
 
-    console.log("✅ Transaction migration completed");
+console.log(`Created tx1 for ${receiptNumber}`);
 
-  } catch (error) {
+}
 
-    console.error("Migration error:", error);
+console.log("✅ Transaction migration completed");
 
-  }
+} catch (error) {
+
+console.error("Migration error:", error);
+
+}
 
 };
 const cleanupDuplicateTransactions = async () => {
@@ -469,12 +471,12 @@ const handleShowFilteredBookings = (type) => {
           <h4 >Today’s Overview</h4>
           <p className="section-subtitle">Live booking performance</p>
         </header>
-{/* <button onClick={migrateFirstPaymentTransactions}>
-Generate Previous Payments
-</button> */}
+{/* <button onClick={generatePaymentsFromOldBookings}>
+Generate Previous pay
+</button>
 <button onClick={cleanupDuplicateTransactions}>
 Generate Previous Payments
-</button>
+</button> */}
         <div className="kpi-grid">
           <div
             className="kpi-card primary"
