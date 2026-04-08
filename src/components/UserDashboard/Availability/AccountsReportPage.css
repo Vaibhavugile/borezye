@@ -1,184 +1,123 @@
-/* AccountsReportPage.css */
-
-.container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f9f9f9;
+.account-report-page{
+padding:25px;
 }
 
-.title {
-  text-align: center;
-  margin-bottom: 1rem;
-  color: #333;
+.report-page-title{
+font-size:22px;
+font-weight:600;
+margin-bottom:20px;
 }
 
-.subtitle {
-  font-size: 18px;
-  margin-bottom: 0.5rem;
-  color: #444;
+/* GRID */
+
+.report-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
 }
 
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
+/* CARD */
+
+.report-card{
+background:white;
+padding:18px;
+border-radius:10px;
+border:1px solid #e5e7eb;
+box-shadow:0 1px 2px rgba(0,0,0,0.04);
 }
 
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 15px;
-  border-bottom: 1px solid #eee;
+.report-card h4{
+font-size:13px;
+color:#6b7280;
+margin-bottom:6px;
 }
 
-.total-row:last-child {
-  border-bottom: none;
+.report-card p{
+font-size:20px;
+font-weight:600;
+color:#111827;
 }
 
-.amount {
-  font-weight: bold;
-  color: #1a73e8;
+/* COLORS */
+
+.report-card.rent{
+border-left:4px solid #6366f1;
 }
 
-.date-picker-wrapper {
-  margin-bottom: 1rem;
+.report-card.deposit{
+border-left:4px solid #06b6d4;
 }
 
-.date-label {
-  margin-right: 8px;
-  font-weight: 500;
+.report-card.total{
+border-left:4px solid #10b981;
 }
 
-.date-picker {
-  padding: 6px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+.report-card.collected{
+border-left:4px solid #22c55e;
 }
 
-.info-text {
-  padding: 0.5rem;
-  font-size: 14px;
-  color: #666;
+.report-card.balance{
+border-left:4px solid #f59e0b;
 }
 
-.payments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.report-card.returned{
+border-left:4px solid #ef4444;
 }
 
-.payment-entry {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  background: #fafafa;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px dashed #ccc;
-  font-size: 14px;
+.report-card.net{
+border-left:4px solid #8b5cf6;
 }
 
-.payment-badge {
-  padding: 4px 8px;
-  font-weight: 500;
-  border-radius: 6px;
-  text-align: right;
+/* LOADING */
+
+.report-loading{
+padding:40px;
+text-align:center;
+font-size:16px;
+}
+.report-filters{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+align-items:center;
+flex-wrap:wrap;
 }
 
-.payment-badge.rent {
-  color: #0a7f33;
-  background-color: #e6f4ea;
+.report-filters select,
+.report-filters input{
+padding:8px 10px;
+border-radius:6px;
+border:1px solid #ddd;
 }
 
-.payment-badge.deposit {
-  color: #1b4e9b;
-  background-color: #e8f0fe;
+.report-filters button{
+padding:8px 14px;
+border:none;
+background:#2563eb;
+color:white;
+border-radius:6px;
+cursor:pointer;
 }
 
-.payment-badge.negative {
-  color: #d93025;
-  background-color: #fdecea;
+.report-card{
+background:#fff;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 14px rgba(0,0,0,0.08);
+transition:0.2s;
 }
 
-.payment-table-wrapper {
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
+.report-card:hover{
+transform:translateY(-3px);
 }
 
-.payment-table {
-  width: 100%;
-  border-collapse: collapse;
+.report-card h4{
+margin-bottom:6px;
+font-size:14px;
+color:#666;
 }
 
-.payment-table-header {
-  display: flex;
-  background-color: #f5f5f5;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-}
-
-.payment-table-row {
-  display: flex;
-  border-bottom: 1px solid #eee;
-  padding: 8px 0;
-}
-
-.payment-column {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-}
-
-.payment-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.payment-badge.rent {
-  background-color: #e0f7fa;
-  color: #00796b;
-}
-
-.payment-badge.deposit {
-  background-color: #fff3e0;
-  color: #ef6c00;
-}
-.payment-table-footer {
-  display: flex;
-  font-weight: bold;
-  background-color: #f9f9f9;
-  border-top: 1px solid #ddd;
-}
-
-.total-label {
-  padding: 10px;
-  text-align: center;
-  background-color: #f0f0f0;
-}
-
-.total-amount {
-  padding: 10px;
-  text-align: center;
-}
-
-.total-amount.rent {
-  color: #00796b;
-}
-
-.total-amount.deposit {
-  color: #ef6c00;
-}
-.payment-badge.deposit.negative {
-    color: red;
-    font-weight: bold;
+.report-card p{
+font-size:20px;
+font-weight:600;
 }

@@ -1,372 +1,225 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../../../firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
-import { toast } from 'react-toastify';
-import { useUser } from '../../Auth/UserContext';
-import {  useNavigate } from 'react-router-dom';
-import backIcon from '../../../assets/arrowiosback_111116.png';
-
-import './AccountsReportPage.css';
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../../firebaseConfig";
+import "./AccountsReportPage.css";
+import { useUser } from "../../Auth/UserContext";
 
 const AccountPage = () => {
-    const { userData } = useUser();
-    const [loading, setLoading] = useState(false);
-    const [accountSummary, setAccountSummary] = useState({});
-    const [totalRent, setTotalRent] = useState(0);
-    const [totalDeposit, setTotalDeposit] = useState(0);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [paymentsByDate, setPaymentsByDate] = useState({});
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [monthlySummary, setMonthlySummary] = useState({ rent: 0, deposit: 0 });
-    const navigate = useNavigate(); // Initialize navigate
 
+const { userData } = useUser();
 
-   const calculateRentAndDepositBreakdown = (booking) => {
-    const rentDue = booking.userDetails?.finalrent || 0;
-    const depositDue = booking.userDetails?.finaldeposite || 0;
+const [report,setReport] = useState({
+totalRent:0,
+totalDeposit:0,
+totalAmount:0,
+totalCollected:0,
+totalBalance:0,
+depositReturned:0,
+netRent:0
+});
 
-    const firstPayment = booking.userDetails?.amountpaid || 0;
-    const secondPayment = booking.userDetails?.secondpaymentamount || 0;
-    const secondPaymentDate = booking.userDetails?.secondpaymentdate;
+const [loading,setLoading] = useState(true);
 
-    const firstPaymentDate = booking.createdAt;
-    const stageUpdatedAt = booking.userDetails?.stageUpdatedAt;
-    const rentPaid1 = Math.min(firstPayment, rentDue);
-    const depositPaid1 = Math.max(0, firstPayment - rentDue);
+const [filterType,setFilterType] = useState("all");
+const [startDate,setStartDate] = useState("");
+const [endDate,setEndDate] = useState("");
 
-    const rentRemaining = rentDue - rentPaid1;
-    const depositRemaining = depositDue - depositPaid1;
-    const receiptNumber1 = booking.receiptNumber || '-';
-    const rentPaid2 = Math.min(secondPayment, rentRemaining);
-    const depositPaid2 = Math.max(0, secondPayment - rentRemaining);
-
-    const payments = [];
-
-    if (firstPaymentDate) {
-        payments.push({
-            date: firstPaymentDate,
-            rent: rentPaid1,
-            deposit: depositPaid1,
-            receiptNumber: receiptNumber1,
-            paymentType: 'First Payment',
-        });
-    }
-
-    if (secondPaymentDate) {
-        payments.push({
-            date: secondPaymentDate,
-            rent: rentPaid2,
-            deposit: depositPaid2,
-            receiptNumber: booking.receiptNumber || '-',
-            paymentType: 'Second Payment',
-        });
-    }
-
-    if (stageUpdatedAt) {
-        payments.push({
-            date: stageUpdatedAt,
-            rent: 0,
-            deposit: -depositDue,
-            receiptNumber: booking.receiptNumber || '-',
-            paymentType: 'Deposit Refund',
-        });
-    }
-
-    // ✅ Sort by actual datetime before returning
-    return payments.sort((a, b) => new Date(a.date) - new Date(b.date));
+const formatCurrency = (value)=>{
+return new Intl.NumberFormat("en-IN",{
+style:"currency",
+currency:"INR"
+}).format(value || 0);
 };
 
+const fetchReport = async () => {
 
-const calculateDailyAccountSummary = (bookings) => {
-    let rentMonthTotal = 0;
-    let depositMonthTotal = 0;
+setLoading(true);
 
-    const allPaymentsFlat = [];
+try{
 
-    bookings.forEach((booking) => {
-        const breakdowns = calculateRentAndDepositBreakdown(booking);
-        breakdowns.forEach(({ date, rent, deposit, receiptNumber, paymentType }) => {
-            if (!date) return;
+const paymentsRef = collection(
+db,
+`products/${userData.branchCode}/payments`
+);
 
-            allPaymentsFlat.push({
-                datetime: date,
-                dateOnly: date.split('T')[0],
-                rent,
-                deposit,
-                receiptNumber,
-                paymentType,
-            });
+const paymentsSnap = await getDocs(paymentsRef);
 
-            // Monthly totals
-            if (isInCurrentMonth(date)) {
-                rentMonthTotal += rent;
-                depositMonthTotal += deposit;
-            }
-        });
-    });
+let totalRent = 0;
+let totalDeposit = 0;
+let totalAmount = 0;
+let totalCollected = 0;
+let totalBalance = 0;
+let depositReturned = 0;
 
-    // Sort all payments by full datetime descending
-    allPaymentsFlat.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+paymentsSnap.forEach((doc)=>{
 
-    // Now group them by date
-    const paymentsByDate = {};
-    const summary = {};
+const data = doc.data();
+const createdAt = data.createdAt?.toDate?.();
 
-    allPaymentsFlat.forEach(({ dateOnly, rent, deposit, ...rest }) => {
-        if (!paymentsByDate[dateOnly]) paymentsByDate[dateOnly] = [];
-        paymentsByDate[dateOnly].push({ rent, deposit, ...rest });
+let include = true;
 
-        if (!summary[dateOnly]) summary[dateOnly] = { rent: 0, deposit: 0 };
-        summary[dateOnly].rent += rent;
-        summary[dateOnly].deposit += deposit;
-    });
+if(filterType === "today"){
 
-    setMonthlySummary({ rent: rentMonthTotal, deposit: depositMonthTotal });
-    setPaymentsByDate(paymentsByDate);
+const today = new Date().toDateString();
+include = createdAt?.toDateString() === today;
 
-    return summary;
+}
+
+if(filterType === "month"){
+
+const now = new Date();
+
+include =
+createdAt?.getMonth() === now.getMonth() &&
+createdAt?.getFullYear() === now.getFullYear();
+
+}
+
+if(filterType === "custom" && startDate && endDate){
+
+const start = new Date(startDate);
+const end = new Date(endDate);
+
+include = createdAt >= start && createdAt <= end;
+
+}
+
+if(!include) return;
+
+totalRent += data.finalRent || 0;
+totalDeposit += data.finalDeposit || 0;
+totalAmount += data.totalAmount || 0;
+totalCollected += data.amountPaid || 0;
+totalBalance += data.balance || 0;
+depositReturned += data.depositReturned || 0;
+
+});
+
+setReport({
+totalRent,
+totalDeposit,
+totalAmount,
+totalCollected,
+totalBalance,
+depositReturned,
+netRent: totalRent
+});
+
+}catch(error){
+console.error("Report error:",error);
+}
+
+setLoading(false);
+
 };
 
+useEffect(()=>{
 
+if(userData?.branchCode){
+fetchReport();
+}
 
+},[userData?.branchCode]);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            setLoading(true);
-            try {
-                const productsRef = collection(db, `products/${userData.branchCode}/products`);
-                const productDocs = await getDocs(productsRef);
+if(loading){
+return <div className="report-loading">Loading report...</div>;
+}
 
-                const bookingsPromises = productDocs.docs.map(async (productDoc) => {
-                    const bookingsRef = collection(
-                        db,
-                        `products/${userData.branchCode}/products/${productDoc.id}/bookings`
-                    );
-                    const bookingDocs = await getDocs(bookingsRef);
+return (
 
-                    return bookingDocs.docs.map((doc) => {
-                        const data = doc.data();
+<div className="account-report-page">
 
-                        const createdAt =
-                            data.createdAt instanceof Date
-                                ? data.createdAt.toISOString()
-                                : data.createdAt?.toDate?.()?.toISOString() ?? '';
+<h2 className="report-page-title">
+Account Report
+</h2>
 
-                        const secondPaymentDate =
-                            data.secondpaymentdate instanceof Date
-                                ? data.secondpaymentdate.toISOString()
-                                : data.secondpaymentdate?.toDate?.()?.toISOString() ?? '';
-                        const stageUpdatedAt =
-                            data.userDetails?.stageUpdatedAt instanceof Date
-                                ? data.userDetails.stageUpdatedAt.toISOString()
-                                : data.userDetails?.stageUpdatedAt?.toDate?.()?.toISOString() ?? null;
+{/* FILTER BAR */}
 
+<div className="report-filters">
 
+<select
+value={filterType}
+onChange={(e)=>setFilterType(e.target.value)}
+>
 
-                        return {
-                            ...data,
-                            id: doc.id,
-                            productId: productDoc.id,
-                            createdAt,
-                            secondpaymentdate: secondPaymentDate,
-                            userDetails: {
-                                ...data.userDetails,
-                                stageUpdatedAt, // include formatted stageUpdatedAt
-                            },
-                        };
-                    });
-                });
+<option value="all">All Time</option>
+<option value="today">Today</option>
+<option value="month">This Month</option>
+<option value="custom">Custom Range</option>
 
-                const bookingArrays = await Promise.all(bookingsPromises);
-                const allBookings = bookingArrays.flat();
+</select>
 
-                const summary = calculateDailyAccountSummary(allBookings);
-                setAccountSummary(summary);
+{filterType === "custom" && (
 
-                const totalRent = Object.values(summary).reduce((sum, s) => sum + s.rent, 0);
-                const totalDeposit = Object.values(summary).reduce((sum, s) => sum + s.deposit, 0);
-                setTotalRent(totalRent);
-                setTotalDeposit(totalDeposit);
-            } catch (error) {
-                toast.error('Failed to fetch booking data');
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
+<>
 
-        if (userData?.branchCode) {
-            fetchBookings();
-        }
-    }, [userData?.branchCode]);
-    const isInCurrentMonth = (isoDateString) => {
-        if (!isoDateString) return false;
-        const date = new Date(isoDateString);
-        const now = new Date();
-        return (
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()
-        );
-    };
+<input
+type="date"
+value={startDate}
+onChange={(e)=>setStartDate(e.target.value)}
+/>
 
+<input
+type="date"
+value={endDate}
+onChange={(e)=>setEndDate(e.target.value)}
+/>
 
-    return (
-        <div className="account-page container">
-            <div className='vaisak' >
-                      <img
-                        src={backIcon}
-                        alt="button10"
-                        onClick={() => navigate("/usersidebar/clients")} // Navigate to the profile page
-                      />
-                    </div>
-                                <h2 className="title">Account Summary</h2>
+</>
 
+)}
 
-            {loading ? (
-                <div className="loading">Loading...</div>
-            ) : (
-                <>
-                    <div className="card total-collection">
-                        <h3 className="subtitle">Total Collection</h3>
-                        <div className="total-row">
-                            <span>Total Rent Received:</span>
-                            <span className="amount">₹{totalRent}</span>
-                        </div>
-                        <div className="total-row">
-                            <span>Total Deposit Received:</span>
-                            <span className="amount">₹{totalDeposit}</span>
-                        </div>
-                    </div>
-                    <div className="card monthly-summary">
-                        <h3 className="subtitle">This Month's Summary</h3>
-                        <div className="total-row">
-                            <span>Monthly Rent:</span>
-                            <span className="amount">₹{monthlySummary.rent}</span>
-                        </div>
-                        <div className="total-row">
-                            <span>Monthly Deposit:</span>
-                            <span className="amount">₹{monthlySummary.deposit}</span>
-                        </div>
-                    </div>
+<button onClick={fetchReport}>
+Apply
+</button>
 
+</div>
 
-                    <div className="card daily-breakdown">
-                        <h3 className="subtitle">Daily Breakdown</h3>
+{/* REPORT GRID */}
 
-                        <div className="date-picker-wrapper date-range">
-                            <div className="date-group">
-                                <label htmlFor="fromDate" className="date-label">From:</label>
-                                <input
-                                    id="fromDate"
-                                    type="date"
-                                    value={fromDate}
-                                    onChange={(e) => setFromDate(e.target.value)}
-                                    max={new Date().toISOString().split('T')[0]}
-                                />
-                            </div>
-                            <div className="date-group">
-                                <label htmlFor="toDate" className="date-label">To:</label>
-                                <input
-                                    id="toDate"
-                                    type="date"
-                                    value={toDate}
-                                    onChange={(e) => setToDate(e.target.value)}
-                                    max={new Date().toISOString().split('T')[0]}
-                                />
-                            </div>
-                        </div>
+<div className="report-grid">
 
+<div className="report-card rent">
+<h4>Total Rent</h4>
+<p>{formatCurrency(report.totalRent)}</p>
+</div>
 
-                        {!selectedDate && (!fromDate || !toDate) && (
-                            <div className="info-text">Please select a date or date range to view payments.</div>
-                        )}
+<div className="report-card deposit">
+<h4>Total Deposit</h4>
+<p>{formatCurrency(report.totalDeposit)}</p>
+</div>
 
-                        {selectedDate && !paymentsByDate[selectedDate] && (
-                            <div className="info-text">No payments found for {selectedDate}.</div>
-                        )}
+<div className="report-card total">
+<h4>Total Amount</h4>
+<p>{formatCurrency(report.totalAmount)}</p>
+</div>
 
-                        {fromDate && toDate && (
-                            (() => {
-                                const rangePayments = Object.keys(paymentsByDate).filter(date =>
-                                    date >= fromDate && date <= toDate
-                                );
-                                if (rangePayments.length === 0) {
-                                    return (
-                                        <div className="info-text">
-                                            No payments found between {fromDate} and {toDate}.
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()
-                        )}
+<div className="report-card collected">
+<h4>Amount Collected</h4>
+<p>{formatCurrency(report.totalCollected)}</p>
+</div>
 
+<div className="report-card balance">
+<h4>Pending Balance</h4>
+<p>{formatCurrency(report.totalBalance)}</p>
+</div>
 
-                        {fromDate && toDate && (
-                            Object.keys(paymentsByDate)
-                                .filter((date) => date >= fromDate && date <= toDate)
-                                .map((date) => (
-                                    <div key={date} className="payment-table-wrapper">
-                                        <h4 className="date-header">{date}</h4>
-                                        <div className="payment-table">
-                                            <div className="payment-table-header">
-                                                <div className="payment-column">Receipt No.</div>
-                                                <div className="payment-column">Payment Type</div>
-                                                <div className="payment-column">Rent</div>
-                                                <div className="payment-column">Deposit</div>
-                                            </div>
+<div className="report-card returned">
+<h4>Deposit Returned</h4>
+<p>{formatCurrency(report.depositReturned)}</p>
+</div>
 
-                                            {[...paymentsByDate[date]]
-                                                .map(({ receiptNumber, paymentType, rent, deposit }, idx) => (
-                                                    <div key={idx} className="payment-table-row">
-                                                        <div className="payment-column">{receiptNumber}</div>
-                                                        <div className="payment-column">{paymentType}</div>
-                                                        <div className="payment-column">
-                                                            {rent > 0 ? <span className="payment-badge rent">+₹{rent}</span> : '-'}
-                                                        </div>
-                                                        <div className="payment-column">
-                                                            {deposit !== 0 ? (
-                                                                <span className={`payment-badge deposit ${deposit < 0 ? 'negative' : ''}`}>
-                                                                    {deposit > 0 ? `+₹${deposit}` : `-₹${Math.abs(deposit)}`}
-                                                                </span>
-                                                            ) : '-'}
-                                                        </div>
-                                                    </div>
-                                                ))}
+<div className="report-card net">
+<h4>Net Rent Earned</h4>
+<p>{formatCurrency(report.netRent)}</p>
+</div>
 
+</div>
 
-                                            {/* Daily Totals */}
-                                            <div className="payment-table-footer">
-                                                <div className="payment-column" />
-                                                <div className="payment-column" />
-                                                <div className="payment-column total-label">Total Rent:</div>
-                                                <div className="payment-column total-label">Total Deposit:</div>
-                                            </div>
-                                            <div className="payment-table-footer">
-                                                <div className="payment-column" />
-                                                <div className="payment-column" />
-                                                <div className="payment-column total-amount rent">
-                                                    ₹{paymentsByDate[date].reduce((sum, p) => sum + (p.rent || 0), 0)}
-                                                </div>
-                                                <div className="payment-column total-amount deposit">
-                                                    ₹{paymentsByDate[date].reduce((sum, p) => sum + (p.deposit || 0), 0)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                        )}
+</div>
 
+);
 
-
-
-
-                    </div>
-                </>
-            )}
-        </div>
-    );
 };
 
 export default AccountPage;
