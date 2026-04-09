@@ -316,6 +316,57 @@ useEffect(() => {
   fetchTransactions();
 
 }, [receiptNumber, userData?.branchCode]);
+const [accountSummary,setAccountSummary] = useState(null);
+
+useEffect(()=>{
+
+if(!paymentDoc) return;
+
+let totalPaid = 0;
+let totalRefunded = 0;
+
+paymentTransactions.forEach(tx=>{
+
+if(tx.type === "depositReturn"){
+totalRefunded += Number(tx.amount || 0);
+}else{
+totalPaid += Number(tx.amount || 0);
+}
+
+});
+
+const rent = Number(paymentDoc.finalRent || 0);
+const deposit = Number(paymentDoc.finalDeposit || 0);
+
+const rentCollected = Math.min(totalPaid, rent);
+const rentPending = rent - rentCollected;
+
+const depositCollected = Math.min(
+  Math.max(0, totalPaid - rent),
+  deposit
+);
+
+const depositPending = deposit - depositCollected;
+
+const depositReturned = totalRefunded;
+
+const depositWithYou = Math.max(
+  depositCollected - depositReturned,
+  0
+);
+setAccountSummary({
+rent,
+deposit,
+rentCollected,
+rentPending,
+depositCollected,
+depositPending,
+depositReturned,
+depositWithYou,
+totalPaid
+});
+
+},[paymentTransactions,paymentDoc]);
   // Prevent background scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = isModalOpen ? "hidden" : "auto";
@@ -324,106 +375,130 @@ useEffect(() => {
 
 
   const handleSaveSecondPayment = async () => {
-    if (bookings.length === 0) return;
+  if (bookings.length === 0) return;
 
-    try {
-      const batch = writeBatch(db);
-      const changes = [];
+  try {
 
-      // Compare against FIRST booking (source of truth)
-      const currentDetails = bookings[0].userDetails || {};
+    const batch = writeBatch(db);
+    const changes = [];
 
-      // ---- build updates object ONCE ----
-      const updates = {};
+    const currentDetails = bookings[0].userDetails || {};
 
-      if (currentDetails.secondpaymentmode !== secondPaymentMode) {
-        updates["userDetails.secondpaymentmode"] = secondPaymentMode;
-        changes.push({
-          field: "Second Payment Mode",
-          previous: currentDetails.secondpaymentmode || "N/A",
-          updated: secondPaymentMode,
-          updatedby: userData.name,
-        });
+    const updates = {};
+
+    // Second payment mode
+    if (currentDetails.secondpaymentmode !== secondPaymentMode) {
+      updates["userDetails.secondpaymentmode"] = secondPaymentMode;
+
+      changes.push({
+        field: "Second Payment Mode",
+        previous: currentDetails.secondpaymentmode || "N/A",
+        updated: secondPaymentMode,
+        updatedby: userData.name,
+      });
+    }
+
+    // Second payment details
+    if (currentDetails.secondpaymentdetails !== secondPaymentDetails) {
+      updates["userDetails.secondpaymentdetails"] = secondPaymentDetails;
+
+      changes.push({
+        field: "Second Payment Details",
+        previous: currentDetails.secondpaymentdetails || "N/A",
+        updated: secondPaymentDetails,
+        updatedby: userData.name,
+      });
+    }
+
+    // Special note
+    if (currentDetails.specialnote !== specialNote) {
+      updates["userDetails.specialnote"] = specialNote;
+
+      changes.push({
+        field: "Special Note",
+        previous: currentDetails.specialnote || "N/A",
+        updated: specialNote,
+        updatedby: userData.name,
+      });
+    }
+
+    // Stage update
+    if (currentDetails.stage !== stage) {
+
+      updates["userDetails.stage"] = stage;
+
+      if (stage === "successful") {
+        updates["userDetails.stageUpdatedAt"] = serverTimestamp();
       }
 
-      if (currentDetails.secondpaymentdetails !== secondPaymentDetails) {
-        updates["userDetails.secondpaymentdetails"] = secondPaymentDetails;
-        changes.push({
-          field: "Second Payment Details",
-          previous: currentDetails.secondpaymentdetails || "N/A",
-          updated: secondPaymentDetails,
-          updatedby: userData.name,
-        });
+      if (stage === "cancelled") {
+        updates["userDetails.stageCancelledAt"] = serverTimestamp();
       }
 
-      if (currentDetails.specialnote !== specialNote) {
-        updates["userDetails.specialnote"] = specialNote;
-        changes.push({
-          field: "Special Note",
-          previous: currentDetails.specialnote || "N/A",
-          updated: specialNote,
-          updatedby: userData.name,
-        });
-      }
+      changes.push({
+        field: "Stage",
+        previous: currentDetails.stage || "N/A",
+        updated: stage,
+        updatedby: userData.name,
+      });
+    }
 
-      if (currentDetails.stage !== stage) {
-        updates["userDetails.stage"] = stage;
+    if (changes.length === 0) {
+      toast.info("No changes detected");
+      return;
+    }
 
-        if (stage === "successful") {
-          updates["userDetails.stageUpdatedAt"] = serverTimestamp();
-        }
+    const newLogEntry = {
+      action: `Updated:\n${changes
+        .map(
+          (c) =>
+            `${c.field} updated from "${c.previous}" to "${c.updated}" by "${c.updatedby}"`
+        )
+        .join("\n\n")}`,
+      timestamp: new Date().toISOString(),
+      updates: changes,
+    };
 
-        if (stage === "cancelled") {
-          updates["userDetails.stageCancelledAt"] = serverTimestamp();
-        }
+    // 🔁 Update ALL bookings for this receipt
+    bookings.forEach((booking) => {
 
-        changes.push({
-          field: "Stage",
-          previous: currentDetails.stage || "N/A",
-          updated: stage,
-          updatedby: userData.name,
-        });
-      }
+      const bookingRef = doc(
+        db,
+        `products/${userData.branchCode}/products/${booking.productId}/bookings`,
+        booking.id
+      );
 
-      if (changes.length === 0) {
-        toast.info("No changes detected");
-        return;
-      }
-
-      const newLogEntry = {
-        action: `Updated:\n${changes
-          .map(
-            (c) =>
-              `${c.field} updated from "${c.previous}" to "${c.updated}" by "${c.updatedby}"`
-          )
-          .join("\n\n")}`,
-        timestamp: new Date().toISOString(),
-        updates: changes,
-      };
-
-      // 🔁 APPLY UPDATE TO ALL BOOKINGS
-      bookings.forEach((booking) => {
-        const bookingRef = doc(
-          db,
-          `products/${userData.branchCode}/products/${booking.productId}/bookings`,
-          booking.id
-        );
-
-        batch.update(bookingRef, {
-          ...updates,
-          activityLog: arrayUnion(newLogEntry),
-        });
+      batch.update(bookingRef, {
+        ...updates,
+        activityLog: arrayUnion(newLogEntry),
       });
 
-      await batch.commit();
+    });
 
-      toast.success("Receipt updated for all products");
-      setIsEditingSecondPayment(false);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update receipt");
-    }
-  };
+    await batch.commit();
+
+    // 🔥 Sync stage to payment document
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    await updateDoc(paymentRef, {
+      bookingStage: stage
+    });
+
+    toast.success("Receipt updated for all products");
+
+    setIsEditingSecondPayment(false);
+
+  } catch (error) {
+
+    console.error(error);
+    toast.error("Failed to update receipt");
+
+  }
+};
 
 
 
@@ -527,8 +602,59 @@ useEffect(() => {
     }).format(date);
   };
 
+const saveAccountSummary = async (transactions = paymentTransactions) => {
 
+  if (!paymentDoc) return;
 
+  let totalPaid = 0;
+  let totalRefunded = 0;
+
+  transactions.forEach(tx => {
+
+    if (tx.type === "depositReturn") {
+      totalRefunded += Number(tx.amount || 0);
+    } else {
+      totalPaid += Number(tx.amount || 0);
+    }
+
+  });
+
+  const rent = Number(paymentDoc.finalRent || 0);
+  const deposit = Number(paymentDoc.finalDeposit || 0);
+
+  const rentCollected = Math.min(totalPaid, rent);
+  const rentPending = rent - rentCollected;
+
+  const depositCollected = Math.min(
+    Math.max(0, totalPaid - rent),
+    deposit
+  );
+
+  const depositPending = deposit - depositCollected;
+
+  const depositReturned = totalRefunded;
+
+  const depositWithYou = Math.max(
+    depositCollected - depositReturned,
+    0
+  );
+
+  const paymentRef = doc(
+    db,
+    `products/${userData.branchCode}/payments`,
+    receiptNumber
+  );
+
+  await updateDoc(paymentRef, {
+    rentCollected,
+    rentPending,
+    depositCollected,
+    depositPending,
+    depositReturned,
+    depositWithYou
+  });
+
+};
   // Handle template click and send WhatsApp message
   const handleTemplateClick = (template) => {
     if (!bookings.length) return;
@@ -683,6 +809,13 @@ const handleAddPayment = async () => {
     });
 
     await batch.commit();
+    await saveAccountSummary([
+  ...paymentTransactions,
+  {
+    amount,
+    paymentNumber: nextPaymentNumber
+  }
+]);
 
     toast.success("Payment added successfully");
 
@@ -749,6 +882,13 @@ const handleReturnDeposit = async () => {
       createdBy: userData.name
 
     });
+    await saveAccountSummary([
+  ...paymentTransactions,
+  {
+    amount,
+    type: "depositReturn"
+  }
+]);
 
     toast.success("Deposit refunded");
 
@@ -1158,6 +1298,7 @@ const handleReturnDeposit = async () => {
     </>
   )}
 </section>
+
 <section className="card">
   <div className="payment-history-header">
   <h3 className="payment-history-title">Payment History</h3>
@@ -1329,6 +1470,55 @@ Cancel
 </div>
 
 )}
+</section>
+<section className="account-summary-card">
+
+<h3 className="account-summary-title">Account Summary</h3>
+
+<div className="account-summary-grid">
+
+<div className="summary-box">
+<label>Total Rent</label>
+<span>₹{accountSummary?.rent}</span>
+</div>
+
+<div className="summary-box collected">
+<label>Rent Collected</label>
+<span>₹{accountSummary?.rentCollected}</span>
+</div>
+
+<div className="summary-box">
+<label>Rent Pending</label>
+<span>₹{accountSummary?.rentPending}</span>
+</div>
+
+<div className="summary-box">
+<label>Total Deposit</label>
+<span>₹{accountSummary?.deposit}</span>
+</div>
+
+<div className="summary-box collected">
+<label>Deposit Collected</label>
+<span>₹{accountSummary?.depositCollected}</span>
+</div>
+
+<div className="summary-box">
+<label>Deposit Pending</label>
+<span>₹{accountSummary?.depositPending}</span>
+</div>
+
+<div className="summary-box refund">
+<label>Deposit Returned</label>
+<span>₹{accountSummary?.depositReturned}</span>
+</div>
+
+<div className="summary-box collected">
+<label>Deposit With You</label>
+<span>₹{accountSummary?.depositWithYou}</span>
+</div>
+
+</div>
+
 </section>
 
             {/* ================= CLIENT TYPE ================= */}

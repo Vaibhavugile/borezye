@@ -375,6 +375,7 @@ font-weight:600;
   font-weight: 500;
 }
 
+
 .timeline-item small {
   display: block;
   margin-top: 4px;
@@ -389,6 +390,74 @@ font-weight:600;
   display: flex;
   flex-direction: column;
   gap: 22px;
+}
+.account-summary-card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  margin-top: 20px;
+}
+
+.account-summary-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* GRID */
+
+.account-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+/* BOX */
+
+.summary-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* LABEL */
+
+.summary-box label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* VALUE */
+
+.summary-box span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* COLORS */
+
+.summary-box.collected span {
+  color: #059669;
+}
+
+.summary-box.refund span {
+  color: #2563eb;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+.account-summary-grid {
+grid-template-columns: repeat(2,1fr);
+}
+
 }
 
 /* =====================================================

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc  } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc ,updateDoc,writeBatch} from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import './Dahboard.css';
 import { useUser } from '../../Auth/UserContext';
@@ -254,6 +254,476 @@ const cleanupDuplicateTransactions = async () => {
   }
 
 };
+const migrateBookingStageToPayments = async () => {
+
+  try {
+
+    if (!userData?.branchCode) return;
+
+    const uniqueBookings = getUniqueBookingsByReceiptNumber(bookings);
+
+    for (const booking of uniqueBookings) {
+
+      const receiptNumber = booking.receiptNumber;
+      const stage = booking.stage;
+
+      if (!receiptNumber || !stage) continue;
+
+      const paymentRef = doc(
+        db,
+        `products/${userData.branchCode}/payments`,
+        receiptNumber
+      );
+
+      const paymentDoc = await getDoc(paymentRef);
+
+      if (!paymentDoc.exists()) {
+        console.log(`Payment not found for ${receiptNumber}`);
+        continue;
+      }
+
+      await updateDoc(paymentRef, {
+        bookingStage: stage
+      });
+
+      console.log(`Stage synced for ${receiptNumber} → ${stage}`);
+    }
+
+    console.log("✅ Booking stage migration completed");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const migrateBookingStageToPaymentsAllBranches = async () => {
+
+  try {
+
+    const snapshot = await getDocs(collectionGroup(db, "bookings"));
+
+    const receiptStages = {};
+
+    snapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+      const receiptNumber = data.receiptNumber;
+      const stage = data.userDetails?.stage;
+
+      if (!receiptNumber || !stage) return;
+
+      const branchCode =
+        data.userDetails?.branchCode ||
+        receiptNumber.split("-")[0] ||
+        "";
+
+      if (!branchCode) return;
+
+      receiptStages[receiptNumber] = {
+        stage,
+        branchCode
+      };
+
+    });
+
+    for (const receiptNumber in receiptStages) {
+
+      const { stage, branchCode } = receiptStages[receiptNumber];
+
+      const paymentRef = doc(
+        db,
+        `products/${branchCode}/payments`,
+        receiptNumber
+      );
+
+      const paymentDoc = await getDoc(paymentRef);
+
+      if (!paymentDoc.exists()) {
+        console.log(`Payment not found for ${receiptNumber}`);
+        continue;
+      }
+
+      await updateDoc(paymentRef, {
+        bookingStage: stage
+      });
+
+      console.log(`Updated ${receiptNumber} → ${stage}`);
+
+    }
+
+    console.log("✅ Stage migration completed for all branches");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const rebuildSuccessfulReceipts = async () => {
+
+  try {
+
+    const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
+
+    for (const paymentDoc of paymentsSnapshot.docs) {
+
+      const payment = paymentDoc.data();
+
+      if (payment.bookingStage !== "successful") continue;
+
+      const receiptNumber = payment.receiptNumber;
+      const branchCode = payment.branchCode;
+
+      const finalRent = Number(payment.finalRent || 0);
+      const finalDeposit = Number(payment.finalDeposit || 0);
+      let amountPaid = Number(payment.amountPaid || 0);
+      const balance = Number(payment.balance || 0);
+
+      const transactionsRef = collection(
+        db,
+        `products/${branchCode}/payments/${receiptNumber}/transactions`
+      );
+
+      const txSnapshot = await getDocs(transactionsRef);
+
+      const txList = txSnapshot.docs.map(doc => doc.data());
+
+      const hasSecondPayment = txList.some(tx => tx.paymentNumber === 2);
+      const hasDepositReturn = txList.some(tx => tx.type === "depositReturn");
+
+      let nextPaymentNumber = txList.length + 1;
+
+      // SECOND PAYMENT
+      if (!hasSecondPayment && balance > 0) {
+
+        await setDoc(
+          doc(transactionsRef, `tx${nextPaymentNumber}`),
+          {
+            amount: balance,
+            mode: "Migration",
+            details: "Second payment migration",
+            paymentNumber: nextPaymentNumber,
+            createdAt: serverTimestamp(),
+            createdBy: "Migration"
+          }
+        );
+
+        amountPaid += balance;
+        nextPaymentNumber++;
+
+        console.log(`Second payment created for ${receiptNumber}`);
+      }
+
+      // CALCULATE COLLECTION
+      const rentCollected = Math.min(amountPaid, finalRent);
+
+      const depositCollected = Math.min(
+        Math.max(0, amountPaid - finalRent),
+        finalDeposit
+      );
+
+      // DEPOSIT RETURN
+      if (!hasDepositReturn && depositCollected > 0) {
+
+        await setDoc(
+          doc(transactionsRef, `tx${nextPaymentNumber}`),
+          {
+            amount: depositCollected,
+            mode: "Migration",
+            details: "Deposit return migration",
+            paymentNumber: nextPaymentNumber,
+            type: "depositReturn",
+            createdAt: serverTimestamp(),
+            createdBy: "Migration"
+          }
+        );
+
+        console.log(`Deposit return created for ${receiptNumber}`);
+      }
+
+      // UPDATE SUMMARY
+      await updateDoc(paymentDoc.ref, {
+
+        amountPaid,
+
+        rentCollected,
+        rentPending: finalRent - rentCollected,
+
+        depositCollected,
+        depositPending: finalDeposit - depositCollected,
+
+        depositReturned: depositCollected,
+        depositWithYou: 0
+
+      });
+
+    }
+
+    console.log("✅ Migration finished");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const fixSuccessfulBalances = async () => {
+
+  try {
+
+    const snapshot = await getDocs(collectionGroup(db, "payments"));
+
+    const updates = [];
+
+    snapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+
+      if (data.bookingStage === "successful" && Number(data.balance) !== 0) {
+
+        updates.push(docSnap.ref);
+
+      }
+
+    });
+
+    console.log(`Found ${updates.length} payments to fix`);
+
+    const batchSize = 500;
+    const batches = [];
+
+    for (let i = 0; i < updates.length; i += batchSize) {
+
+      const batch = writeBatch(db);
+
+      const chunk = updates.slice(i, i + batchSize);
+
+      chunk.forEach((ref) => {
+
+        batch.update(ref, {
+          balance: 0
+        });
+
+      });
+
+      batches.push(batch.commit());
+
+    }
+
+    await Promise.all(batches);
+
+    console.log("✅ All successful payment balances fixed");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const migrateSecondPaymentsFromBookings = async () => {
+
+  try {
+
+    const bookingsSnapshot = await getDocs(collectionGroup(db, "bookings"));
+
+    const jobs = [];
+
+    bookingsSnapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+      const details = data.userDetails || {};
+
+      const receiptNumber = data.receiptNumber;
+      const branchCode = details.branchCode || receiptNumber?.split("-")[0];
+
+      const secondMode = details.secondpaymentmode;
+      const secondDetails = details.secondpaymentdetails;
+      const balance = Number(details.balance || 0);
+
+      if (!receiptNumber || !branchCode) return;
+
+      if (!secondMode || !secondDetails || balance <= 0) return;
+
+      jobs.push({
+        receiptNumber,
+        branchCode,
+        balance,
+        secondMode,
+        secondDetails
+      });
+
+    });
+
+    console.log(`Found ${jobs.length} receipts needing migration`);
+
+    await Promise.all(
+
+      jobs.map(async (job) => {
+
+        const { receiptNumber, branchCode, balance, secondMode, secondDetails } = job;
+
+        const paymentRef = doc(
+          db,
+          `products/${branchCode}/payments`,
+          receiptNumber
+        );
+
+        const paymentSnap = await getDoc(paymentRef);
+
+        if (!paymentSnap.exists()) return;
+
+        const payment = paymentSnap.data();
+
+        const transactionsRef = collection(
+          db,
+          `products/${branchCode}/payments/${receiptNumber}/transactions`
+        );
+
+        const txSnapshot = await getDocs(transactionsRef);
+
+        const txList = txSnapshot.docs.map(d => d.data());
+
+        const hasSecondPayment = txList.some(tx => tx.paymentNumber === 2);
+
+        if (hasSecondPayment) return;
+
+        const nextPaymentNumber = txList.length + 1;
+
+        const txRef = doc(
+          db,
+          `products/${branchCode}/payments/${receiptNumber}/transactions`,
+          `tx${nextPaymentNumber}`
+        );
+
+        await setDoc(txRef, {
+
+          amount: balance,
+          mode: secondMode,
+          details: secondDetails,
+
+          paymentNumber: nextPaymentNumber,
+
+          createdAt: serverTimestamp(),
+          createdBy: "Migration"
+
+        });
+
+        const newPaid = Number(payment.amountPaid || 0) + balance;
+
+        await updateDoc(paymentRef, {
+          amountPaid: newPaid,
+          balance: 0
+        });
+
+        console.log(`Migrated ${receiptNumber}`);
+
+      })
+
+    );
+
+    console.log("✅ Migration completed");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
+const rebuildAccountSummaries = async () => {
+
+  try {
+
+    const paymentsSnapshot = await getDocs(collectionGroup(db, "payments"));
+
+    const jobs = paymentsSnapshot.docs;
+
+    console.log(`Rebuilding ${jobs.length} payments`);
+
+    await Promise.all(
+
+      jobs.map(async (paymentDoc) => {
+
+        const payment = paymentDoc.data();
+
+        const receiptNumber = payment.receiptNumber;
+        const branchCode = payment.branchCode;
+
+        if (!receiptNumber || !branchCode) return;
+
+        const transactionsRef = collection(
+          db,
+          `products/${branchCode}/payments/${receiptNumber}/transactions`
+        );
+
+        const txSnapshot = await getDocs(transactionsRef);
+
+        let totalPaid = 0;
+        let totalRefunded = 0;
+
+        txSnapshot.forEach(tx => {
+
+          const data = tx.data();
+
+          if (data.type === "depositReturn") {
+            totalRefunded += Number(data.amount || 0);
+          } else {
+            totalPaid += Number(data.amount || 0);
+          }
+
+        });
+
+        const rent = Number(payment.finalRent || 0);
+        const deposit = Number(payment.finalDeposit || 0);
+
+        const rentCollected = Math.min(totalPaid, rent);
+        const rentPending = rent - rentCollected;
+
+        const depositCollected = Math.min(
+          Math.max(0, totalPaid - rent),
+          deposit
+        );
+
+        const depositPending = deposit - depositCollected;
+
+        const depositReturned = totalRefunded;
+
+        const depositWithYou = Math.max(
+          depositCollected - depositReturned,
+          0
+        );
+
+        await updateDoc(paymentDoc.ref, {
+
+          rentCollected,
+          rentPending,
+
+          depositCollected,
+          depositPending,
+
+          depositReturned,
+          depositWithYou
+
+        });
+
+      })
+
+    );
+
+    console.log("✅ Account summaries rebuilt");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
   /* ================= HELPERS ================= */
 
   const isSameDay = (d1, d2) =>
@@ -477,6 +947,26 @@ Generate Previous pay
 <button onClick={cleanupDuplicateTransactions}>
 Generate Previous Payments
 </button> */}
+{/* <button onClick={migrateBookingStageToPayments}>
+Sync Booking Status to Payments
+</button>
+<button onClick={migrateBookingStageToPaymentsAllBranches}>
+Sync Booking Stage → Payments (All Branches)
+</button>
+<button onClick={rebuildSuccessfulReceipts}>
+Rebuild Successful Receipts
+</button>
+<button onClick={fixSuccessfulBalances}>
+Fix Successful Payment Balances
+</button> */}
+{/* <button onClick={migrateSecondPaymentsFromBookings}>
+Migrate Second Payments
+</button>
+<button onClick={rebuildAccountSummaries}>
+Rebuild Account Summaries
+</button> */}
+
+
         <div className="kpi-grid">
           <div
             className="kpi-card primary"
@@ -592,7 +1082,10 @@ Generate Previous Payments
                   const b = bookings[0] || {};
 
                   return (
-                    <tr key={i}>
+                    <tr
+  key={i}
+  className={b.stage === "cancelled" ? "row-cancelled" : ""}
+>
                       <td
   className="receipt-link"
   onClick={() => navigate(`/booking-details/${receiptNumber}`)}

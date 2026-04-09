@@ -91,6 +91,11 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 }
+.row-cancelled td {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
 
 .kpi-card {
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
