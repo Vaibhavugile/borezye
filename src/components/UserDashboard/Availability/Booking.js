@@ -927,6 +927,29 @@ const paymentRef = doc(
   `products/${userData.branchCode}/payments`,
   receiptNumber
 );
+const firstPaymentAmount = Number(userDetails.amountpaid || 0);
+
+const finalRent = Number(userDetails.finalrent || 0);
+const finalDeposit = Number(userDetails.finaldeposite || 0);
+
+/* RENT FIRST SYSTEM */
+
+const rentCollected = Math.min(firstPaymentAmount, finalRent);
+
+const rentPending = finalRent - rentCollected;
+
+const depositCollected = Math.min(
+  Math.max(0, firstPaymentAmount - finalRent),
+  finalDeposit
+);
+
+const depositPending = finalDeposit - depositCollected;
+
+const depositReturned = 0;
+
+const depositWithYou = depositCollected;
+
+
 
 await setDoc(paymentRef, {
 
@@ -938,7 +961,7 @@ await setDoc(paymentRef, {
   clientName: userDetails.name || "",
   contact: userDetails.contact || "",
 
-  // Booking Dates (earliest pickup + latest return across products)
+  // Booking Dates
   pickupDate: new Date(
     Math.min(...products.map(p => new Date(p.pickupDate)))
   ),
@@ -956,12 +979,12 @@ await setDoc(paymentRef, {
   discountOnDeposit: Number(userDetails.discountOnDeposit || 0),
 
   // Final Charges
-  finalRent: Number(userDetails.finalrent || 0),
-  finalDeposit: Number(userDetails.finaldeposite || 0),
+  finalRent: finalRent,
+  finalDeposit: finalDeposit,
 
   // Payment Summary
   totalAmount: Number(userDetails.totalamounttobepaid || 0),
-  amountPaid: Number(userDetails.amountpaid || 0),
+  amountPaid: firstPaymentAmount,
   balance: Number(userDetails.balance || 0),
 
   // Payment Status
@@ -983,6 +1006,17 @@ await setDoc(paymentRef, {
   // Optional Notes
   specialNote: userDetails.specialnote || "",
 
+  /* 🔥 ACCOUNT SUMMARY (AUTO CALCULATED) */
+
+  rentCollected: rentCollected,
+  rentPending: rentPending,
+
+  depositCollected: depositCollected,
+  depositPending: depositPending,
+
+  depositReturned: depositReturned,
+  depositWithYou: depositWithYou,
+
   // Products summary for reports
   productsSummary: products.map(p => ({
     productCode: p.productCode || "",
@@ -998,7 +1032,6 @@ await setDoc(paymentRef, {
 });
 // 🔹 Create first payment transaction (tx1)
 
-const firstPaymentAmount = Number(userDetails.amountpaid || 0);
 
 if (firstPaymentAmount > 0) {
 
