@@ -13,11 +13,12 @@ const Dashboard = () => {
   const [pickupPendingCount, setPickupPendingCount] = useState(0);
   const [returnPendingCount, setReturnPendingCount] = useState(0);
   const [successfulCount, setSuccessfulCount] = useState(0);
-
+const [overlappedBookings, setOverlappedBookings] = useState([]);
   const [monthlyPickupPending, setMonthlyPickupPending] = useState(0);
   const [monthlyReturnPending, setMonthlyReturnPending] = useState(0);
   const [monthlySuccessful, setMonthlySuccessful] = useState(0);
   const [monthlyTotalBookings, setMonthlyTotalBookings] = useState(0);
+  const [showOverlaps, setShowOverlaps] = useState(false);
 
   const [topProducts, setTopProducts] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
@@ -635,6 +636,72 @@ const migrateSecondPaymentsFromBookings = async () => {
   }
 
 };
+const detectOverlaps = (allBookings) => {
+
+  console.log("🔍 Checking booking overlaps...");
+
+  const overlaps = [];
+
+  // group by product
+  const productGroups = {};
+
+  allBookings.forEach((b) => {
+    if (!productGroups[b.productCode]) {
+      productGroups[b.productCode] = [];
+    }
+    productGroups[b.productCode].push(b);
+  });
+
+  Object.entries(productGroups).forEach(([productCode, bookings]) => {
+
+    for (let i = 0; i < bookings.length; i++) {
+
+      for (let j = i + 1; j < bookings.length; j++) {
+
+        const A = bookings[i];
+        const B = bookings[j];
+
+        if (!A.pickupDate || !B.pickupDate) continue;
+
+        // ignore cancelled
+        if (A.stage === "cancelled" || B.stage === "cancelled") continue;
+
+        const overlap =
+          A.pickupDate <= B.returnDate &&
+          A.returnDate >= B.pickupDate;
+
+        if (overlap) {
+
+          overlaps.push({
+  productCode,
+
+  booking1: A.receiptNumber,
+  status1: A.stage,
+
+  pickup1: A.pickupDate,
+  return1: A.returnDate,
+
+  booking2: B.receiptNumber,
+  status2: B.stage,
+
+  pickup2: B.pickupDate,
+  return2: B.returnDate
+});
+
+          console.log("⚠️ OVERLAP FOUND:", productCode, A.receiptNumber, B.receiptNumber);
+
+        }
+
+      }
+
+    }
+
+  });
+
+  console.log("🚨 Total overlaps:", overlaps.length);
+
+  return overlaps;
+};
 const rebuildAccountSummaries = async () => {
 
   try {
@@ -807,6 +874,8 @@ const rebuildAccountSummaries = async () => {
 
       console.log('📊 Total bookings:', allBookings.length);
       setBookings(allBookings);
+      const overlaps = detectOverlaps(allBookings);
+setOverlappedBookings(overlaps);
 
       const unique = getUniqueBookingsByReceiptNumber(allBookings);
       console.log('🧾 Unique receipts:', unique.length);
@@ -885,7 +954,29 @@ const handleShowFilteredBookings = (type) => {
 
   setFilteredBookings(grouped);
 };
+const handleShowOverlaps = () => {
 
+  const formatted = overlappedBookings.map((o) => ({
+    receiptNumber: `${o.booking1} / ${o.booking2}`,
+    bookings: [
+      {
+        productCode: o.productCode,
+        pickupDate: o.pickup1,
+        returnDate: o.return1,
+        stage: o.status1
+      },
+      {
+        productCode: o.productCode,
+        pickupDate: o.pickup2,
+        returnDate: o.return2,
+        stage: o.status2
+      }
+    ]
+  }));
+
+  setFilterTitle("Overlapping Bookings");
+  setFilteredBookings(formatted);
+};
 
   const filterMonthlyBookings = (type) => {
   const now = new Date();
@@ -920,6 +1011,7 @@ const handleShowFilteredBookings = (type) => {
   setFilterTitle(`Monthly ${type}`);
   setFilteredBookings(grouped);
 };
+
 
 
   return (
@@ -968,6 +1060,7 @@ Rebuild Account Summaries
 
 
         <div className="kpi-grid">
+          
           <div
             className="kpi-card primary"
             onClick={() => handleShowFilteredBookings("todaysBookings")}
@@ -1000,6 +1093,13 @@ Rebuild Account Summaries
             <strong>{successfulCount}</strong>
           </div>
         </div>
+       <div
+  className="kpi-card danger"
+  onClick={() => setShowOverlaps(true)}
+>
+  <span>Overlapping Bookings</span>
+  <strong>{overlappedBookings.length}</strong>
+</div>
       </section>
 
       {/* =======================
@@ -1045,6 +1145,59 @@ Rebuild Account Summaries
           </div>
         </div>
       </section>
+     {showOverlaps && overlappedBookings.length > 0 && (
+  <section className="dashboard-section">
+    <header className="section-header">
+      <h4>⚠️ Overlapping Bookings</h4>
+      <p className="section-subtitle">Conflicting bookings detected</p>
+    </header>
+
+    <button
+      className="modall-close-btn"
+      onClick={() => setShowOverlaps(false)}
+    >
+      Close
+    </button>
+
+    <div className="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+
+            <th>Booking 1</th>
+            <th>Status</th>
+            <th>Pickup</th>
+            <th>Return</th>
+
+            <th>Booking 2</th>
+            <th>Status</th>
+            <th>Pickup</th>
+            <th>Return</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {overlappedBookings.map((o, i) => (
+            <tr key={i}>
+              <td>{o.productCode}</td>
+
+              <td>{o.booking1}</td>
+              <td>{o.status1}</td>
+              <td>{o.pickup1?.toLocaleDateString()}</td>
+              <td>{o.return1?.toLocaleDateString()}</td>
+
+              <td>{o.booking2}</td>
+              <td>{o.status2}</td>
+              <td>{o.pickup2?.toLocaleDateString()}</td>
+              <td>{o.return2?.toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}
 
       {/* =======================
           FILTERED BOOKINGS MODAL

@@ -362,167 +362,192 @@ function Booking() {
 
   // Function to handle product input changes
 
-  const checkAvailability = async (index) => {
-    const { productCode, pickupDate, returnDate, quantity } = products[index];
-    const pickupDateObj = new Date(pickupDate);
-    const returnDateObj = new Date(returnDate);
-    const bookingId = await getNextBookingId(pickupDateObj, productCode); // Replace with actual booking ID logic if needed
+const checkAvailability = async (index) => {
 
-    console.log('Checking availability for Product Code:', productCode);
-    console.log('Pickup Date:', pickupDateObj, 'Return Date:', returnDateObj);
-    console.log('Booking ID:', bookingId);
+  const { productCode, pickupDate, returnDate, quantity } = products[index];
 
-    try {
-      // Fetch product from the correct branch subcollection
-      const productRef = doc(db, `products/${userData.branchCode}/products`, productCode); // Change here for branchCode
-      const productDoc = await getDoc(productRef);
+  const pickupDateObj = new Date(pickupDate);
+  const returnDateObj = new Date(returnDate);
 
-      if (!productDoc.exists()) {
-        const newProducts = [...products];
-        newProducts[index].errorMessage = 'Product not found.';
-        setProducts(newProducts);
-        toast.error('Product not found:', productCode);
+  console.log("---------------------------------------------------");
+  console.log("🚀 CHECK AVAILABILITY STARTED");
+  console.log("Product Code:", productCode);
+  console.log("Requested Quantity:", quantity);
+  console.log("Pickup Date:", pickupDateObj);
+  console.log("Return Date:", returnDateObj);
+  console.log("---------------------------------------------------");
+
+  try {
+
+    // 🔹 Fetch product
+    console.log("📦 Fetching product document...");
+
+    const productRef = doc(
+      db,
+      `products/${userData.branchCode}/products`,
+      productCode
+    );
+
+    const productDoc = await getDoc(productRef);
+
+    if (!productDoc.exists()) {
+
+      console.log("❌ Product not found");
+
+      const newProducts = [...products];
+      newProducts[index].errorMessage = "Product not found.";
+      setProducts(newProducts);
+
+      toast.error("Product not found");
+      return;
+    }
+
+    const productData = productDoc.data();
+    const maxAvailableQuantity = productData.quantity || 0;
+
+    console.log("✅ Product Found");
+    console.log("Total Stock:", maxAvailableQuantity);
+
+    // 🔹 Fetch bookings
+    console.log("📚 Fetching product bookings...");
+
+    const bookingsRef = collection(productRef, "bookings");
+    const querySnapshot = await getDocs(bookingsRef);
+
+    console.log("Total bookings found:", querySnapshot.size);
+
+    let bookedQuantity = 0;
+    const overlappingBookings = [];
+    const allBookings = [];
+
+    querySnapshot.forEach((docSnap) => {
+
+      const bookingData = docSnap.data();
+
+      // 🔹 Safe date conversion
+      const bookingPickup =
+        bookingData.pickupDate?.toDate
+          ? bookingData.pickupDate.toDate()
+          : new Date(bookingData.pickupDate);
+
+      const bookingReturn =
+        bookingData.returnDate?.toDate
+          ? bookingData.returnDate.toDate()
+          : new Date(bookingData.returnDate);
+
+      const bookingQty = Number(bookingData.quantity || 0);
+
+      const status = bookingData.userDetails?.stage || "booking";
+
+      console.log("---------------------------------------------------");
+      console.log("📄 Booking Found");
+      console.log("Receipt:", bookingData.receiptNumber);
+      console.log("Status:", status);
+      console.log("Pickup:", bookingPickup);
+      console.log("Return:", bookingReturn);
+      console.log("Quantity:", bookingQty);
+
+      // Ignore cancelled
+      if (status === "cancelled") {
+        console.log("⛔ Skipping cancelled booking");
         return;
       }
 
-      const productData = productDoc.data();
-      const maxAvailableQuantity = productData.quantity || 0;
-
-      console.log('Max Available Quantity for Product:', productCode, 'is', maxAvailableQuantity);
-
-      // Fetch the bookings for the specific product under the branch
-      const bookingsRef = collection(productRef, 'bookings');
-      const qLess = query(bookingsRef, where('bookingId', '<', bookingId), orderBy('bookingId', 'asc'));
-      const qGreater = query(bookingsRef, where('bookingId', '>', bookingId), orderBy('bookingId', 'asc'));
-
-      const querySnapshotLess = await getDocs(qLess);
-      const querySnapshotGreater = await getDocs(qGreater);
-      const qAll = query(bookingsRef, orderBy("bookingId", "asc"));
-const querySnapshotAll = await getDocs(qAll);
-
-      const bookingsLess = [];
-      const bookingsGreater = [];
-const allBookings = [];
-
-
-querySnapshotAll.forEach((doc) => {
-  const bookingData = doc.data();
-
-  allBookings.push({
-    bookingId: bookingData.bookingId,
-    receiptNumber: bookingData.receiptNumber,
-    status: bookingData.userDetails?.stage || "booking",
-    pickupDate: bookingData.pickupDate.toDate(),
-    returnDate: bookingData.returnDate.toDate(),
-    quantity: bookingData.quantity,
-  });
-});
-      querySnapshotLess.forEach((doc) => {
-        const bookingData = doc.data();
-        bookingsLess.push({
-             bookingId: bookingData.bookingId,
-    receiptNumber: bookingData.receiptNumber,
-    status: bookingData.userDetails?.stage || "Booking",
-    pickupDate: bookingData.pickupDate.toDate(),
-    returnDate: bookingData.returnDate.toDate(),
-    quantity: bookingData.quantity,
-        });
+      // Store booking for UI
+      allBookings.push({
+        receiptNumber: bookingData.receiptNumber,
+        pickupDate: bookingPickup,
+        returnDate: bookingReturn,
+        quantity: bookingQty,
+        status
       });
 
-      querySnapshotGreater.forEach((doc) => {
-        const bookingData = doc.data();
-        bookingsGreater.push({
-          bookingId: bookingData.bookingId,
-          pickupDate: bookingData.pickupDate.toDate(),
-          returnDate: bookingData.returnDate.toDate(),
-          quantity: bookingData.quantity,
+      // 🔹 Check overlap
+      const overlap =
+        bookingPickup <= returnDateObj &&
+        bookingReturn >= pickupDateObj;
+
+      console.log("Overlap:", overlap);
+
+      if (overlap) {
+
+        bookedQuantity += bookingQty;
+
+        overlappingBookings.push({
+          receiptNumber: bookingData.receiptNumber,
+          quantity: bookingQty
         });
-      });
 
-      
+        console.log("⚠️ Overlapping booking added");
+        console.log("Running booked quantity:", bookedQuantity);
 
-      console.log('Bookings Less (Before Current Booking):', bookingsLess);
-      console.log('Bookings Greater (After Current Booking):', bookingsGreater);
-
-      let availableQuantity = maxAvailableQuantity;
-      console.log('Initial Available Quantity:', availableQuantity);
-
-      if (bookingsLess.length > 0 && bookingsGreater.length === 0) {
-        console.log('Only Bookings Less exist.');
-
-        const overlappingBookings = bookingsLess.filter(
-          (booking) => booking.returnDate.getTime() > pickupDateObj
-        );
-
-        if (overlappingBookings.length > 0) {
-          const totalOverlapQuantity = overlappingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-          console.log('Total Overlapping Quantity (less):', totalOverlapQuantity);
-          availableQuantity -= totalOverlapQuantity;
-          console.log('New Available Quantity after  Overlap:', availableQuantity);
-        }
-      } else if (bookingsGreater.length > 0 && bookingsLess.length === 0) {
-        console.log('Only Bookings Greater exist.');
-
-        const overlappingBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate.getTime() < returnDateObj
-        );
-
-        if (overlappingBookings.length > 0) {
-          const totalOverlapQuantity = overlappingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity);
-          availableQuantity -= totalOverlapQuantity;
-          console.log('New Available Quantity after Greater Overlap:', availableQuantity);
-        }
-      } else if (bookingsLess.length > 0 && bookingsGreater.length > 0) {
-        console.log('Both Bookings Less and Greater exist.');
-
-        const lessOverlapBookings = bookingsLess.filter(
-          (booking) => booking.returnDate.getTime() > pickupDateObj.getTime()
-        );
-        const greaterOverlapBookings = bookingsGreater.filter(
-          (booking) => booking.pickupDate.getTime() < returnDateObj.getTime() && booking.returnDate > pickupDateObj
-        );
-
-        let totalOverlapQuantity1 = 0;
-        let totalOverlapQuantity2 = 0;
-
-        if (lessOverlapBookings.length > 0) {
-          totalOverlapQuantity1 += lessOverlapBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-          console.log('Overlapping Booking (Less):', totalOverlapQuantity1);
-        }
-
-        if (greaterOverlapBookings.length > 0) {
-          totalOverlapQuantity2 += greaterOverlapBookings.reduce((sum, booking) => sum + booking.quantity, 0);
-          console.log('Total Overlapping Quantity (Greater):', totalOverlapQuantity2);
-        }
-        let totalOverlapQuantity3 = totalOverlapQuantity1 + totalOverlapQuantity2;
-
-        availableQuantity -= totalOverlapQuantity3;
-        console.log('New Available Quantity after Combined Overlap:', availableQuantity);
       }
 
-      if (availableQuantity < 0) {
-        availableQuantity = 0;
-        console.log('Available Quantity is negative, setting to 0');
-      }
+    });
 
-      console.log('Final Available Quantity:', availableQuantity);
+    console.log("---------------------------------------------------");
+    console.log("📊 BOOKING SUMMARY");
+    console.log("Stock:", maxAvailableQuantity);
+    console.log("Overlapping Booked:", bookedQuantity);
+
+    // 🔹 Calculate remaining stock
+    let availableQuantity = maxAvailableQuantity - bookedQuantity;
+
+    if (availableQuantity < 0) availableQuantity = 0;
+
+    console.log("Available Quantity:", availableQuantity);
+
+    // 🔹 Check requested quantity
+    if (Number(quantity) > availableQuantity) {
+
+      console.log("❌ Requested quantity exceeds availability");
 
       const newProducts = [...products];
+
       newProducts[index].availableQuantity = availableQuantity;
-      newProducts[index].errorMessage = ''; // Clear error message if successful
-      newProducts[index].bookingsLess = bookingsLess;
-newProducts[index].bookingsGreater = bookingsGreater;
-newProducts[index].allBookings = allBookings;
+
+      newProducts[index].errorMessage =
+        `Only ${availableQuantity} item(s) available for selected dates`;
+
+      newProducts[index].allBookings = allBookings;
+
       setProducts(newProducts);
 
-    } catch (error) {
-      toast.error('Error checking availability:', error);
-      const newProducts = [...products];
-      newProducts[index].errorMessage = 'Failed to check availability. Please try again.';
-      setProducts(newProducts);
+      toast.error(`Only ${availableQuantity} available`);
+
+      return;
     }
-  };
+
+    console.log("✅ Requested quantity is available");
+
+    // 🔹 Update UI
+    const newProducts = [...products];
+
+    newProducts[index].availableQuantity = availableQuantity;
+    newProducts[index].errorMessage = "";
+    newProducts[index].allBookings = allBookings;
+
+    setProducts(newProducts);
+
+    console.log("---------------------------------------------------");
+    console.log("🎯 AVAILABILITY CHECK COMPLETED");
+    console.log("---------------------------------------------------");
+
+  } catch (error) {
+
+    console.error("❌ Error checking availability:", error);
+
+    toast.error("Error checking availability");
+
+    const newProducts = [...products];
+
+    newProducts[index].errorMessage =
+      "Failed to check availability. Please try again.";
+
+    setProducts(newProducts);
+
+  }
+};
 
 
   const addProductForm = () => {

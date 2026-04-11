@@ -96,7 +96,35 @@ body {
   color: #b91c1c;
   font-weight: 600;
 }
+/* Overlapping bookings KPI card */
+.kpi-card.danger {
+  background: #fff5f5;
+  border-left: 6px solid #e53935;
+  color: #b71c1c;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
 
+/* hover effect */
+.kpi-card.danger:hover {
+  background: #ffe5e5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+/* title */
+.kpi-card.danger span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b0000;
+}
+
+/* number */
+.kpi-card.danger strong {
+  font-size: 26px;
+  font-weight: 700;
+  color: #d32f2f;
+}
 .kpi-card {
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   border-radius: var(--radius-lg);
