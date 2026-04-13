@@ -868,6 +868,79 @@ const migrateCustomerReceiptByToPayments = async () => {
   }
 
 };
+
+
+const migrateBookings = async () => {
+
+  console.log("🚀 Migration Started");
+
+  let batch = writeBatch(db);
+  let operationCount = 0;
+  let totalUpdated = 0;
+
+  try {
+
+    // 🔹 Fetch ALL bookings in database
+    const bookingsSnapshot = await getDocs(
+      collectionGroup(db, "bookings")
+    );
+
+    console.log("Total bookings found:", bookingsSnapshot.size);
+
+    for (const bookingDoc of bookingsSnapshot.docs) {
+
+      const bookingData = bookingDoc.data();
+
+      // Skip if already migrated
+      if (bookingData.branchCode && bookingData.productCode) continue;
+
+      // Path example:
+      // products/{branchCode}/products/{productCode}/bookings/{bookingId}
+
+      const pathParts = bookingDoc.ref.path.split("/");
+
+      const branchCode = pathParts[1];
+      const productCode = pathParts[3];
+
+      batch.update(bookingDoc.ref, {
+        branchCode,
+        productCode
+      });
+
+      operationCount++;
+      totalUpdated++;
+
+      // Firestore batch limit protection
+      if (operationCount === 500) {
+
+        await batch.commit();
+        console.log(`Committed 500 updates (Total: ${totalUpdated})`);
+
+        batch = writeBatch(db);
+        operationCount = 0;
+
+      }
+
+    }
+
+    // Commit remaining
+    if (operationCount > 0) {
+
+      await batch.commit();
+      console.log(`Committed remaining ${operationCount}`);
+
+    }
+
+    console.log("✅ Migration Completed");
+    console.log("Total bookings updated:", totalUpdated);
+
+  } catch (error) {
+
+    console.error("❌ Migration Failed:", error);
+
+  }
+
+};
   /* ================= HELPERS ================= */
 
   const isSameDay = (d1, d2) =>
@@ -1134,8 +1207,11 @@ Migrate Second Payments
 <button onClick={rebuildAccountSummaries}>
 Rebuild Account Summaries
 </button> */}
-<button onClick={migrateCustomerReceiptByToPayments}>
+{/* <button onClick={migrateCustomerReceiptByToPayments}>
 Migrate CustomerBy & ReceiptBy
+</button> */}
+<button onClick={migrateBookings}>
+Run Booking Migration
 </button>
 
 

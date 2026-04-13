@@ -293,15 +293,15 @@ const [stageFilter, setStageFilter] = useState(
             }
 
             // Ensure returnDate is updated correctly
-            if (['return', 'cancelled', 'successful','postponed'].includes(userDetails.stage) && returnDateObj.getTime() >= todayDateObj.getTime()) {
-              console.log(`Updating returnDate for booking ${docSnapshot.id} to today`);
+            // if (['return', 'cancelled', 'successful','postponed'].includes(userDetails.stage) && returnDateObj.getTime() >= todayDateObj.getTime()) {
+            //   console.log(`Updating returnDate for booking ${docSnapshot.id} to today`);
 
-              batch.update(doc(db, `products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`), {
-                returnDate: todayDateObj, // Store as Firestore Timestamp
-              });
+            //   batch.update(doc(db, `products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`), {
+            //     returnDate: todayDateObj, // Store as Firestore Timestamp
+            //   });
 
-              bookingData.returnDate = todayDateObj;
-            }
+            //   bookingData.returnDate = todayDateObj;
+            // }
 
             // Logging paths for batch update
             console.log(`Firestore path for update: products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`);

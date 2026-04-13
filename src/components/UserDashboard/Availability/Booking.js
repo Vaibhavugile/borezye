@@ -448,19 +448,25 @@ const checkAvailability = async (index) => {
       console.log("Quantity:", bookingQty);
 
       // Ignore cancelled
-      if (status === "cancelled") {
-        console.log("⛔ Skipping cancelled booking");
-        return;
-      }
+      // Ignore bookings that no longer hold stock
+// Store ALL bookings for UI
+allBookings.push({
+  receiptNumber: bookingData.receiptNumber,
+  pickupDate: bookingPickup,
+  returnDate: bookingReturn,
+  quantity: bookingQty,
+  status
+});
 
-      // Store booking for UI
-      allBookings.push({
-        receiptNumber: bookingData.receiptNumber,
-        pickupDate: bookingPickup,
-        returnDate: bookingReturn,
-        quantity: bookingQty,
-        status
-      });
+// Ignore only for availability calculation
+if (
+  status === "cancelled" ||
+  status === "return" ||
+  status === "successful"
+) {
+  console.log("⛔ Ignored for availability:", status);
+  return;
+}
 
       // 🔹 Check overlap
       const overlap =
@@ -912,6 +918,8 @@ const checkAvailability = async (index) => {
           pickupDate: pickupDateObj,
           returnDate: returnDateObj,
           quantity: parseInt(product.quantity, 10),
+            branchCode: userData.branchCode,
+          productCode: product.productCode,
           userDetails, // Assuming userDetails is the same for all products
           price, // Save price
           deposit,
