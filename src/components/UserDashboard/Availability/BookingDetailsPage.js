@@ -106,7 +106,8 @@ const [newPaymentDetails, setNewPaymentDetails] = useState("");
 const [refundAmount, setRefundAmount] = useState("");
 const [refundMode, setRefundMode] = useState("");
 const [refundDetails, setRefundDetails] = useState("");
-
+const [deletePreview, setDeletePreview] = useState(null);
+const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Payment Details State
   const [grandTotalRent, setGrandTotalRent] = useState('');
   const [discountOnRent, setDiscountOnRent] = useState('');
@@ -148,8 +149,17 @@ const [paymentDoc, setPaymentDoc] = useState(null);
           const activeQuery = query(bookingsRef, where('receiptNumber', '==', receiptNumber));
 
           // Deleted bookings
-          const deletedBookingsRef = collection(db, `products/${userData.branchCode}/deletedBookings`);
-          const deletedQuery = query(deletedBookingsRef, where('receiptNumber', '==', receiptNumber));
+          const deletedBookingsRef = collection(
+  db,
+  `products/${userData.branchCode}/bookingArchive`
+);
+
+const deletedQuery = query(
+  deletedBookingsRef,
+  where("receiptNumber", "==", receiptNumber),
+  where("productId", "==", productId)
+);
+
 
           return Promise.all([getDocs(activeQuery), getDocs(deletedQuery)]).then(
             ([activeSnap, deletedSnap]) => {
@@ -158,10 +168,10 @@ const [paymentDoc, setPaymentDoc] = useState(null);
                 productId,
                 product: productData,
                 bookings: allDocs.map((doc) => ({
-                  ...doc.data(),
-                  id: doc.id,
-                  isDeleted: deletedSnap.docs.includes(doc), // Optional flag
-                })),
+  ...doc.data(),
+  id: doc.id,
+  isDeleted: deletedSnap.docs.some(d => d.id === doc.id),
+}))
               };
             }
           );
@@ -982,6 +992,161 @@ const handleReturnDeposit = async () => {
   },6000);
 
 };
+const handleDeleteProduct = async (booking) => {
+
+  if (!window.confirm("Remove this product from receipt?")) return;
+
+  try {
+
+    const batch = writeBatch(db);
+
+    const bookingRef = doc(
+  db,
+  `products/${userData.branchCode}/products/${booking.productId}/bookings/${booking.id}`
+);
+    const deletedRef = doc(
+  db,
+  `products/${userData.branchCode}/bookingArchive`,
+  booking.id
+);
+
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+
+    if (!paymentSnap.exists()) {
+      toast.error("Payment document not found");
+      return;
+    }
+
+    const paymentData = paymentSnap.data();
+
+    /* 🔹 Correct rent calculation */
+    const removedRent = Number(booking.totalCost || 0);
+
+    const removedDeposit =
+      Number(booking.deposit || 0) * Number(booking.quantity || 0);
+
+    /* 🔹 Calculate new totals */
+
+    let newFinalRent = (paymentData.finalRent || 0) - removedRent;
+    let newFinalDeposit = (paymentData.finalDeposit || 0) - removedDeposit;
+
+    if (newFinalRent < 0) newFinalRent = 0;
+    if (newFinalDeposit < 0) newFinalDeposit = 0;
+
+    const newTotalAmount = newFinalRent + newFinalDeposit;
+
+    const amountPaid = paymentData.amountPaid || 0;
+
+    const newBalance = newTotalAmount - amountPaid;
+
+    /* 🔹 Update productsSummary */
+
+    const updatedProductsSummary =
+  (paymentData.productsSummary || []).filter(
+    (p) => p.bookingId !== booking.id
+  );
+
+    /* 🔹 Move booking to deletedBookings */
+
+   batch.set(deletedRef, {
+  ...booking,
+  archived: true,
+  archivedAt: serverTimestamp(),
+  archivedBy: userData.name
+});
+
+    /* 🔹 Delete original booking */
+
+    batch.delete(bookingRef);
+
+    /* 🔹 Update payment document */
+
+    batch.update(paymentRef, {
+      finalRent: newFinalRent,
+      finalDeposit: newFinalDeposit,
+      totalAmount: newTotalAmount,
+      balance: newBalance,
+      productsSummary: updatedProductsSummary
+    });
+
+    await batch.commit();
+
+    toast.success("Product removed and totals updated");
+
+    /* 🔹 Update UI */
+
+   setBookings(prev =>
+  prev.filter(b => !(b.id === booking.id && b.productId === booking.productId))
+);
+
+  } catch (error) {
+
+    console.error(error);
+    toast.error("Failed to delete product");
+
+  }
+
+};
+const previewDeleteProduct = async (booking) => {
+
+  try {
+
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+
+    if (!paymentSnap.exists()) {
+      toast.error("Payment document not found");
+      return;
+    }
+
+    const paymentData = paymentSnap.data();
+
+    const removedRent = Number(booking.totalCost || 0);
+    const removedDeposit =
+      Number(booking.deposit || 0) * Number(booking.quantity || 0);
+
+    const newFinalRent = paymentData.finalRent - removedRent;
+    const newFinalDeposit = paymentData.finalDeposit - removedDeposit;
+
+    const newTotal = newFinalRent + newFinalDeposit;
+
+    const amountPaid = paymentData.amountPaid || 0;
+
+    const newBalance = newTotal - amountPaid;
+
+    setDeletePreview({
+      booking,
+
+      oldRent: paymentData.finalRent,
+      oldDeposit: paymentData.finalDeposit,
+      oldTotal: paymentData.totalAmount,
+
+      amountPaid: paymentData.amountPaid,
+
+      newRent: newFinalRent,
+      newDeposit: newFinalDeposit,
+      newTotal: newTotal,
+      newBalance: newBalance
+    });
+
+    setShowDeleteModal(true);
+
+  } catch (error) {
+    console.error(error);
+  }
+
+};
 
   // Handle contact numbera selection
 
@@ -1190,6 +1355,7 @@ const handleReturnDeposit = async () => {
                         <th>Pickup</th>
                         <th>Return</th>
                         <th>Alteration</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
 
@@ -1200,7 +1366,12 @@ const handleReturnDeposit = async () => {
                         </tr>
                       ) : (
                         bookings.map((booking, index) => (
-                          <tr key={index}>
+      <tr
+key={booking.id}  style={{
+    background: booking.archived ? "#ffe5e5" : "",
+    textDecoration: booking.archived ? "line-through" : ""
+  }}
+>
                             {/* IMAGE */}
                             <td data-label="Image">
                               <img
@@ -1229,7 +1400,7 @@ const handleReturnDeposit = async () => {
 
                             {/* RENT */}
                             <td data-label="Rent">
-                              ₹{booking.price}
+                              ₹{booking.totalCost}
                             </td>
 
                             {/* DEPOSIT */}
@@ -1256,6 +1427,16 @@ const handleReturnDeposit = async () => {
                             <td data-label="Alteration">
                               {userDetails?.alterations || "N/A"}
                             </td>
+                            <td>
+{!booking.archived && (
+<button
+className="delete-product-btn"
+onClick={() => previewDeleteProduct(booking)}
+>
+Delete
+</button>
+)}
+</td>
                           </tr>
                         ))
                       )}
@@ -1690,7 +1871,93 @@ Cancel
           </div>
         </div>
       )}
+      {showDeleteModal && deletePreview && (
+  <div className="delete-modal-overlay">
 
+    <div className="delete-modal">
+
+      <h3>Delete Product Confirmation</h3>
+
+      <p>
+        Product: <strong>{deletePreview.booking.product?.productName}</strong>
+      </p>
+
+      <div className="payment-summary">
+
+        <h4>Current Payment</h4>
+
+        <div className="summary-row">
+          <span>Rent</span>
+          <span>₹{deletePreview.oldRent}</span>
+        </div>
+
+        <div className="summary-row">
+          <span>Deposit</span>
+          <span>₹{deletePreview.oldDeposit}</span>
+        </div>
+
+        <div className="summary-row total">
+          <span>Total</span>
+          <span>₹{deletePreview.oldTotal}</span>
+        </div>
+
+        <hr/>
+         <div className="summary-row paid">
+    <span>Amount Paid</span>
+    <span>₹{deletePreview.amountPaid}</span>
+  </div>
+
+
+        <h4>After Deleting Product</h4>
+
+        <div className="summary-row">
+          <span>Rent</span>
+          <span>₹{deletePreview.newRent}</span>
+        </div>
+
+        <div className="summary-row">
+          <span>Deposit</span>
+          <span>₹{deletePreview.newDeposit}</span>
+        </div>
+
+        <div className="summary-row total">
+          <span>New Total</span>
+          <span>₹{deletePreview.newTotal}</span>
+        </div>
+
+        <div className="summary-row balance">
+          <span>New Balance</span>
+          <span>₹{deletePreview.newBalance}</span>
+        </div>
+
+      </div>
+
+      <div className="modal-buttons">
+
+        <button
+          className="cancel-btn"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          Cancel
+        </button>
+
+        <button
+          className="delete-btn"
+          onClick={() => {
+            handleDeleteProduct(deletePreview.booking);
+            setShowDeleteModal(false);
+          }}
+        >
+          Delete Product
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
+      
 
       <ToastContainer />
     </>
