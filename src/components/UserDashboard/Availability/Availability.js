@@ -240,172 +240,216 @@ const [stageFilter, setStageFilter] = useState(
   };
 
    useEffect(() => {
-    const fetchAllBookingsWithUserDetails = async () => {
-      setLoading(true); // Start loading
-      try {
 
-        // Query for products in the correct branch subcollection
-        const productsRef = collection(db, `products/${userData.branchCode}/products`); // Updated path for branch-specific products
-        const productsSnapshot = await getDocs(productsRef);
+  const fetchAllBookingsWithUserDetails = async () => {
 
-        const allBookingsPromises = productsSnapshot.docs.map(async (productDoc) => {
-          const productCode = productDoc.data().productCode;
-          const bookingsRef = collection(productDoc.ref, 'bookings');
-          const bookingsQuery = query(bookingsRef, orderBy('pickupDate', 'asc'));
-          const bookingsSnapshot = await getDocs(bookingsQuery);
+    setLoading(true);
 
-          const batch = writeBatch(db); // Batch for updates
-          const productBookings = bookingsSnapshot.docs.map((docSnapshot) => {
-            const bookingData = docSnapshot.data();
-            const {
-              bookingId,
-              receiptNumber,
-              pickupDate,
-              returnDate,
-              quantity,
-              userDetails,
-              createdAt,
-            } = bookingData;
+    try {
 
-            const pickupDateObj = pickupDate && typeof pickupDate.toDate === 'function' ? pickupDate.toDate() : new Date(pickupDate);
-            const returnDateObj = returnDate && typeof returnDate.toDate === 'function' ? returnDate.toDate() : new Date(returnDate);
-            const todayDateObj = new Date(); // Get today's date
+//       const todayStart = new Date();
+// todayStart.setHours(0,0,0,0);
 
-            console.log('Today Date:', todayDateObj);
-            console.log('Pickup Date:', pickupDateObj);
-            console.log('Return Date:', returnDateObj);
-            console.log('User Stage:', userDetails.stage);
-            // Update stages as needed based on today's date
-            if (pickupDateObj.toDateString() === todayDateObj.toDateString() && userDetails.stage === 'Booking') {
-              console.log(`Updating stage to 'pickupPending' for booking ${docSnapshot.id}`);
-              batch.update(doc(db, `products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`), {
-                'userDetails.stage': 'pickupPending',
-              });
-              userDetails.stage = 'pickupPending';
-            }
+// const tomorrow = new Date(todayStart);
+// tomorrow.setDate(todayStart.getDate() + 1);
 
-            if (returnDateObj.toDateString() === todayDateObj.toDateString() && userDetails.stage === 'pickup') {
-              console.log(`Updating stage to 'returnPending' for booking ${docSnapshot.id}`);
-              batch.update(doc(db, `products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`), {
-                'userDetails.stage': 'returnPending',
-              });
-              userDetails.stage = 'returnPending';
-            }
+      // 🔥 FAST QUERY (instead of looping products)
+      const bookingsQuery = query(
+        collectionGroup(db, "bookings"),
+        where("branchCode", "==", userData.branchCode),
+        orderBy("pickupDate", "asc")
+      );
 
-            // Ensure returnDate is updated correctly
-            // if (['return', 'cancelled', 'successful','postponed'].includes(userDetails.stage) && returnDateObj.getTime() >= todayDateObj.getTime()) {
-            //   console.log(`Updating returnDate for booking ${docSnapshot.id} to today`);
+      const bookingsSnapshot = await getDocs(bookingsQuery);
 
-            //   batch.update(doc(db, `products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`), {
-            //     returnDate: todayDateObj, // Store as Firestore Timestamp
-            //   });
+//       const batch = writeBatch(db);
+// let updates = 0;
 
-            //   bookingData.returnDate = todayDateObj;
-            // }
+      const allBookings = bookingsSnapshot.docs.map((docSnapshot) => {
 
-            // Logging paths for batch update
-            console.log(`Firestore path for update: products/${userData.branchCode}/products/${productDoc.id}/bookings/${docSnapshot.id}`);
+        const bookingData = docSnapshot.data();
+
+        const {
+          bookingId,
+          receiptNumber,
+          pickupDate,
+          returnDate,
+          quantity,
+          userDetails,
+          createdAt,
+          productCode,
+          productName
+        } = bookingData;
+
+        const pickupDateObj =
+          pickupDate && typeof pickupDate.toDate === 'function'
+            ? pickupDate.toDate()
+            : new Date(pickupDate);
+
+        const returnDateObj =
+          returnDate && typeof returnDate.toDate === 'function'
+            ? returnDate.toDate()
+            : new Date(returnDate);
 
 
-            const productName = productDoc.data().productName || "N/A";
+        
 
-            return {
-              bookingId,
-              receiptNumber,
-              clientname: userDetails.name,
-              contactNo: userDetails.contact,
-              email: userDetails.email,
-              pickupDate: pickupDate
-                ? pickupDate.toDate
-                  ? pickupDate.toDate()
-                  : new Date(pickupDate)
-                : null,
-              returnDate: returnDate
-                ? returnDate.toDate
-                  ? returnDate.toDate()
-                  : new Date(returnDate)
-                : null,
-              createdAt: createdAt || null,
-              stage: userDetails.stage,
-              products: [
-                { productCode, quantity: parseInt(quantity, 10), productName }, // Ensure each product is properly formatted
-              ],
-              IdentityProof: userDetails.identityproof || 'N/A',
-              IdentityNumber: userDetails.identitynumber || 'N/A',
-              Source: userDetails.source || 'N/A',
-              CustomerBy: userDetails.customerby || 'N/A',
-              ReceiptBy: userDetails.receiptby || 'N/A',
-              Alterations: userDetails.alterations || 'N/A',
-              SpecialNote: userDetails.specialnote || 'N/A',
-              GrandTotalRent: userDetails.grandTotalRent || 'N/A',
-              DiscountOnRent: userDetails.discountOnRent || 'N/A',
-              FinalRent: userDetails.finalrent || 'N/A',
-              GrandTotalDeposit: userDetails.grandTotalDeposit || 'N/A',
-              DiscountOnDeposit: userDetails.discountOnDeposit || 'N/A',
-              FinalDeposit: userDetails.finaldeposite || 'N/A',
-              AmountToBePaid: userDetails.totalamounttobepaid || 'N/A',
-              AmountPaid: userDetails.amountpaid || 'N/A',
-              Balance: userDetails.balance || 'N/A',
-              PaymentStatus: userDetails.paymentstatus || 'N/A',
-              FirstPaymentDetails: userDetails.firstpaymentdtails || 'N/A',
-              FirstPaymentMode: userDetails.firstpaymentmode || 'N/A',
-              SecondPaymentMode: userDetails.secondpaymentmode || 'N/A',
-              SecondPaymentDetails: userDetails.secondpaymentdetails || 'N/A',
-            };
-          });
+//         // 🔹 AUTO STAGE CHANGE (pickupPending)
+//       if (
+//   pickupDateObj >= todayStart &&
+//   pickupDateObj < tomorrow &&
+//   userDetails?.stage === 'Booking'
+// ) {
 
-          await batch.commit(); // Commit batched updates
-          return productBookings;
-        });
+//           console.log(`Updating stage to 'pickupPending' for booking ${docSnapshot.id}`);
 
-        const allBookings = (await Promise.all(allBookingsPromises)).flat();
+//           batch.update(docSnapshot.ref, {
+//             'userDetails.stage': 'pickupPending',
+//           });
 
-        // Group bookings by receiptNumber, and aggregate products correctly
-        const groupedBookings = allBookings.reduce((acc, booking) => {
-          const { receiptNumber, products } = booking;
-          if (!acc[receiptNumber]) {
-            acc[receiptNumber] = { ...booking, products: [...products] };
-          } else {
-            // If receiptNumber already exists, aggregate products properly
-            products.forEach((product) => {
-              const existingProduct = acc[receiptNumber].products.find(
-                (p) => p.productCode === product.productCode
-              );
-              if (existingProduct) {
-                existingProduct.quantity += product.quantity; // Aggregate quantity
-              } else {
-                acc[receiptNumber].products.push(product); // Add new product entry
-              }
-            });
-          }
-          return acc;
-        }, {});
+//           userDetails.stage = 'pickupPending';
+//           updates++;
+//         }
 
-        // Convert grouped bookings object to array
-        let bookingsArray = Object.values(groupedBookings);
+//         // 🔹 AUTO STAGE CHANGE (returnPending)
+//         if (
+//   returnDateObj >= todayStart &&
+//   returnDateObj < tomorrow &&
+//   userDetails?.stage === 'pickup'
+// ) {
 
-        // Sort bookings by `createdAt` in descending order
-        bookingsArray.sort((a, b) => {
-          const dateA = a.createdAt
-            ? new Date(a.createdAt.toDate ? a.createdAt.toDate() : a.createdAt)
-            : new Date(0);
-          const dateB = b.createdAt
-            ? new Date(b.createdAt.toDate ? b.createdAt.toDate() : b.createdAt)
-            : new Date(0);
-          return dateB - dateA; // Latest first
-        });
+//           console.log(`Updating stage to 'returnPending' for booking ${docSnapshot.id}`);
 
-        setBookings(bookingsArray); // Update state with sorted bookings
-      } catch (error) {
-        toast.error('Error fetching bookings:', error);
-      } finally {
-        setLoading(false); // End loading
-      }
-    };
+//           batch.update(docSnapshot.ref, {
+//             'userDetails.stage': 'returnPending',
+//           });
 
+//           userDetails.stage = 'returnPending';
+//           updates++;
+//         }
+
+//         console.log(`Firestore path for update: ${docSnapshot.ref.path}`);
+
+        return {
+          bookingId,
+          receiptNumber,
+          clientname: userDetails?.name,
+          contactNo: userDetails?.contact,
+          email: userDetails?.email,
+
+          pickupDate: pickupDate
+            ? pickupDate.toDate
+              ? pickupDate.toDate()
+              : new Date(pickupDate)
+            : null,
+
+          returnDate: returnDate
+            ? returnDate.toDate
+              ? returnDate.toDate()
+              : new Date(returnDate)
+            : null,
+
+          createdAt: createdAt || null,
+
+          stage: userDetails?.stage,
+
+          products: [
+            {
+              productCode,
+              quantity: parseInt(quantity, 10),
+              productName: productName || "N/A",
+            },
+          ],
+
+          IdentityProof: userDetails?.identityproof || 'N/A',
+          IdentityNumber: userDetails?.identitynumber || 'N/A',
+          Source: userDetails?.source || 'N/A',
+          CustomerBy: userDetails?.customerby || 'N/A',
+          ReceiptBy: userDetails?.receiptby || 'N/A',
+          Alterations: userDetails?.alterations || 'N/A',
+          SpecialNote: userDetails?.specialnote || 'N/A',
+          GrandTotalRent: userDetails?.grandTotalRent || 'N/A',
+          DiscountOnRent: userDetails?.discountOnRent || 'N/A',
+          FinalRent: userDetails?.finalrent || 'N/A',
+          GrandTotalDeposit: userDetails?.grandTotalDeposit || 'N/A',
+          DiscountOnDeposit: userDetails?.discountOnDeposit || 'N/A',
+          FinalDeposit: userDetails?.finaldeposite || 'N/A',
+          AmountToBePaid: userDetails?.totalamounttobepaid || 'N/A',
+          AmountPaid: userDetails?.amountpaid || 'N/A',
+          Balance: userDetails?.balance || 'N/A',
+          PaymentStatus: userDetails?.paymentstatus || 'N/A',
+          FirstPaymentDetails: userDetails?.firstpaymentdtails || 'N/A',
+          FirstPaymentMode: userDetails?.firstpaymentmode || 'N/A',
+          SecondPaymentMode: userDetails?.secondpaymentmode || 'N/A',
+          SecondPaymentDetails: userDetails?.secondpaymentdetails || 'N/A',
+        };
+
+      });
+
+//       if (updates > 0) {
+//   await batch.commit();
+// }
+      // 🔹 GROUP BOOKINGS BY RECEIPT NUMBER
+      const groupedBookings = allBookings.reduce((acc, booking) => {
+
+        const { receiptNumber, products } = booking;
+
+        if (!acc[receiptNumber]) {
+
+          acc[receiptNumber] = {
+            ...booking,
+            products: [...products],
+          };
+
+        } else {
+
+         products.forEach((product) => {
+  acc[receiptNumber].products.push(product);
+});
+
+        }
+
+        return acc;
+
+      }, {});
+
+      let bookingsArray = Object.values(groupedBookings);
+
+      // 🔹 SORT BY CREATED DATE
+      bookingsArray.sort((a, b) => {
+
+        const dateA = a.createdAt
+          ? new Date(a.createdAt.toDate ? a.createdAt.toDate() : a.createdAt)
+          : new Date(0);
+
+        const dateB = b.createdAt
+          ? new Date(b.createdAt.toDate ? b.createdAt.toDate() : b.createdAt)
+          : new Date(0);
+
+        return dateB - dateA;
+
+      });
+
+      setBookings(bookingsArray);
+
+    } catch (error) {
+
+      console.error(error);
+      toast.error('Error fetching bookings');
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  if (userData?.branchCode) {
     fetchAllBookingsWithUserDetails();
-  }, [userData.branchCode]);
+  }
 
+}, [userData.branchCode]);
 
 
  const handleDelete = async (receiptNumber) => {
@@ -574,14 +618,9 @@ const [stageFilter, setStageFilter] = useState(
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
   handleSearch();
-}, [searchQuery, searchField, stageFilter]);
-
-
-useEffect(() => {
-  handleSearch();
-}, [bookings]);
+}, [searchQuery, searchField, stageFilter, bookings]);
 
 
   const exportToCSV = () => {

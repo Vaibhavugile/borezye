@@ -450,19 +450,25 @@ const checkAvailability = async (index) => {
       // Ignore cancelled
       // Ignore bookings that no longer hold stock
 // Store ALL bookings for UI
-allBookings.push({
-  receiptNumber: bookingData.receiptNumber,
-  pickupDate: bookingPickup,
-  returnDate: bookingReturn,
-  quantity: bookingQty,
-  status
-});
+// Hide successful bookings in UI
+if (status !== "successful") {
+
+  allBookings.push({
+    receiptNumber: bookingData.receiptNumber,
+    pickupDate: bookingPickup,
+    returnDate: bookingReturn,
+    quantity: bookingQty,
+    status
+  });
+
+}
 
 // Ignore only for availability calculation
 if (
   status === "cancelled" ||
   status === "return" ||
-  status === "successful"
+  status === "successful" ||
+  status === "postponed"
 ) {
   console.log("⛔ Ignored for availability:", status);
   return;
