@@ -791,6 +791,83 @@ const rebuildAccountSummaries = async () => {
   }
 
 };
+const migrateCustomerReceiptByToPayments = async () => {
+
+  try {
+
+    const bookingsSnapshot = await getDocs(collectionGroup(db, "bookings"));
+
+    const receiptMap = {};
+
+    bookingsSnapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+      const receiptNumber = data.receiptNumber;
+
+      const details = data.userDetails || {};
+
+      const customerBy = details.customerby || "";
+      const receiptBy = details.receiptby || "";
+
+      const branchCode =
+        details.branchCode ||
+        receiptNumber?.split("-")[0];
+
+      if (!receiptNumber || !branchCode) return;
+
+      if (!receiptMap[receiptNumber]) {
+
+        receiptMap[receiptNumber] = {
+          branchCode,
+          customerBy,
+          receiptBy
+        };
+
+      }
+
+    });
+
+    console.log(`Found ${Object.keys(receiptMap).length} receipts`);
+
+    const batchSize = 500;
+    const entries = Object.entries(receiptMap);
+
+    for (let i = 0; i < entries.length; i += batchSize) {
+
+      const batch = writeBatch(db);
+
+      const chunk = entries.slice(i, i + batchSize);
+
+      chunk.forEach(([receiptNumber, data]) => {
+
+        const paymentRef = doc(
+          db,
+          `products/${data.branchCode}/payments`,
+          receiptNumber
+        );
+
+        batch.update(paymentRef, {
+          customerBy: data.customerBy,
+          receiptBy: data.receiptBy
+        });
+
+      });
+
+      await batch.commit();
+
+      console.log(`Batch ${i / batchSize + 1} committed`);
+
+    }
+
+    console.log("✅ CustomerBy + ReceiptBy migration completed");
+
+  } catch (error) {
+
+    console.error("Migration error:", error);
+
+  }
+
+};
   /* ================= HELPERS ================= */
 
   const isSameDay = (d1, d2) =>
@@ -1057,6 +1134,9 @@ Migrate Second Payments
 <button onClick={rebuildAccountSummaries}>
 Rebuild Account Summaries
 </button> */}
+<button onClick={migrateCustomerReceiptByToPayments}>
+Migrate CustomerBy & ReceiptBy
+</button>
 
 
         <div className="kpi-grid">

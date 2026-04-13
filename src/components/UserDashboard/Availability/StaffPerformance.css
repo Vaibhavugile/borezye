@@ -1,0 +1,370 @@
+/* ===== PAGE CONTAINER ===== */
+
+.staff-performance-container{
+padding:35px;
+background:linear-gradient(180deg,#f8fafc,#eef2f7);
+min-height:100vh;
+font-family:"Inter",system-ui,sans-serif;
+}
+
+
+/* ===== HEADER ===== */
+
+.staff-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:15px;
+}
+
+.staff-header h1{
+font-size:28px;
+font-weight:700;
+color:#111827;
+letter-spacing:-0.3px;
+}
+
+
+/* ===== DATE FILTER BUTTONS ===== */
+
+.date-filters{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.date-filters button{
+border:none;
+background:#e5e7eb;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:500;
+transition:all .2s ease;
+}
+
+.date-filters button:hover{
+background:#d1d5db;
+transform:translateY(-1px);
+}
+
+.date-filters button.active{
+background:#111827;
+color:white;
+box-shadow:0 6px 14px rgba(0,0,0,0.12);
+}
+
+
+/* ===== CUSTOM DATE RANGE ===== */
+
+.custom-date-range{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:20px;
+flex-wrap:wrap;
+}
+
+.custom-date-range input{
+padding:8px 10px;
+border-radius:8px;
+border:1px solid #e5e7eb;
+background:white;
+font-size:14px;
+min-width:140px;
+transition:.2s;
+}
+
+.custom-date-range input:focus{
+outline:none;
+border-color:#6366f1;
+box-shadow:0 0 0 2px rgba(99,102,241,.2);
+}
+
+.custom-date-range span{
+font-weight:500;
+color:#6b7280;
+}
+
+
+/* ===== SECTION TITLE ===== */
+
+.staff-section-title{
+font-size:22px;
+font-weight:700;
+margin-bottom:18px;
+color:#111827;
+letter-spacing:-0.3px;
+}
+
+
+/* ===== KPI GRID ===== */
+
+.staff-kpi-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+gap:22px;
+margin-bottom:35px;
+}
+
+
+/* ===== KPI CARD ===== */
+
+.staff-kpi-card{
+padding:22px;
+border-radius:14px;
+background:white;
+border:1px solid #e5e7eb;
+box-shadow:0 8px 22px rgba(0,0,0,0.06);
+transition:all .25s ease;
+position:relative;
+overflow:hidden;
+}
+
+.staff-kpi-card:hover{
+transform:translateY(-4px);
+box-shadow:0 16px 34px rgba(0,0,0,0.1);
+}
+
+.staff-kpi-card span{
+font-size:13px;
+color:#6b7280;
+font-weight:500;
+}
+
+.staff-kpi-card strong{
+display:block;
+margin-top:6px;
+font-size:26px;
+font-weight:700;
+color:#111827;
+}
+
+
+/* ===== KPI COLORS ===== */
+
+.kpi-sales{
+border-left:5px solid #22c55e;
+}
+
+.kpi-receipts{
+border-left:5px solid #3b82f6;
+}
+
+.kpi-customers{
+border-left:5px solid #f59e0b;
+}
+
+
+/* ===== KPI ICON ===== */
+
+.kpi-icon{
+font-size:22px;
+margin-bottom:8px;
+color:#6b7280;
+animation:floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon{
+
+0%{transform:translateY(0px)}
+50%{transform:translateY(-5px)}
+100%{transform:translateY(0px)}
+
+}
+
+
+/* ===== CARD WRAPPER ===== */
+
+.staff-card{
+background:white;
+border-radius:16px;
+padding:25px;
+margin-bottom:35px;
+border:1px solid #e5e7eb;
+box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+
+/* ===== TABLE ===== */
+
+.staff-table{
+width:100%;
+border-collapse:collapse;
+}
+
+
+/* ===== HEADER ===== */
+
+.staff-table thead{
+background:#f9fafb;
+}
+
+.staff-table th{
+padding:14px;
+font-size:13px;
+font-weight:600;
+color:#6b7280;
+border-bottom:1px solid #e5e7eb;
+}
+
+
+/* ===== BODY ===== */
+
+.staff-table td{
+padding:14px;
+font-size:14px;
+color:#374151;
+border-bottom:1px solid #f1f3f6;
+}
+
+
+/* ===== ALIGN TABLE CONTENT ===== */
+
+.staff-table th:first-child,
+.staff-table td:first-child{
+text-align:center;
+width:80px;
+}
+
+.staff-table th:nth-child(3),
+.staff-table td:nth-child(3){
+text-align:center;
+}
+
+.staff-table th:last-child,
+.staff-table td:last-child{
+text-align:right;
+padding-right:30px;
+}
+
+
+/* ===== ZEBRA ROWS ===== */
+
+.staff-table tbody tr:nth-child(even){
+background:#fbfcfd;
+}
+
+
+/* ===== ROW HOVER ===== */
+
+.staff-table tbody tr{
+transition:all .2s ease;
+}
+
+.staff-table tbody tr:hover{
+background:#f4f6f9;
+transform:scale(1.01);
+}
+
+
+/* ===== STAFF NAME STYLE ===== */
+
+.staff-table td:nth-child(2){
+font-weight:500;
+}
+
+
+/* ===== TOP STAFF HIGHLIGHT ===== */
+
+.top-staff{
+font-weight:700;
+color:#111827;
+}
+
+
+/* ===== REVENUE STYLE ===== */
+
+.revenue{
+font-weight:700;
+color:#16a34a;
+text-align:right;
+}
+
+
+/* ===== LEADER ROW ===== */
+
+.staff-table tbody tr:first-child{
+background:#ecfdf5;
+border-left:4px solid #22c55e;
+}
+
+.staff-table tbody tr:first-child td{
+font-weight:600;
+}
+
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width:900px){
+
+.staff-kpi-grid{
+grid-template-columns:1fr;
+}
+
+}
+
+@media (max-width:768px){
+
+.staff-table th,
+.staff-table td{
+padding:10px;
+font-size:12px;
+}
+
+.staff-section-title{
+font-size:18px;
+}
+
+.staff-header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+}
+/* ===== RANK MEDALS ===== */
+
+.rank-cell{
+text-align:center;
+font-size:18px;
+font-weight:600;
+}
+
+.medal{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+}
+
+/* GOLD */
+
+.medal.gold{
+animation:goldGlow 2s infinite;
+}
+
+/* SILVER */
+
+.medal.silver{
+opacity:.9;
+}
+
+/* BRONZE */
+
+.medal.bronze{
+opacity:.85;
+}
+
+/* GOLD GLOW ANIMATION */
+
+@keyframes goldGlow{
+
+0%{transform:scale(1)}
+
+50%{transform:scale(1.15)}
+
+100%{transform:scale(1)}
+
+}

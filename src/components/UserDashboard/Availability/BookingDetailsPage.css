@@ -299,7 +299,11 @@ button:hover {
   background: #d1d5db;
 }
 /* PAYMENT HISTORY HEADER */
-
+.payment-actions{
+display:flex;
+gap:10px;
+align-items:center;
+}
 .payment-history-header {
   display: flex;
   align-items: center;

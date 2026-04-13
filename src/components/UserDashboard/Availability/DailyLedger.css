@@ -1,0 +1,279 @@
+/* =================================
+   Container
+================================= */
+
+.ledger-container{
+  background:#ffffff;
+  padding:24px;
+  border-radius:12px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
+  border:1px solid #f0f0f0;
+}
+
+
+/* =================================
+   Header
+================================= */
+
+.ledger-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:22px;
+}
+
+.ledger-header h2{
+  font-size:20px;
+  font-weight:600;
+  color:#2c3e50;
+  letter-spacing:.2px;
+}
+
+.ledger-header input{
+  padding:8px 12px;
+  border:1px solid #dcdcdc;
+  border-radius:6px;
+  background:#fafafa;
+  font-size:14px;
+  transition:all .2s ease;
+}
+
+.ledger-header input:focus{
+  outline:none;
+  border-color:#4c8bf5;
+  background:#fff;
+}
+
+
+/* =================================
+   Table Wrapper
+================================= */
+
+.ledger-table-wrapper{
+  overflow-x:auto;
+  border-radius:10px;
+}
+
+
+/* =================================
+   Table
+================================= */
+
+.ledger-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:14px;
+  color:#2f3a45;
+}
+
+
+/* =================================
+   Header
+================================= */
+
+.ledger-table thead th{
+  background:#f4f6f9;
+  padding:12px 16px;
+  font-weight:600;
+  border-bottom:2px solid #e6e9ef;
+  text-align:center;
+  white-space:nowrap;
+}
+
+
+/* Sticky header */
+
+.ledger-table thead th{
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+
+/* =================================
+   Table Body
+================================= */
+
+.ledger-table td{
+  padding:12px 16px;
+  border-bottom:1px solid #edf0f4;
+  vertical-align:middle;
+  font-weight:500;
+  text-align:center;
+}
+
+
+/* First columns left aligned */
+
+.ledger-table td:first-child,
+.ledger-table td:nth-child(2),
+.ledger-table td:nth-child(3),
+.ledger-table td:nth-child(4){
+  text-align:left;
+}
+
+
+/* Numeric alignment */
+
+.ledger-table td{
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =================================
+   Section Divider
+================================= */
+
+/* only show divider in header group */
+
+.ledger-table thead tr:first-child th:nth-child(5){
+  border-left:2px solid #e6e9ef;
+}
+
+
+/* =================================
+   Row Hover
+================================= */
+
+.ledger-table tbody tr:hover{
+  background:#f9fbff;
+  transition:background .15s ease;
+}
+
+
+/* =================================
+   Negative Amount
+================================= */
+
+.negative{
+  color:#e53935;
+  font-weight:600;
+}
+
+
+/* =================================
+   Total Rows
+================================= */
+
+.total-row{
+  background:#f7f9fc;
+  font-weight:600;
+}
+
+.total-row td{
+  border-top:2px solid #e2e6ee;
+  padding:14px 16px;
+  text-align:center;
+}
+
+
+/* Total label column */
+
+.total-row td:first-child{
+  text-align:left;
+  font-weight:600;
+  color:#2c3e50;
+}
+
+
+/* Totals numbers alignment */
+
+.total-row strong{
+  display:block;
+  text-align:center;
+}
+
+
+/* Remove empty cells background */
+
+.total-row td:empty{
+  background:transparent;
+}
+
+
+/* Final total highlight */
+
+.total-row:last-child{
+  background:#eef3ff;
+  font-weight:700;
+  border-top:3px solid #cfd8ff;
+}
+
+
+/* =================================
+   Responsive
+================================= */
+
+@media (max-width:900px){
+
+  .ledger-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .ledger-header input{
+    width:180px;
+  }
+
+  .ledger-table{
+    font-size:13px;
+  }
+
+  .ledger-table td,
+  .ledger-table th{
+    padding:10px 12px;
+  }
+
+}
+/* =================================
+   Date Range Filter
+================================= */
+
+.ledger-date-filter{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* date inputs */
+
+.ledger-date-filter input{
+  padding:8px 12px;
+  border:1px solid #dcdcdc;
+  border-radius:6px;
+  background:#fafafa;
+  font-size:14px;
+  min-width:140px;
+  transition:all .2s ease;
+}
+
+.ledger-date-filter input:focus{
+  outline:none;
+  border-color:#4c8bf5;
+  background:#fff;
+}
+
+/* "to" separator */
+
+.date-separator{
+  font-size:14px;
+  font-weight:500;
+  color:#6b7280;
+}
+
+/* responsive */
+
+@media (max-width:700px){
+
+  .ledger-date-filter{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  .ledger-date-filter input{
+    min-width:120px;
+  }
+
+}

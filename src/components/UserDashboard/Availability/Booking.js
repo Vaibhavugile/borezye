@@ -985,6 +985,8 @@ await setDoc(paymentRef, {
   // Client Info
   clientName: userDetails.name || "",
   contact: userDetails.contact || "",
+   customerBy: userDetails.customerby || "",
+  receiptBy: userDetails.receiptby || "",
 
   // Booking Dates
   pickupDate: new Date(
@@ -1078,6 +1080,45 @@ if (firstPaymentAmount > 0) {
     createdAt: serverTimestamp(),
     createdBy: userData.name || "System"
 
+  });
+
+}
+/* 🔹 SAVE FIRST PAYMENT IN LEDGER */
+
+const ledgerRef = collection(
+  db,
+  `products/${userData.branchCode}/ledger`
+);
+
+const rentPay = Math.min(firstPaymentAmount, finalRent);
+const depositPay = Math.max(firstPaymentAmount - rentPay, 0);
+
+if (rentPay > 0) {
+
+  await addDoc(ledgerRef, {
+    receiptNumber,
+    customerName: userDetails.name || "",
+    type: "rentPayment",
+    amount: rentPay,
+    mode: userDetails.firstpaymentmode || "",
+    details: userDetails.firstpaymentdtails || "",
+    createdAt: serverTimestamp(),
+    createdBy: userData.name || "System"
+  });
+
+}
+
+if (depositPay > 0) {
+
+  await addDoc(ledgerRef, {
+    receiptNumber,
+    customerName: userDetails.name || "",
+    type: "depositPayment",
+    amount: depositPay,
+    mode: userDetails.firstpaymentmode || "",
+    details: userDetails.firstpaymentdtails || "",
+    createdAt: serverTimestamp(),
+    createdBy: userData.name || "System"
   });
 
 }

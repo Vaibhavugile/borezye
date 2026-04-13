@@ -16,19 +16,30 @@ import { orderBy } from "firebase/firestore";
 import { useSearchParams } from "react-router-dom";
 
 const formatTimestamp = (timestamp) => {
-  if (!timestamp) return 'N/A'; // Handle empty timestamp
+
+  if (!timestamp) return "N/A";
 
   let date;
+
   if (timestamp.seconds) {
-    // Firestore Timestamp format
     date = new Date(timestamp.seconds * 1000);
+  } else if (timestamp.toDate) {
+    date = timestamp.toDate();
   } else {
-    // Assume ISO string
     date = new Date(timestamp);
   }
 
-  if (isNaN(date)) return 'Invalid Date'; // Fallback for invalid inputs
-  return `${date.toLocaleDateString('en-US')} ${date.toLocaleTimeString('en-US')}`;
+  if (isNaN(date)) return "N/A";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  }).format(date);
+
 };
 
 const formatDateDMY = (timestamp) => {
@@ -743,14 +754,11 @@ const handleAddPayment = async () => {
       `products/${userData.branchCode}/payments/${receiptNumber}/transactions`
     );
 
-    // 🔹 Calculate new totals
     const newPaid = Number(paymentDoc?.amountPaid || 0) + amount;
     const newBalance = Number(paymentDoc?.totalAmount || 0) - newPaid;
 
-    // 🔹 Get existing transactions
     const snapshot = await getDocs(transactionsRef);
 
-    // 🔹 Determine next payment number
     const nextPaymentNumber = snapshot.size + 1;
 
     const transactionId = `tx${nextPaymentNumber}`;
@@ -761,29 +769,77 @@ const handleAddPayment = async () => {
       transactionId
     );
 
-    // 🔹 Create transaction
+    // 🔹 Save transaction (UNCHANGED)
     await setDoc(transactionDocRef, {
-
       amount: amount,
       mode: newPaymentMode,
       details: newPaymentDetails,
-
       paymentNumber: nextPaymentNumber,
-
       createdAt: serverTimestamp(),
       createdBy: userData.name
-
     });
 
-    // 🔹 Update main payment doc
-    await updateDoc(paymentRef, {
+    /* ----------------------------------
+       LEDGER SPLIT LOGIC (NEW PART)
+    ---------------------------------- */
 
+    const rent = Number(paymentDoc?.finalRent || 0);
+    const deposit = Number(paymentDoc?.finalDeposit || 0);
+
+    const alreadyPaid = Number(paymentDoc?.amountPaid || 0);
+
+    const rentCollectedBefore = Math.min(alreadyPaid, rent);
+
+    const rentPending = rent - rentCollectedBefore;
+
+    const rentPay = Math.min(amount, rentPending);
+
+    const depositPay = Math.max(amount - rentPay, 0);
+
+    const ledgerRef = collection(
+      db,
+      `products/${userData.branchCode}/ledger`
+    );
+
+    // 🔹 Save rent ledger entry
+    if (rentPay > 0) {
+
+      await addDoc(ledgerRef, {
+        receiptNumber,
+        customerName: name || "",
+        type: "rentPayment",
+        amount: rentPay,
+        mode: newPaymentMode || "",
+        details: newPaymentDetails || "",
+        createdAt: serverTimestamp(),
+        createdBy: userData.name
+      });
+
+    }
+
+    // 🔹 Save deposit ledger entry
+    if (depositPay > 0) {
+
+      await addDoc(ledgerRef, {
+        receiptNumber,
+        customerName: name || "",
+        type: "depositPayment",
+        amount: depositPay,
+        mode: newPaymentMode || "",
+        details: newPaymentDetails || "",
+        createdAt: serverTimestamp(),
+        createdBy: userData.name
+      });
+
+    }
+
+    /* ---------------------------------- */
+
+    await updateDoc(paymentRef, {
       amountPaid: newPaid,
       balance: newBalance
-
     });
 
-    // 🔹 Create activity log
     const newLogEntry = {
       action: `Payment Added ₹${amount} via ${newPaymentMode}`,
       timestamp: new Date().toISOString(),
@@ -809,17 +865,17 @@ const handleAddPayment = async () => {
     });
 
     await batch.commit();
+
     await saveAccountSummary([
-  ...paymentTransactions,
-  {
-    amount,
-    paymentNumber: nextPaymentNumber
-  }
-]);
+      ...paymentTransactions,
+      {
+        amount,
+        paymentNumber: nextPaymentNumber
+      }
+    ]);
 
     toast.success("Payment added successfully");
 
-    // 🔹 Reset form
     setIsAddingPayment(false);
     setNewPaymentAmount("");
     setNewPaymentMode("");
@@ -832,7 +888,6 @@ const handleAddPayment = async () => {
 
   }
 
-  // 🔹 Unlock button after 6 seconds
   setTimeout(() => {
     setPaymentLocked(false);
   }, 6000);
@@ -869,6 +924,7 @@ const handleReturnDeposit = async () => {
       `tx${nextPaymentNumber}`
     );
 
+    // 🔹 Save refund transaction (existing logic)
     await setDoc(transactionDocRef,{
 
       amount,
@@ -882,13 +938,29 @@ const handleReturnDeposit = async () => {
       createdBy: userData.name
 
     });
+
+    // 🔹 NEW: Save refund in ledger
+    await addDoc(
+      collection(db, `products/${userData.branchCode}/ledger`),
+      {
+        receiptNumber: receiptNumber,
+        customerName: name || "",
+        type: "depositReturn",
+        amount: amount,
+        mode: refundMode || "",
+        details: refundDetails || "",
+        createdAt: serverTimestamp(),
+        createdBy: userData.name
+      }
+    );
+
     await saveAccountSummary([
-  ...paymentTransactions,
-  {
-    amount,
-    type: "depositReturn"
-  }
-]);
+      ...paymentTransactions,
+      {
+        amount,
+        type: "depositReturn"
+      }
+    ]);
 
     toast.success("Deposit refunded");
 
@@ -911,7 +983,7 @@ const handleReturnDeposit = async () => {
 
 };
 
-  // Handle contact number selection
+  // Handle contact numbera selection
 
 
   return (
@@ -1089,6 +1161,12 @@ const handleReturnDeposit = async () => {
                   <div className="info-row">
                     <p><strong>Receipt By:</strong> {receiptBy || "N/A"}</p>
                   </div>
+                  <div className="info-row">
+  <p>
+    <strong>Created At:</strong>{" "}
+    {bookings[0]?.createdAt ? formatTimestamp(bookings[0].createdAt) : "N/A"}
+  </p>
+</div>
                 </>
               )}
             </section>
@@ -1471,7 +1549,76 @@ Cancel
 
 )}
 </section>
-<section className="account-summary-card">
+
+
+            {/* ================= CLIENT TYPE ================= */}
+            <section className="card">
+              <h3>Client Stage</h3>
+
+              {isEditingSecondPayment ? (
+                <>
+                  {/* <div className="info-row">
+                    <label>Second Payment Mode</label>
+                    <select
+                      value={secondPaymentMode}
+                      onChange={(e) => setSecondPaymentMode(e.target.value)}
+                    >
+                      <option value="">Select payment mode</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Card">Card</option>
+                    </select>
+                  </div> */}
+
+                  {/* <div className="info-row">
+                    <label>Second Payment Details</label>
+                    <input value={secondPaymentDetails} onChange={(e) => setSecondPaymentDetails(e.target.value)} />
+                  </div> */}
+
+                  <div className="info-row">
+                    <label>Special Note</label>
+                    <input value={specialNote} onChange={(e) => setSpecialNote(e.target.value)} />
+                  </div>
+
+                  <div className="info-row">
+                    <label>Stage</label>
+                    <select value={stage} onChange={(e) => setStage(e.target.value)}>
+                      <option value="Booking">Booking</option>
+                      <option value="pickupPending">Pickup Pending</option>
+                      <option value="pickup">Picked Up</option>
+                      <option value="returnPending">Return Pending</option>
+                      <option value="return">Returned</option>
+                      <option value="successful">Successful</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="postponed">Postponed</option>
+                    </select>
+                  </div>
+
+                  <div className="form-actions">
+                    <button onClick={handleSaveSecondPayment}>Save</button>
+                    <button onClick={() => setIsEditingSecondPayment(false)}>Cancel</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* <div className="info-row">
+                    <p><strong>Second Payment Mode:</strong> {secondPaymentMode || "N/A"}</p>
+                  </div>
+                  <div className="info-row">
+                    <p><strong>Second Payment Details:</strong> {secondPaymentDetails || "N/A"}</p>
+                  </div> */}
+                  <div className="info-row">
+                    <p><strong>Special Note:</strong> {specialNote || "N/A"}</p>
+                  </div>
+                  <div className="info-row">
+                    <p><strong>Stage:</strong> {stage || "N/A"}</p>
+                  </div>
+
+                  <button onClick={() => setIsEditingSecondPayment(true)}>Update</button>
+                </>
+              )}
+            </section>
+            <section className="account-summary-card">
 
 <h3 className="account-summary-title">Account Summary</h3>
 
@@ -1513,81 +1660,13 @@ Cancel
 </div>
 
 <div className="summary-box collected">
-<label>Deposit With You</label>
+<label>Deposit With Us</label>
 <span>₹{accountSummary?.depositWithYou}</span>
 </div>
 
 </div>
 
 </section>
-
-            {/* ================= CLIENT TYPE ================= */}
-            <section className="card">
-              <h3>Client Type</h3>
-
-              {isEditingSecondPayment ? (
-                <>
-                  <div className="info-row">
-                    <label>Second Payment Mode</label>
-                    <select
-                      value={secondPaymentMode}
-                      onChange={(e) => setSecondPaymentMode(e.target.value)}
-                    >
-                      <option value="">Select payment mode</option>
-                      <option value="UPI">UPI</option>
-                      <option value="Cash">Cash</option>
-                      <option value="Card">Card</option>
-                    </select>
-                  </div>
-
-                  <div className="info-row">
-                    <label>Second Payment Details</label>
-                    <input value={secondPaymentDetails} onChange={(e) => setSecondPaymentDetails(e.target.value)} />
-                  </div>
-
-                  <div className="info-row">
-                    <label>Special Note</label>
-                    <input value={specialNote} onChange={(e) => setSpecialNote(e.target.value)} />
-                  </div>
-
-                  <div className="info-row">
-                    <label>Stage</label>
-                    <select value={stage} onChange={(e) => setStage(e.target.value)}>
-                      <option value="Booking">Booking</option>
-                      <option value="pickupPending">Pickup Pending</option>
-                      <option value="pickup">Picked Up</option>
-                      <option value="returnPending">Return Pending</option>
-                      <option value="return">Returned</option>
-                      <option value="successful">Successful</option>
-                      <option value="cancelled">Cancelled</option>
-                      <option value="postponed">Postponed</option>
-                    </select>
-                  </div>
-
-                  <div className="form-actions">
-                    <button onClick={handleSaveSecondPayment}>Save</button>
-                    <button onClick={() => setIsEditingSecondPayment(false)}>Cancel</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="info-row">
-                    <p><strong>Second Payment Mode:</strong> {secondPaymentMode || "N/A"}</p>
-                  </div>
-                  <div className="info-row">
-                    <p><strong>Second Payment Details:</strong> {secondPaymentDetails || "N/A"}</p>
-                  </div>
-                  <div className="info-row">
-                    <p><strong>Special Note:</strong> {specialNote || "N/A"}</p>
-                  </div>
-                  <div className="info-row">
-                    <p><strong>Stage:</strong> {stage || "N/A"}</p>
-                  </div>
-
-                  <button onClick={() => setIsEditingSecondPayment(true)}>Update</button>
-                </>
-              )}
-            </section>
 
           </main>
         </div>
