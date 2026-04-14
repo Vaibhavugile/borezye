@@ -254,11 +254,26 @@ const [stageFilter, setStageFilter] = useState(
 // tomorrow.setDate(todayStart.getDate() + 1);
 
       // 🔥 FAST QUERY (instead of looping products)
-      const bookingsQuery = query(
-        collectionGroup(db, "bookings"),
-        where("branchCode", "==", userData.branchCode),
-        orderBy("pickupDate", "asc")
-      );
+  let bookingsQuery;
+
+if (stageFilter === "all") {
+
+  bookingsQuery = query(
+    collectionGroup(db, "bookings"),
+    where("branchCode", "==", userData.branchCode),
+    orderBy("pickupDate", "asc")
+  );
+
+} else {
+
+  bookingsQuery = query(
+    collectionGroup(db, "bookings"),
+    where("branchCode", "==", userData.branchCode),
+    where("userDetails.stage", "==", stageFilter),
+    orderBy("pickupDate", "asc")
+  );
+
+}
 
       const bookingsSnapshot = await getDocs(bookingsQuery);
 
@@ -767,7 +782,6 @@ const [stageFilter, setStageFilter] = useState(
           await updateDoc(bookingDocRef, updateData);
 
           toast.success('Stage updated successfully');
-          window.location.reload(); // optionally refactor to avoid full reload
         }
       }
 

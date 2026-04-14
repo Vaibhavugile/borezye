@@ -2,447 +2,647 @@ import React, { useState } from "react";
 import { db } from "../../../firebaseConfig";
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
   addDoc,
   updateDoc,
-  writeBatch,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from "firebase/firestore";
 import { query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { useUser } from "../../Auth/UserContext";
+import "./AddProductBooking.css";
 
-function AddProductBooking({ receiptNumber, onClose }) {
+function AddProductBooking({ receiptNumber, pickupDate, returnDate, onClose }) {
+  const { userData } = useUser();
 
-const { userData } = useUser();
+const formatDateTimeLocal = (timestamp) => {
+  if (!timestamp) return "";
 
-const [products,setProducts] = useState([
-{
-productCode:"",
-quantity:"",
-pickupDate:"",
-returnDate:"",
-price:0,
-deposit:0,
-availableQuantity:null,
-errorMessage:""
-}
+  const date = timestamp.toDate();
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60000);
+
+  return local.toISOString().slice(0, 16);
+};
+
+const [products, setProducts] = useState([
+  {
+    productCode: "",
+    quantity: "",
+    pickupDate: formatDateTimeLocal(pickupDate),
+    returnDate: formatDateTimeLocal(returnDate),
+    price: 0,
+    deposit: 0,
+    availableQuantity: null,
+    errorMessage: "",
+
+    checked: false,
+    isAvailable: false
+  }
 ]);
 
-const [productSuggestions,setProductSuggestions] = useState([]);
-const [activeProductIndex,setActiveProductIndex] = useState(null);
+  const [productSuggestions, setProductSuggestions] = useState([]);
+  const [activeProductIndex, setActiveProductIndex] = useState(null);
 
- const fetchProductSuggestions = async (searchTerm) => {
+
+  // ---------------- FETCH PRODUCT SUGGESTIONS ----------------
+
+  const fetchProductSuggestions = async (searchTerm) => {
+
     try {
-const branchCode = userData.branchCode;
 
-const productsRef = collection(db, `products/${branchCode}/products`);      const q = query(
+      const branchCode = userData.branchCode;
+
+      const productsRef = collection(db, `products/${branchCode}/products`);
+
+      const q = query(
         productsRef,
-        where('productCode', '>=', searchTerm), // Assuming you want to search for product codes starting with searchTerm
-        where('productCode', '<=', searchTerm + '\uf8ff') // For prefix-based search
+        where("productCode", ">=", searchTerm),
+        where("productCode", "<=", searchTerm + "\uf8ff")
       );
 
-      const querySnapshot = await getDocs(q);
+      const snapshot = await getDocs(q);
 
       const suggestions = [];
-      querySnapshot.forEach((doc) => {
-        const productData = doc.data();
-        if (productData.productCode && productData.productCode.includes(searchTerm)) {
-          suggestions.push({
-            productCode: productData.productCode,
-            productName: productData.productName || 'N/A',
-          });
-        }
+
+      snapshot.forEach(doc => {
+
+        const data = doc.data();
+
+        suggestions.push({
+          productCode: data.productCode,
+          productName: data.productName || ""
+        });
+
       });
 
       setProductSuggestions(suggestions);
 
-      if (suggestions.length === 0) {
-        console.log('No products found for the logged-in branch');
-      }
     } catch (error) {
-      console.error('Error fetching product suggestions:', error);
+
+      console.error(error);
+
     }
+
   };
-   const fetchProductDetails = async (productCode, index) => {
-      try {
-        setLoggedInBranchCode(userData.branchCode);
-  
-        // Query the new Firestore structure for the product under the respective branchCode
-        const productRef = doc(db, `products/${loggedInBranchCode}/products`, productCode);
-        const productDoc = await getDoc(productRef);
-  
-        if (productDoc.exists()) {
-          const productData = productDoc.data();
-          const productBranchCode = productData.branchCode || '';
-  
-          if (productBranchCode === loggedInBranchCode) {
-            const imagePath = productData.imageUrls ? productData.imageUrls[0] : null;
-            const price = productData.price || 'N/A';
-            const priceType = productData.priceType || 'daily';
-            const deposit = productData.deposit || 'N/A';
-            const totalQuantity = productData.quantity || 0;
-            const minimumRentalPeriod = productData.minimumRentalPeriod || 1;
-            const extraRent = productData.extraRent || 0;
-            const productName = productData.productName || 'N/A';
-  
-            let imageUrl = null;
-            if (imagePath) {
-              const storage = getStorage();
-              const imageRef = ref(storage, imagePath);
-              imageUrl = await getDownloadURL(imageRef);
-            } else {
-              imageUrl = 'path/to/placeholder-image.jpg';
-            }
-  
-            // Prevent unnecessary state updates
-            setProducts((prevProducts) => {
-              const newProducts = [...prevProducts];
-              if (
-                newProducts[index].price !== price ||
-                newProducts[index].imageUrl !== imageUrl ||
-                newProducts[index].deposit !== deposit
-              ) {
-                newProducts[index] = {
-                  ...newProducts[index],
-                  imageUrl,
-                  price,
-                  deposit,
-                  totalQuantity,
-                  priceType,
-                  minimumRentalPeriod,
-                  extraRent,
-                  productName,
-                };
-              }
-              return newProducts;
-            });
-          } else {
-            toast.error('Product does not belong to this branch.');
-          }
-        } else {
-          console.error('Product not found in Firestore.');
-        }
-      } catch (error) {
-        console.error('Error fetching product details:', error);
-      }
-    };
-    const checkAvailability = async (index) => {
-    
-      const { productCode, pickupDate, returnDate, quantity } = products[index];
-    
-      const pickupDateObj = new Date(pickupDate);
-      const returnDateObj = new Date(returnDate);
-    
-      console.log("---------------------------------------------------");
-      console.log("🚀 CHECK AVAILABILITY STARTED");
-      console.log("Product Code:", productCode);
-      console.log("Requested Quantity:", quantity);
-      console.log("Pickup Date:", pickupDateObj);
-      console.log("Return Date:", returnDateObj);
-      console.log("---------------------------------------------------");
-    
-      try {
-    
-        // 🔹 Fetch product
-        console.log("📦 Fetching product document...");
-    
-        const productRef = doc(
-          db,
-          `products/${userData.branchCode}/products`,
-          productCode
-        );
-    
-        const productDoc = await getDoc(productRef);
-    
-        if (!productDoc.exists()) {
-    
-          console.log("❌ Product not found");
-    
-          const newProducts = [...products];
-          newProducts[index].errorMessage = "Product not found.";
-          setProducts(newProducts);
-    
-          toast.error("Product not found");
-          return;
-        }
-    
-        const productData = productDoc.data();
-        const maxAvailableQuantity = productData.quantity || 0;
-    
-        console.log("✅ Product Found");
-        console.log("Total Stock:", maxAvailableQuantity);
-    
-        // 🔹 Fetch bookings
-        console.log("📚 Fetching product bookings...");
-    
-        const bookingsRef = collection(productRef, "bookings");
-        const querySnapshot = await getDocs(bookingsRef);
-    
-        console.log("Total bookings found:", querySnapshot.size);
-    
-        let bookedQuantity = 0;
-        const overlappingBookings = [];
-        const allBookings = [];
-    
-        querySnapshot.forEach((docSnap) => {
-    
-          const bookingData = docSnap.data();
-    
-          // 🔹 Safe date conversion
-          const bookingPickup =
-            bookingData.pickupDate?.toDate
-              ? bookingData.pickupDate.toDate()
-              : new Date(bookingData.pickupDate);
-    
-          const bookingReturn =
-            bookingData.returnDate?.toDate
-              ? bookingData.returnDate.toDate()
-              : new Date(bookingData.returnDate);
-    
-          const bookingQty = Number(bookingData.quantity || 0);
-    
-          const status = bookingData.userDetails?.stage || "booking";
-    
-          console.log("---------------------------------------------------");
-          console.log("📄 Booking Found");
-          console.log("Receipt:", bookingData.receiptNumber);
-          console.log("Status:", status);
-          console.log("Pickup:", bookingPickup);
-          console.log("Return:", bookingReturn);
-          console.log("Quantity:", bookingQty);
-    
-          // Ignore cancelled
-          // Ignore bookings that no longer hold stock
-    // Store ALL bookings for UI
-    // Hide successful bookings in UI
-    if (status !== "successful") {
-    
-      allBookings.push({
-        receiptNumber: bookingData.receiptNumber,
-        pickupDate: bookingPickup,
-        returnDate: bookingReturn,
-        quantity: bookingQty,
-        status
+
+
+  // ---------------- FETCH PRODUCT DETAILS ----------------
+
+  const fetchProductDetails = async (productCode, index) => {
+
+    try {
+
+      const branchCode = userData.branchCode;
+
+      const productRef = doc(
+        db,
+        `products/${branchCode}/products`,
+        productCode
+      );
+
+      const productDoc = await getDoc(productRef);
+
+      if (!productDoc.exists()) return;
+
+      const data = productDoc.data();
+
+      setProducts(prev => {
+
+        const updated = [...prev];
+
+        updated[index] = {
+          ...updated[index],
+          price: data.price || 0,
+          deposit: data.deposit || 0,
+          productName: data.productName || "",
+          priceType: data.priceType || "daily",
+          minimumRentalPeriod: data.minimumRentalPeriod || 1,
+          extraRent: data.extraRent || 0,
+          totalQuantity: data.quantity || 0
+        };
+
+        return updated;
+
       });
-    
+
+    } catch (error) {
+
+      console.error(error);
+
     }
-    
-    // Ignore only for availability calculation
-    if (
-      status === "cancelled" ||
-      status === "return" ||
-      status === "successful" ||
-      status === "postponed"
-    ) {
-      console.log("⛔ Ignored for availability:", status);
+
+  };
+
+
+  // ---------------- CHECK AVAILABILITY ----------------
+
+ const checkAvailability = async (index) => {
+
+  const product = products[index];
+
+  if (!product.productCode) {
+    toast.error("Enter product code first");
+    return;
+  }
+
+  const pickupDate = new Date(product.pickupDate);
+  const returnDate = new Date(product.returnDate);
+
+  try {
+
+    const productRef = doc(
+      db,
+      `products/${userData.branchCode}/products`,
+      product.productCode
+    );
+
+    const productDoc = await getDoc(productRef);
+
+    if (!productDoc.exists()) {
+      toast.error("Product not found");
       return;
     }
-    
-          // 🔹 Check overlap
-          const overlap =
-            bookingPickup <= returnDateObj &&
-            bookingReturn >= pickupDateObj;
-    
-          console.log("Overlap:", overlap);
-    
-          if (overlap) {
-    
-            bookedQuantity += bookingQty;
-    
-            overlappingBookings.push({
-              receiptNumber: bookingData.receiptNumber,
-              quantity: bookingQty
-            });
-    
-            console.log("⚠️ Overlapping booking added");
-            console.log("Running booked quantity:", bookedQuantity);
-    
-          }
-    
-        });
-    
-        console.log("---------------------------------------------------");
-        console.log("📊 BOOKING SUMMARY");
-        console.log("Stock:", maxAvailableQuantity);
-        console.log("Overlapping Booked:", bookedQuantity);
-    
-        // 🔹 Calculate remaining stock
-        let availableQuantity = maxAvailableQuantity - bookedQuantity;
-    
-        if (availableQuantity < 0) availableQuantity = 0;
-    
-        console.log("Available Quantity:", availableQuantity);
-    
-        // 🔹 Check requested quantity
-        if (Number(quantity) > availableQuantity) {
-    
-          console.log("❌ Requested quantity exceeds availability");
-    
-          const newProducts = [...products];
-    
-          newProducts[index].availableQuantity = availableQuantity;
-    
-          newProducts[index].errorMessage =
-            `Only ${availableQuantity} item(s) available for selected dates`;
-    
-          newProducts[index].allBookings = allBookings;
-    
-          setProducts(newProducts);
-    
-          toast.error(`Only ${availableQuantity} available`);
-    
-          return;
-        }
-    
-        console.log("✅ Requested quantity is available");
-    
-        // 🔹 Update UI
-        const newProducts = [...products];
-    
-        newProducts[index].availableQuantity = availableQuantity;
-        newProducts[index].errorMessage = "";
-        newProducts[index].allBookings = allBookings;
-    
-        setProducts(newProducts);
-    
-        console.log("---------------------------------------------------");
-        console.log("🎯 AVAILABILITY CHECK COMPLETED");
-        console.log("---------------------------------------------------");
-    
-      } catch (error) {
-    
-        console.error("❌ Error checking availability:", error);
-    
-        toast.error("Error checking availability");
-    
-        const newProducts = [...products];
-    
-        newProducts[index].errorMessage =
-          "Failed to check availability. Please try again.";
-    
-        setProducts(newProducts);
-    
+
+    const productData = productDoc.data();
+    const stock = productData.quantity || 0;
+
+    const bookingsRef = collection(productRef, "bookings");
+    const snapshot = await getDocs(bookingsRef);
+
+    let booked = 0;
+
+    snapshot.forEach((docSnap) => {
+
+      const data = docSnap.data();
+
+      const stage = data.userDetails?.stage;
+
+      // ignore inactive bookings
+      if (
+        stage === "cancelled" ||
+        stage === "return" ||
+        stage === "successful" ||
+        stage === "postponed"
+      ) {
+        return;
       }
-    };
-    const handleAddProduct = async ()=>{
 
-try{
+      // 🔹 SAFETY CHECK (fix for your error)
+      if (!data.pickupDate || !data.returnDate) {
+        return;
+      }
 
-const batch = writeBatch(db);
+      const bPickup = data.pickupDate?.toDate
+        ? data.pickupDate.toDate()
+        : new Date(data.pickupDate);
 
-const paymentRef = doc(
-db,
-`products/${userData.branchCode}/payments`,
-receiptNumber
-);
+      const bReturn = data.returnDate?.toDate
+        ? data.returnDate.toDate()
+        : new Date(data.returnDate);
 
-const paymentSnap = await getDoc(paymentRef);
+      const overlap =
+        bPickup <= returnDate &&
+        bReturn >= pickupDate;
 
-const paymentData = paymentSnap.data();
+      if (overlap) {
+        booked += Number(data.quantity || 0);
+      }
 
-let newRent = paymentData.finalRent || 0;
-let newDeposit = paymentData.finalDeposit || 0;
+    });
 
-for(const product of products){
+    const available = stock - booked;
 
-const productRef = doc(
-db,
-`products/${userData.branchCode}/products`,
-product.productCode
-);
+    const updated = [...products];
 
-const bookingRef = collection(productRef,"bookings");
+ if (Number(product.quantity) > available) {
 
-await addDoc(bookingRef,{
-receiptNumber,
-productCode:product.productCode,
-branchCode:userData.branchCode,
-pickupDate:new Date(product.pickupDate),
-returnDate:new Date(product.returnDate),
-quantity:Number(product.quantity),
-price:product.price,
-deposit:product.deposit,
-createdAt:serverTimestamp(),
-userDetails:{
-stage:"Booking"
-}
-});
+  updated[index].availableQuantity = available;
+  updated[index].errorMessage = `Only ${available} available`;
+  updated[index].checked = true;
+  updated[index].isAvailable = false;
 
-newRent += product.price * product.quantity;
-newDeposit += product.deposit * product.quantity;
+  setProducts(updated);
 
+  toast.error(`Only ${available} available`);
+
+  return;
 }
 
-const total = newRent + newDeposit;
+    updated[index].availableQuantity = available;
+updated[index].errorMessage = "";
+updated[index].checked = true;
+updated[index].isAvailable = true;
 
-await updateDoc(paymentRef,{
-finalRent:newRent,
-finalDeposit:newDeposit,
-totalAmount:total,
-balance: total - (paymentData.amountPaid || 0)
-});
+setProducts(updated);
 
-toast.success("Product added successfully");
+toast.success("Stock available");
 
-onClose();
+  } catch (error) {
 
-}catch(error){
+    console.error(error);
+    toast.error("Availability check failed");
 
-console.error(error);
-toast.error("Failed to add product");
-
-}
+  }
 
 };
-return(
+  // ---------------- GET NEXT BOOKING ID ----------------
 
-<div className="add-product-modal">
+  const getNextBookingId = async (productCode) => {
 
-<h2>Add Product</h2>
+    const productRef = doc(
+      db,
+      `products/${userData.branchCode}/products`,
+      productCode
+    );
 
-{products.map((product,index)=>(
+    const bookingsRef = collection(productRef, "bookings");
 
-<div key={index}>
+    const snapshot = await getDocs(bookingsRef);
 
-<input
-placeholder="Product Code"
-value={product.productCode}
-onChange={(e)=>{
-const updated=[...products];
-updated[index].productCode=e.target.value;
-setProducts(updated);
-fetchProductSuggestions(e.target.value);
-}}
-/>
+    let maxId = 0;
 
-<input
-placeholder="Quantity"
-value={product.quantity}
-onChange={(e)=>{
-const updated=[...products];
-updated[index].quantity=e.target.value;
-setProducts(updated);
-}}
-/>
+    snapshot.forEach(doc => {
 
-<button onClick={()=>checkAvailability(index)}>
-Check Availability
-</button>
+      const data = doc.data();
+
+      if (data.bookingId > maxId) {
+
+        maxId = data.bookingId;
+
+      }
+
+    });
+
+    return maxId + 1;
+
+  };
+
+
+  // ---------------- ADD PRODUCT ----------------
+
+
+const handleAddProduct = async () => {
+
+  for (const product of products) {
+
+    if (product.errorMessage || product.availableQuantity === null) {
+      toast.error("Please check availability first");
+      return;
+    }
+
+  }
+
+  try {
+
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+
+    if (!paymentSnap.exists()) {
+      toast.error("Payment document not found");
+      return;
+    }
+
+    const paymentData = paymentSnap.data();
+
+    let newRent = paymentData.finalRent || 0;
+let newDeposit = paymentData.finalDeposit || 0;
+
+let addedRent = 0;
+let addedDeposit = 0;
+
+    for (const product of products) {
+
+      const productRef = doc(
+        db,
+        `products/${userData.branchCode}/products`,
+        product.productCode
+      );
+
+      const bookingRef = collection(productRef, "bookings");
+
+      const bookingId = await getNextBookingId(product.productCode);
+
+      await addDoc(bookingRef, {
+
+        bookingId,
+
+        receiptNumber,
+        branchCode: userData.branchCode,
+
+        productCode: product.productCode,
+        productId: product.productCode,
+
+        pickupDate: new Date(product.pickupDate),
+        returnDate: new Date(product.returnDate),
+
+        quantity: Number(product.quantity),
+
+        price: product.price,
+        deposit: product.deposit,
+
+        priceType: product.priceType || "daily",
+        minimumRentalPeriod: product.minimumRentalPeriod || 1,
+        extraRent: product.extraRent || 0,
+
+        totalCost: product.price * product.quantity,
+
+        createdAt: serverTimestamp(),
+
+        appliedCredit: paymentData.appliedCredit || 0,
+
+        userDetails: {
+          name: paymentData.clientName || "",
+          contact: paymentData.contact || "",
+          email: paymentData.email || "",
+          stage: paymentData.bookingStage || "Booking"
+        }
+
+      });
+
+     const rentValue = product.price * product.quantity;
+const depositValue = product.deposit * product.quantity;
+
+newRent += rentValue;
+newDeposit += depositValue;
+
+addedRent += rentValue;
+addedDeposit += depositValue;
+
+    }
+
+    const total = newRent + newDeposit;
+    const newBalance = total - (paymentData.amountPaid || 0);
+
+    const existingSummary = [...(paymentData.productsSummary || [])];
+
+products.forEach(p => {
+
+  const existingProduct = existingSummary.find(
+    item => item.productCode === p.productCode
+  );
+
+  if (existingProduct) {
+
+    existingProduct.quantity += Number(p.quantity);
+
+  } else {
+
+    existingSummary.push({
+      productCode: p.productCode,
+      productName: p.productName || "",
+      quantity: Number(p.quantity),
+      rent: Number(p.price),
+      deposit: Number(p.deposit)
+    });
+
+  }
+
+});
+
+const updatedProductsSummary = existingSummary;
+    const amountPaid = paymentData.amountPaid || 0;
+
+// distribute payment to rent first
+const rentCollected = Math.min(amountPaid, newRent);
+const rentPending = newRent - rentCollected;
+
+// remaining goes to deposit
+const depositCollected = Math.max(0, amountPaid - newRent);
+const depositPending = Math.max(newDeposit - depositCollected, 0);
+
+// calculate deposit with you
+const depositReturned = paymentData.depositReturned || 0;
+
+const depositWithYou = Math.max(
+  depositCollected - depositReturned,
+  0
+);
+const newGrandTotalRent =
+  (paymentData.grandTotalRent || 0) + addedRent;
+
+const newGrandTotalDeposit =
+  (paymentData.grandTotalDeposit || 0) + addedDeposit;
+
+   await updateDoc(paymentRef, {
+  finalRent: newRent,
+  finalDeposit: newDeposit,
+
+  grandTotalRent: newGrandTotalRent,
+  grandTotalDeposit: newGrandTotalDeposit,
+
+  totalAmount: total,
+  balance: newBalance,
+
+  rentCollected,
+  rentPending,
+  depositCollected,
+  depositPending,
+  depositWithYou,
+
+  productsSummary: updatedProductsSummary
+});
+
+    const updatedUserDetails = {
+
+      name: paymentData.clientName || "",
+      contact: paymentData.contact || "",
+      email: paymentData.email || "",
+      alternativecontactno: paymentData.alternativecontactno || "",
+
+      identityproof: paymentData.identityproof || "",
+      identitynumber: paymentData.identitynumber || "",
+
+      source: paymentData.source || "",
+
+      customerby: paymentData.customerBy || "",
+      receiptby: paymentData.receiptBy || "",
+
+      stage: paymentData.bookingStage || "Booking",
+
+      alterations: paymentData.alterations || "",
+
+      grandTotalRent: newGrandTotalRent,
+grandTotalDeposit: newGrandTotalDeposit,
+
+      discountOnRent: paymentData.discountOnRent || 0,
+      discountOnDeposit: paymentData.discountOnDeposit || 0,
+
+      finalrent: newRent,
+      finaldeposite: newDeposit,
+
+      totalamounttobepaid: total,
+
+      amountpaid: paymentData.amountPaid || 0,
+      balance: newBalance,
+
+      paymentstatus: paymentData.paymentStatus || "",
+
+      firstpaymentmode: paymentData.firstPaymentMode || "",
+      firstpaymentdtails: paymentData.firstPaymentDetails || "",
+
+      secondpaymentmode: paymentData.secondPaymentMode || "",
+      secondpaymentdetails: paymentData.secondPaymentDetails || "",
+
+      specialnote: paymentData.specialNote || ""
+
+    };
+
+    const bookingsQuery = query(
+      collectionGroup(db, "bookings"),
+      where("receiptNumber", "==", receiptNumber),
+      where("branchCode", "==", userData.branchCode)
+    );
+
+    const bookingsSnapshot = await getDocs(bookingsQuery);
+
+    const batch = writeBatch(db);
+
+    bookingsSnapshot.forEach((docSnap) => {
+
+      batch.update(docSnap.ref, {
+        userDetails: updatedUserDetails
+      });
+
+    });
+
+    await batch.commit();
+
+    toast.success("Product added successfully");
+
+    onClose();
+
+  } catch (error) {
+
+    console.error(error);
+    toast.error("Failed to add product");
+
+  }
+
+};
+
+
+  // ---------------- UI ----------------
+
+ return (
+
+<div className="add-product-booking-modal">
+
+  <h2 className="add-product-booking-title">Add Product</h2>
+
+  {products.map((product, index) => (
+
+    <div key={index} className="add-product-booking-grid">
+
+      {/* ROW 1 */}
+      <input
+        className="add-product-booking-input"
+        type="datetime-local"
+        value={product.pickupDate}
+        disabled
+      />
+
+      <input
+        className="add-product-booking-input"
+        type="datetime-local"
+        value={product.returnDate}
+        disabled
+      />
+
+
+      {/* ROW 2 */}
+      <input
+        className="add-product-booking-input"
+        placeholder="Product Code"
+        value={product.productCode}
+        onChange={(e) => {
+
+          const updated = [...products];
+          updated[index].productCode = e.target.value;
+updated[index].checked = false;
+updated[index].isAvailable = false;
+
+
+          setProducts(updated);
+
+          fetchProductSuggestions(e.target.value);
+          fetchProductDetails(e.target.value, index);
+
+        }}
+      />
+
+      <input
+        className="add-product-booking-input"
+        type="number"
+        placeholder="Quantity"
+        value={product.quantity}
+        onChange={(e) => {
+
+          const updated = [...products];
+          updated[index].quantity = e.target.value;
+updated[index].checked = false;
+updated[index].isAvailable = false;
+
+          setProducts(updated);
+
+        }}
+      />
+
+
+      {/* ROW 3 */}
+    {/* CHECK BUTTON */}
+<div className="add-product-booking-actions-row">
+
+  {/* CHECK BUTTON ALWAYS VISIBLE */}
+  <button
+    className="add-product-booking-check-btn"
+    onClick={() => checkAvailability(index)}
+  >
+    Check Availability
+  </button>
+
+  {/* ADD PRODUCT ONLY IF AVAILABLE */}
+  {product.checked && product.isAvailable && (
+    <button
+      className="add-product-booking-add-btn"
+      onClick={handleAddProduct}
+    >
+      Add Product
+    </button>
+  )}
+
+  {/* NOT AVAILABLE MESSAGE */}
+  {product.checked && !product.isAvailable && (
+    <div className="product-not-available">
+      Not Available
+    </div>
+  )}
 
 </div>
 
-))}
+    </div>
 
-<button onClick={handleAddProduct}>
-Add Product
-</button>
+  ))}
 
-<button onClick={onClose}>
-Cancel
-</button>
+  <div className="add-product-booking-footer">
+
+    <button
+      className="add-product-booking-cancel-btn"
+      onClick={onClose}
+    >
+      Cancel
+    </button>
+
+  </div>
 
 </div>
 
