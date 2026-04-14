@@ -1904,27 +1904,17 @@ if (depositPay > 0) {
               <div className="payment-card premium-card">
 
                 {/* ================= TOTALS ================= */}
-                <div className="four-col">
-                  <div className="payment-box">
-                    <label>Grand Total Rent</label>
-                    <input value={userDetails.grandTotalRent} readOnly />
-                  </div>
+               <div className="two-col">
+  <div className="payment-box grand">
+    <label>Grand Total Rent</label>
+    <input value={userDetails.grandTotalRent} readOnly />
+  </div>
 
-                  <div className="payment-box">
-                    <label>Grand Total Deposit</label>
-                    <input value={userDetails.grandTotalDeposit} readOnly />
-                  </div>
-
-                  <div className="payment-box highlight">
-                    <label>Final Rent</label>
-                    <input value={userDetails.finalrent} readOnly />
-                  </div>
-
-                  <div className="payment-box highlight">
-                    <label>Final Deposit</label>
-                    <input value={userDetails.finaldeposite} readOnly />
-                  </div>
-                </div>
+  <div className="payment-box grand">
+    <label>Grand Total Deposit</label>
+    <input value={userDetails.grandTotalDeposit} readOnly />
+  </div>
+</div>
 
                 {/* ================= DISCOUNTS ================= */}
                 <div className="two-col">
@@ -1948,57 +1938,72 @@ if (depositPay > 0) {
                     />
                   </div>
                 </div>
+                <div className="two-col">
+                 <div className="payment-box highlight">
+                    <label>Final Rent</label>
+                    <input value={userDetails.finalrent} readOnly />
+                  </div>
+
+                  <div className="payment-box highlight">
+                    <label>Final Deposit</label>
+                    <input value={userDetails.finaldeposite} readOnly />
+                  </div>
+                  </div>
 
                 {/* ================= CREDIT ================= */}
-                <div className="two-col">
-                  <div className="payment-box">
-                    <label>Available Credit</label>
-                    <input
-                      value={availableCredit > 0 ? `₹${availableCredit.toFixed(2)}` : "—"}
-                      readOnly
-                    />
-                  </div>
+               <div className="two-col">
 
-                  <div className="payment-box">
-                    <label>Applied Credit</label>
-                    <input
-                      value={appliedCredit > 0 ? `₹${appliedCredit.toFixed(2)}` : "—"}
-                      readOnly
-                    />
-                    {appliedCredit === 0 && availableCredit > 0 && (
-                      <button
-                        type="button"
-                        className="apply-credit-button"
-                        onClick={handleApplyCredit}
-                      >
-                        Apply Credit
-                      </button>
-                    )}
-                  </div>
-                </div>
+  <div className="payment-box credit-available">
+    <label>Available Credit</label>
+    <input
+      value={availableCredit > 0 ? `₹${availableCredit.toFixed(2)}` : "—"}
+      readOnly
+    />
+  </div>
 
+  <div className="payment-box credit-applied">
+    <label>Applied Credit</label>
+    <input
+      value={appliedCredit > 0 ? `₹${appliedCredit.toFixed(2)}` : "—"}
+      readOnly
+    />
+
+    {appliedCredit === 0 && availableCredit > 0 && (
+      <button
+        type="button"
+        className="apply-credit-button"
+        onClick={handleApplyCredit}
+      >
+        Apply Credit
+      </button>
+    )}
+  </div>
+
+</div>
                 {/* ================= PAYABLE ================= */}
                 <div className="three-col">
-                  <div className="payment-box">
-                    <label>Total Amount to be Paid</label>
-                    <input value={userDetails.totalamounttobepaid} />
-                  </div>
 
-                  <div className="payment-box success">
-                    <label>Amount Paid / Advance</label>
-                    <input
-                      value={userDetails.amountpaid}
-                      onChange={(e) =>
-                        setUserDetails({ ...userDetails, amountpaid: e.target.value })
-                      }
-                    />
-                  </div>
+  <div className="payment-box total">
+    <label>Total Amount to be Paid</label>
+    <input value={userDetails.totalamounttobepaid} />
+  </div>
 
-                  <div className="payment-box">
-                    <label>Balance</label>
-                    <input value={userDetails.balance} readOnly />
-                  </div>
-                </div>
+  <div className="payment-box paid">
+    <label>Amount Paid / Advance</label>
+    <input
+      value={userDetails.amountpaid}
+      onChange={(e) =>
+        setUserDetails({ ...userDetails, amountpaid: e.target.value })
+      }
+    />
+  </div>
+
+  <div className="payment-box balance">
+    <label>Balance</label>
+    <input value={userDetails.balance} readOnly />
+  </div>
+
+</div>
 
                 {/* ================= PAYMENT STATUS ================= */}
                 <div className="payment-box">
@@ -2009,6 +2014,8 @@ if (depositPay > 0) {
                       setUserDetails({ ...userDetails, paymentstatus: e.target.value })
                     }
                   >
+                    <option value="">Select Payment status</option>
+
                     <option value="fullpayment">Full Payment</option>
                     <option value="depositpending">Deposit Pending</option>
                     <option value="partialpayment">Partial Payment</option>

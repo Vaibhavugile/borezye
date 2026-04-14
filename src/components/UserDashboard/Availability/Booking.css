@@ -645,10 +645,7 @@ button {
   border: 1px solid #bbf7d0;
 }
 
-.payment-box.discount {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-}
+
 
 .apply-credit-button {
   margin-top: 8px;
@@ -730,7 +727,98 @@ button {
 .payment-box * {
   box-sizing: border-box;
 }
+.payment-box.highlight {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 2px solid #10b981;
+  box-shadow: 0 6px 18px rgba(16,185,129,0.25);
+}
 
+.payment-box.highlight label {
+  color: #047857;
+  font-weight: 700;
+}
+
+.payment-box.grand {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.18);
+}
+
+.payment-box.grand label {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.payment-box.grand input {
+  font-weight: 600;
+  color: #1e3a8a;
+  background: transparent;
+}
+.payment-box.total {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 2px solid #3b82f6;
+}
+
+.payment-box.total label {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.payment-box.total input {
+  color: #1e3a8a;
+  font-weight: 600;
+}
+.payment-box.paid {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 2px solid #10b981;
+}
+
+.payment-box.paid label {
+  color: #047857;
+  font-weight: 700;
+}
+
+.payment-box.paid input {
+  color: #065f46;
+  font-weight: 600;
+}
+.payment-box.balance {
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border: 2px solid #ef4444;
+}
+
+.payment-box.balance label {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.payment-box.balance input {
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.payment-box.highlight input {
+  font-weight: 700;
+  font-size: 16px;
+  color: #065f46;
+  background: transparent;
+}
+.payment-box.discount {
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border: 2px solid #ef4444;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.18);
+}
+
+.payment-box.discount label {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.payment-box.discount input {
+  color: #7f1d1d;
+  font-weight: 600;
+  background: transparent;
+}
 /* Inputs must not exceed container */
 .payment-box input,
 .payment-box select {
