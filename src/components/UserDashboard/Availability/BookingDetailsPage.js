@@ -481,7 +481,9 @@ const depositPending = Math.max(deposit - depositCollected, 0);
       };
 
       // 🔁 Update ALL bookings for this receipt
-      bookings.forEach((booking) => {
+      bookings
+  .filter(b => !b.archived)
+  .forEach((booking) => {
 
         const bookingRef = doc(
           db,
@@ -1397,13 +1399,18 @@ await batch2.commit();
             {/* ================= PRODUCT DETAILS ================= */}
             {!isDeleted && (
               <section className="card">
-                <h3>Product Details</h3>
-                  <button
-    className="add-product-btn"
-    onClick={() => setShowAddProductModal(true)}
-  >
-    Add Product
-  </button>
+               <div className="product-header">
+  <h3>Product Details</h3>
+
+  {userData?.role !== "Subuser" && (
+    <button
+      className="add-product-btn"
+      onClick={() => setShowAddProductModal(true)}
+    >
+      Add Product
+    </button>
+  )}
+</div>
 
                 <div className="product-table-wrapper">
                   <table className="product-table">
@@ -2042,7 +2049,7 @@ await batch2.commit();
 
 )}
 
-      <ToastContainer />
+      <ToastContainer position="top-left" />
     </>
   );
 

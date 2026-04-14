@@ -147,6 +147,7 @@ const BookingDashboard = () => {
   const [selectedReceiptNumber, setSelectedReceiptNumber] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
+    const [successfulLoaded, setSuccessfulLoaded] = useState(false);
 
 const [searchQuery, setSearchQuery] = useState(
   searchParams.get('query') || ''
@@ -254,26 +255,13 @@ const [stageFilter, setStageFilter] = useState(
 // tomorrow.setDate(todayStart.getDate() + 1);
 
       // 🔥 FAST QUERY (instead of looping products)
-  let bookingsQuery;
-
-if (stageFilter === "all") {
-
-  bookingsQuery = query(
-    collectionGroup(db, "bookings"),
-    where("branchCode", "==", userData.branchCode),
-    orderBy("pickupDate", "asc")
-  );
-
-} else {
-
-  bookingsQuery = query(
-    collectionGroup(db, "bookings"),
-    where("branchCode", "==", userData.branchCode),
-    where("userDetails.stage", "==", stageFilter),
-    orderBy("pickupDate", "asc")
-  );
-
-}
+    const bookingsQuery = query(
+  collectionGroup(db, "bookings"),
+  where("branchCode", "==", userData.branchCode),
+  where("userDetails.stage", "!=", "successful"),
+  orderBy("userDetails.stage"),
+  orderBy("pickupDate", "asc")
+);
 
       const bookingsSnapshot = await getDocs(bookingsQuery);
 
@@ -465,6 +453,137 @@ if (stageFilter === "all") {
   }
 
 }, [userData.branchCode]);
+useEffect(() => {
+
+  if (stageFilter !== "successful" || successfulLoaded) return;
+
+  const fetchSuccessful = async () => {
+
+    try {
+
+      const successfulQuery = query(
+        collectionGroup(db, "bookings"),
+        where("branchCode", "==", userData.branchCode),
+        where("userDetails.stage", "==", "successful"),
+        orderBy("pickupDate", "asc")
+      );
+
+      const snapshot = await getDocs(successfulQuery);
+
+      const successfulBookingsRaw = snapshot.docs.map((docSnapshot) => {
+
+        const bookingData = docSnapshot.data();
+
+        const {
+          bookingId,
+          receiptNumber,
+          pickupDate,
+          returnDate,
+          quantity,
+          userDetails,
+          createdAt,
+          productCode,
+          productName
+        } = bookingData;
+
+        return {
+          bookingId,
+          receiptNumber,
+          clientname: userDetails?.name,
+          contactNo: userDetails?.contact,
+          email: userDetails?.email,
+
+          pickupDate: pickupDate
+            ? pickupDate.toDate
+              ? pickupDate.toDate()
+              : new Date(pickupDate)
+            : null,
+
+          returnDate: returnDate
+            ? returnDate.toDate
+              ? returnDate.toDate()
+              : new Date(returnDate)
+            : null,
+
+          createdAt: createdAt || null,
+
+          stage: userDetails?.stage,
+
+          products: [
+            {
+              productCode,
+              quantity: parseInt(quantity, 10),
+              productName: productName || "N/A",
+            },
+          ],
+
+          IdentityProof: userDetails?.identityproof || 'N/A',
+          IdentityNumber: userDetails?.identitynumber || 'N/A',
+          Source: userDetails?.source || 'N/A',
+          CustomerBy: userDetails?.customerby || 'N/A',
+          ReceiptBy: userDetails?.receiptby || 'N/A',
+          Alterations: userDetails?.alterations || 'N/A',
+          SpecialNote: userDetails?.specialnote || 'N/A',
+          GrandTotalRent: userDetails?.grandTotalRent || 'N/A',
+          DiscountOnRent: userDetails?.discountOnRent || 'N/A',
+          FinalRent: userDetails?.finalrent || 'N/A',
+          GrandTotalDeposit: userDetails?.grandTotalDeposit || 'N/A',
+          DiscountOnDeposit: userDetails?.discountOnDeposit || 'N/A',
+          FinalDeposit: userDetails?.finaldeposite || 'N/A',
+          AmountToBePaid: userDetails?.totalamounttobepaid || 'N/A',
+          AmountPaid: userDetails?.amountpaid || 'N/A',
+          Balance: userDetails?.balance || 'N/A',
+          PaymentStatus: userDetails?.paymentstatus || 'N/A',
+          FirstPaymentDetails: userDetails?.firstpaymentdtails || 'N/A',
+          FirstPaymentMode: userDetails?.firstpaymentmode || 'N/A',
+          SecondPaymentMode: userDetails?.secondpaymentmode || 'N/A',
+          SecondPaymentDetails: userDetails?.secondpaymentdetails || 'N/A',
+        };
+
+      });
+
+      // 🔹 GROUP BOOKINGS BY RECEIPT NUMBER
+      const groupedSuccessful = successfulBookingsRaw.reduce((acc, booking) => {
+
+        const { receiptNumber, products } = booking;
+
+        if (!acc[receiptNumber]) {
+
+          acc[receiptNumber] = {
+            ...booking,
+            products: [...products],
+          };
+
+        } else {
+
+          products.forEach((product) => {
+            acc[receiptNumber].products.push(product);
+          });
+
+        }
+
+        return acc;
+
+      }, {});
+
+      const successfulBookings = Object.values(groupedSuccessful);
+
+      setBookings(prev => [...prev, ...successfulBookings]);
+
+      setSuccessfulLoaded(true);
+
+    } catch (error) {
+
+      console.error("Error fetching successful bookings:", error);
+      toast.error("Error fetching successful bookings");
+
+    }
+
+  };
+
+  fetchSuccessful();
+
+}, [stageFilter, userData?.branchCode]);
 
 
  const handleDelete = async (receiptNumber) => {

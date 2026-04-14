@@ -1210,9 +1210,9 @@ Rebuild Account Summaries
 {/* <button onClick={migrateCustomerReceiptByToPayments}>
 Migrate CustomerBy & ReceiptBy
 </button> */}
-<button onClick={migrateBookings}>
+{/* <button onClick={migrateBookings}>
 Run Booking Migration
-</button>
+</button> */}
 
 
         <div className="kpi-grid">
