@@ -139,7 +139,7 @@ useEffect(() => {
 
     try {
 
-      // 1️⃣ Fetch bookings directly
+      /* 1️⃣ ACTIVE BOOKINGS */
       const bookingsQuery = query(
         collectionGroup(db, "bookings"),
         where("receiptNumber", "==", receiptNumber)
@@ -147,28 +147,47 @@ useEffect(() => {
 
       const bookingSnap = await getDocs(bookingsQuery);
 
-      if (bookingSnap.empty) {
+
+      /* 2️⃣ ARCHIVED BOOKINGS */
+      const archiveQuery = query(
+        collection(db, `products/${userData.branchCode}/bookingArchive`),
+        where("receiptNumber", "==", receiptNumber)
+      );
+
+      const archiveSnap = await getDocs(archiveQuery);
+
+
+      /* 3️⃣ MERGE ACTIVE + ARCHIVED */
+      const allDocs = [...bookingSnap.docs, ...archiveSnap.docs];
+
+      if (allDocs.length === 0) {
         setBookings([]);
         setLoading(false);
         return;
       }
 
-      // 2️⃣ Collect productIds from bookings
+
+      /* 4️⃣ COLLECT PRODUCT IDS */
       const productIds = new Set();
 
-      bookingSnap.docs.forEach(doc => {
-        const productId = doc.ref.parent.parent.id;
-        productIds.add(productId);
+      allDocs.forEach(doc => {
+
+        if (doc.ref.parent?.parent) {
+          const productId = doc.ref.parent.parent.id;
+          productIds.add(productId);
+        } else {
+          const data = doc.data();
+          if (data.productId) productIds.add(data.productId);
+        }
+
       });
 
-      // 3️⃣ Fetch only those products
+
+      /* 5️⃣ FETCH ONLY REQUIRED PRODUCTS */
       const productDocs = await Promise.all(
         [...productIds].map(id =>
           getDoc(
-            doc(
-              db,
-              `products/${userData.branchCode}/products/${id}`
-            )
+            doc(db, `products/${userData.branchCode}/products/${id}`)
           )
         )
       );
@@ -181,17 +200,28 @@ useEffect(() => {
         }
       });
 
-      // 4️⃣ Merge bookings + product data
-      const bookingList = bookingSnap.docs.map(doc => {
+
+      /* 6️⃣ BUILD BOOKING LIST */
+      const bookingList = allDocs.map(doc => {
 
         const data = doc.data();
-        const productId = doc.ref.parent.parent.id;
+
+        let productId;
+
+        if (doc.ref.parent?.parent) {
+          productId = doc.ref.parent.parent.id;
+        } else {
+          productId = data.productId;
+        }
 
         return {
           ...data,
           id: doc.id,
           productId,
-          product: productsMap[productId] || null,
+          product:
+  productsMap[productId] ||
+  data.productSnapshot ||
+  null,
           archived: data.archived || false
         };
 
@@ -199,7 +229,8 @@ useEffect(() => {
 
       setBookings(bookingList);
 
-      // 5️⃣ Customer details
+
+      /* 7️⃣ CUSTOMER DETAILS */
       const details = bookingList[0]?.userDetails || {};
 
       setSecondPaymentMode(details.secondpaymentmode || '');
@@ -561,8 +592,12 @@ const depositPending = Math.max(deposit - depositCollected, 0);
   const handleSavePersonalInfo = async () => {
     if (bookings.length === 0) return;
 
-    const bookingId = bookings[0].id;
-    const productId = bookings[0].productId;
+   const activeBooking = bookings.find(b => !b.archived);
+
+if (!activeBooking) return;
+
+const bookingId = activeBooking.id;
+const productId = activeBooking.productId;
     const bookingRef = doc(db, `products/${userData.branchCode}/products/${productId}/bookings`, bookingId);
 
     try {
@@ -962,7 +997,9 @@ if (newBalance < 0) {
 
       const batch = writeBatch(db);
 
-      bookings.forEach((booking) => {
+      bookings
+  .filter(b => !b.archived)
+  .forEach((booking) => {
 
         const bookingRef = doc(
           db,
@@ -1181,11 +1218,20 @@ if (newBalance < 0) {
       /* 🔹 Move booking to deletedBookings */
 
       batch.set(deletedRef, {
-        ...booking,
-        archived: true,
-        archivedAt: serverTimestamp(),
-        archivedBy: userData.name
-      });
+  ...booking,
+
+  productId: booking.productId,
+
+  productSnapshot: {
+    productName: booking.product?.productName || "",
+    productCode: booking.product?.productCode || "",
+    imageUrls: booking.product?.imageUrls || ""
+  },
+
+  archived: true,
+  archivedAt: serverTimestamp(),
+  archivedBy: userData.name
+});
 
       /* 🔹 Delete original booking */
 

@@ -48,7 +48,8 @@ const [products, setProducts] = useState([
   const [productSuggestions, setProductSuggestions] = useState([]);
   const [activeProductIndex, setActiveProductIndex] = useState(null);
 
-
+const [showConfirmModal, setShowConfirmModal] = useState(false);
+const [paymentPreview, setPaymentPreview] = useState(null);
   // ---------------- FETCH PRODUCT SUGGESTIONS ----------------
 
   const fetchProductSuggestions = async (searchTerm) => {
@@ -284,7 +285,64 @@ toast.success("Stock available");
 
 
   // ---------------- ADD PRODUCT ----------------
+const previewPaymentChanges = async () => {
 
+  try {
+
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+
+    if (!paymentSnap.exists()) return;
+
+    const paymentData = paymentSnap.data();
+
+    let newRent = paymentData.finalRent || 0;
+    let newDeposit = paymentData.finalDeposit || 0;
+
+    let addedRent = 0;
+    let addedDeposit = 0;
+
+    products.forEach(product => {
+
+      const rentValue = product.price * product.quantity;
+      const depositValue = product.deposit * product.quantity;
+
+      newRent += rentValue;
+      newDeposit += depositValue;
+
+      addedRent += rentValue;
+      addedDeposit += depositValue;
+
+    });
+
+    const newTotal = newRent + newDeposit;
+    const amountPaid = paymentData.amountPaid || 0;
+    const newBalance = newTotal - amountPaid;
+
+    setPaymentPreview({
+      oldRent: paymentData.finalRent,
+      oldDeposit: paymentData.finalDeposit,
+      oldTotal: paymentData.totalAmount,
+      addedRent,
+      addedDeposit,
+      newRent,
+      newDeposit,
+      newTotal,
+      newBalance
+    });
+
+    setShowConfirmModal(true);
+
+  } catch (error) {
+    console.error(error);
+  }
+
+};
 
 const handleAddProduct = async () => {
 
@@ -613,11 +671,11 @@ updated[index].isAvailable = false;
   {/* ADD PRODUCT ONLY IF AVAILABLE */}
   {product.checked && product.isAvailable && (
     <button
-      className="add-product-booking-add-btn"
-      onClick={handleAddProduct}
-    >
-      Add Product
-    </button>
+  className="add-product-booking-add-btn"
+  onClick={previewPaymentChanges}
+>
+  Add Product
+</button>
   )}
 
   {/* NOT AVAILABLE MESSAGE */}
@@ -643,6 +701,66 @@ updated[index].isAvailable = false;
     </button>
 
   </div>
+  {showConfirmModal && paymentPreview && (
+
+  <div className="confirm-modal-overlay">
+
+    <div className="confirm-modal">
+
+      <h3>Confirm Add Product</h3>
+
+      <div className="payment-preview">
+
+        <p>Current Rent: ₹{paymentPreview.oldRent}</p>
+        <p>Current Deposit: ₹{paymentPreview.oldDeposit}</p>
+        <p>Current Total: ₹{paymentPreview.oldTotal}</p>
+
+        <hr />
+
+        <p>Added Rent: ₹{paymentPreview.addedRent}</p>
+        <p>Added Deposit: ₹{paymentPreview.addedDeposit}</p>
+
+        <hr />
+
+        <p><strong>New Rent:</strong> ₹{paymentPreview.newRent}</p>
+        <p><strong>New Deposit:</strong> ₹{paymentPreview.newDeposit}</p>
+
+        <p className="new-total">
+          New Total: ₹{paymentPreview.newTotal}
+        </p>
+
+        <p className="new-balance">
+          New Balance: ₹{paymentPreview.newBalance}
+        </p>
+
+      </div>
+
+      <div className="confirm-actions">
+
+        <button
+          className="confirm-add-btn"
+          onClick={() => {
+            setShowConfirmModal(false);
+            handleAddProduct();
+          }}
+        >
+          Confirm Add
+        </button>
+
+        <button
+          className="confirm-cancel-btn"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          Cancel
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 
 </div>
 
