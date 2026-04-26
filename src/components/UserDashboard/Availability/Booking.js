@@ -1981,22 +1981,14 @@ if (depositPay > 0) {
 
 </div>
                 {/* ================= PAYABLE ================= */}
-                <div className="three-col">
+                <div className="two-col">
 
   <div className="payment-box total">
     <label>Total Amount to be Paid</label>
     <input value={userDetails.totalamounttobepaid} />
   </div>
 
-  <div className="payment-box paid">
-    <label>Amount Paid / Advance</label>
-    <input
-      value={userDetails.amountpaid}
-      onChange={(e) =>
-        setUserDetails({ ...userDetails, amountpaid: e.target.value })
-      }
-    />
-  </div>
+  
 
   <div className="payment-box balance">
     <label>Balance</label>
@@ -2006,7 +1998,7 @@ if (depositPay > 0) {
 </div>
 
                 {/* ================= PAYMENT STATUS ================= */}
-                <div className="payment-box">
+                {/* <div className="payment-box">
                   <label>Payment Status</label>
                   <select
                     value={userDetails.paymentstatus}
@@ -2020,12 +2012,21 @@ if (depositPay > 0) {
                     <option value="depositpending">Deposit Pending</option>
                     <option value="partialpayment">Partial Payment</option>
                   </select>
-                </div>
+                </div> */}
 
                 {/* ================= PAYMENT MODES ================= */}
-                <div className="two-col">
+                <div className="three-col">
+                  <div className="payment-box paid">
+    <label>Amount Paid / Advance</label>
+    <input
+      value={userDetails.amountpaid}
+      onChange={(e) =>
+        setUserDetails({ ...userDetails, amountpaid: e.target.value })
+      }
+    />
+  </div>
                   <div className="payment-box">
-                    <label>1st Payment Mode</label>
+                    <label>Payment Mode</label>
                     <select
                       value={userDetails.firstpaymentmode}
                       onChange={(e) =>
@@ -2040,7 +2041,7 @@ if (depositPay > 0) {
                   </div>
 
                   <div className="payment-box">
-                    <label>1st Payment Details</label>
+                    <label>Payment Details</label>
                     <input
                       value={userDetails.firstpaymentdtails}
                       onChange={(e) =>
@@ -2053,7 +2054,7 @@ if (depositPay > 0) {
                   </div>
                 </div>
 
-                <div className="two-col">
+                {/* <div className="two-col">
                   <div className="payment-box">
                     <label>2nd Payment Mode (if any)</label>
                     <select
@@ -2084,7 +2085,7 @@ if (depositPay > 0) {
                       }
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {/* ================= SPECIAL NOTE ================= */}
                 <div className="payment-box">
