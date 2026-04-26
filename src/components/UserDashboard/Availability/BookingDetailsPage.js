@@ -16,6 +16,7 @@ import { writeBatch } from "firebase/firestore";
 import { orderBy } from "firebase/firestore";
 import { useSearchParams } from "react-router-dom";
 import AddProductBooking from './AddProductBooking';
+import { collectionGroup } from "firebase/firestore";
 
 const formatTimestamp = (timestamp) => {
 
@@ -129,108 +130,128 @@ const BookingDetailsPage = () => {
   const [paymentDoc, setPaymentDoc] = useState(null);
   const location = useLocation();
   const isDeleted = location.state?.isDeleted || false;
-  useEffect(() => {
-    const fetchBookingAndProductDetails = async () => {
-      setLoading(true);
-      try {
-        const productsCollection = collection(
-          db,
-          `products/${userData.branchCode}/products`
-        );
-        const productsSnapshot = await getDocs(productsCollection);
 
-        // Prepare promises for both active and deleted bookings
-        const allBookingPromises = productsSnapshot.docs.map((productDoc) => {
-          const productId = productDoc.id;
-          const productData = productDoc.data();
+useEffect(() => {
 
-          // Active bookings
-          const bookingsRef = collection(
-            db,
-            `products/${userData.branchCode}/products/${productId}/bookings`
-          );
-          const activeQuery = query(bookingsRef, where('receiptNumber', '==', receiptNumber));
+  const fetchBookingAndProductDetails = async () => {
 
-          // Deleted bookings
-          const deletedBookingsRef = collection(
-            db,
-            `products/${userData.branchCode}/bookingArchive`
-          );
+    setLoading(true);
 
-          const deletedQuery = query(
-            deletedBookingsRef,
-            where("receiptNumber", "==", receiptNumber),
-            where("productId", "==", productId)
-          );
+    try {
 
+      // 1️⃣ Fetch bookings directly
+      const bookingsQuery = query(
+        collectionGroup(db, "bookings"),
+        where("receiptNumber", "==", receiptNumber)
+      );
 
-          return Promise.all([getDocs(activeQuery), getDocs(deletedQuery)]).then(
-            ([activeSnap, deletedSnap]) => {
-              const allDocs = [...activeSnap.docs, ...deletedSnap.docs];
-              return {
-                productId,
-                product: productData,
-                bookings: allDocs.map((doc) => ({
-                  ...doc.data(),
-                  id: doc.id,
-                  isDeleted: deletedSnap.docs.some(d => d.id === doc.id),
-                }))
-              };
-            }
-          );
-        });
+      const bookingSnap = await getDocs(bookingsQuery);
 
-        // Execute all booking queries in parallel
-        const results = await Promise.all(allBookingPromises);
-
-        const allBookings = results.flatMap((result) =>
-          result.bookings.map((booking) => ({
-            ...booking,
-            productId: result.productId,
-            product: result.product,
-          }))
-        );
-
-        // Set customer details from the first booking
-        if (allBookings.length > 0) {
-          const details = allBookings[0].userDetails || {};
-          setSecondPaymentMode(details.secondpaymentmode || '');
-          setSecondPaymentDetails(details.secondpaymentdetails || '');
-          setSpecialNote(details.specialnote || '');
-          setStage(details.stage || '');
-          setName(details.name || '');
-          setEmail(details.email || '');
-          setContact(details.contact || '');
-          setAlternativeContact(details.alternativecontactno || '');
-          setIdentityProof(details.identityproof || '');
-          setIdentityNumber(details.identitynumber || '');
-          setSource(details.source || '');
-          setCustomerBy(details.customerby || '');
-          setReceiptBy(details.receiptby || '');
-          setGrandTotalRent(details.grandTotalRent || '');
-          setDiscountOnRent(details.discountOnRent || '');
-          setFinalRent(details.finalrent || '');
-          setGrandTotalDeposit(details.grandTotalDeposit || '');
-          setDiscountOnDeposit(details.discountOnDeposit || '');
-          setFinalDeposit(details.finaldeposite || '');
-          setAmountToBePaid(details.totalamounttobepaid || '');
-          setAmountPaid(details.amountpaid || '');
-          setBalance(details.balance || '');
-          setPaymentStatus(details.paymentstatus || '');
-          setFirstPaymentDetails(details.firstpaymentdtails || '');
-          setFirstPaymentMode(details.firstpaymentmode || '');
-        }
-
-        setBookings(allBookings);
-      } catch (error) {
-        toast.error('Error fetching booking or product details: ' + error.message);
-      } finally {
+      if (bookingSnap.empty) {
+        setBookings([]);
         setLoading(false);
+        return;
       }
-    };
 
-    fetchBookingAndProductDetails();
-  }, [receiptNumber, userData.branchCode]);
+      // 2️⃣ Collect productIds from bookings
+      const productIds = new Set();
+
+      bookingSnap.docs.forEach(doc => {
+        const productId = doc.ref.parent.parent.id;
+        productIds.add(productId);
+      });
+
+      // 3️⃣ Fetch only those products
+      const productDocs = await Promise.all(
+        [...productIds].map(id =>
+          getDoc(
+            doc(
+              db,
+              `products/${userData.branchCode}/products/${id}`
+            )
+          )
+        )
+      );
+
+      const productsMap = {};
+
+      productDocs.forEach(d => {
+        if (d.exists()) {
+          productsMap[d.id] = d.data();
+        }
+      });
+
+      // 4️⃣ Merge bookings + product data
+      const bookingList = bookingSnap.docs.map(doc => {
+
+        const data = doc.data();
+        const productId = doc.ref.parent.parent.id;
+
+        return {
+          ...data,
+          id: doc.id,
+          productId,
+          product: productsMap[productId] || null,
+          archived: data.archived || false
+        };
+
+      });
+
+      setBookings(bookingList);
+
+      // 5️⃣ Customer details
+      const details = bookingList[0]?.userDetails || {};
+
+      setSecondPaymentMode(details.secondpaymentmode || '');
+      setSecondPaymentDetails(details.secondpaymentdetails || '');
+      setSpecialNote(details.specialnote || '');
+      setStage(details.stage || '');
+
+      setName(details.name || '');
+      setEmail(details.email || '');
+      setContact(details.contact || '');
+      setAlternativeContact(details.alternativecontactno || '');
+
+      setIdentityProof(details.identityproof || '');
+      setIdentityNumber(details.identitynumber || '');
+
+      setSource(details.source || '');
+      setCustomerBy(details.customerby || '');
+      setReceiptBy(details.receiptby || '');
+
+      setGrandTotalRent(details.grandTotalRent || '');
+      setDiscountOnRent(details.discountOnRent || '');
+      setFinalRent(details.finalrent || '');
+
+      setGrandTotalDeposit(details.grandTotalDeposit || '');
+      setDiscountOnDeposit(details.discountOnDeposit || '');
+      setFinalDeposit(details.finaldeposite || '');
+
+      setAmountToBePaid(details.totalamounttobepaid || '');
+      setAmountPaid(details.amountpaid || '');
+      setBalance(details.balance || '');
+
+      setPaymentStatus(details.paymentstatus || '');
+      setFirstPaymentDetails(details.firstpaymentdtails || '');
+      setFirstPaymentMode(details.firstpaymentmode || '');
+
+    } catch (error) {
+
+      toast.error(
+        "Error fetching booking or product details: " + error.message
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  fetchBookingAndProductDetails();
+
+}, [receiptNumber, userData.branchCode]);
   useEffect(() => {
     const fetchBranchName = async () => {
       try {

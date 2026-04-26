@@ -451,7 +451,9 @@ const checkAvailability = async (index) => {
       // Ignore bookings that no longer hold stock
 // Store ALL bookings for UI
 // Hide successful bookings in UI
-if (status !== "successful") {
+const hiddenStatuses = ["successful", "cancelled", "postponed"];
+
+if (!hiddenStatuses.includes(status)) {
 
   allBookings.push({
     receiptNumber: bookingData.receiptNumber,
@@ -1138,9 +1140,13 @@ if (depositPay > 0) {
 }
 
       // Set payment confirmation state and redirect
-      setIsPaymentConfirmed(true);
-      toast.success(`Bill Created Successfully. Your Receipt Number is: ${receiptNumber}`);
-      setTimeout(() => navigate('/usersidebar/clients'), 6000); // 6 seconds delay before navigation
+     setIsPaymentConfirmed(true);
+
+toast.success(
+  `Bill Created Successfully. Receipt Number: ${receiptNumber}`
+);
+
+navigate(`/booking-details/${receiptNumber}`);
 
     } catch (error) {
       toast.error('Error confirming payment:', error);
