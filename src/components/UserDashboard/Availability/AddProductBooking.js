@@ -618,25 +618,69 @@ grandTotalDeposit: newGrandTotalDeposit,
 
 
       {/* ROW 2 */}
-      <input
-        className="add-product-booking-input"
-        placeholder="Product Code"
-        value={product.productCode}
-        onChange={(e) => {
+      <div className="product-code-wrapper">
 
-          const updated = [...products];
-          updated[index].productCode = e.target.value;
-updated[index].checked = false;
-updated[index].isAvailable = false;
+<input
+  className="add-product-booking-input"
+  placeholder="Product Code"
+  value={product.productCode}
+  onChange={(e) => {
 
+    const value = e.target.value;
 
-          setProducts(updated);
+    const updated = [...products];
+    updated[index].productCode = value;
+    updated[index].checked = false;
+    updated[index].isAvailable = false;
 
-          fetchProductSuggestions(e.target.value);
-          fetchProductDetails(e.target.value, index);
+    setProducts(updated);
 
-        }}
-      />
+    setActiveProductIndex(index);
+
+    if (value.length > 0) {
+      fetchProductSuggestions(value);
+    } else {
+      setProductSuggestions([]);
+    }
+
+  }}
+/>
+
+{activeProductIndex === index && productSuggestions.length > 0 && (
+
+<div className="product-suggestion-list">
+
+{productSuggestions.map((item, i) => (
+
+<div
+key={i}
+className="product-suggestion-item"
+onClick={() => {
+
+const updated = [...products];
+
+updated[index].productCode = item.productCode;
+
+setProducts(updated);
+
+fetchProductDetails(item.productCode, index);
+
+setProductSuggestions([]);
+
+}}
+>
+
+{item.productCode} — {item.productName}
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+</div>
 
       <input
         className="add-product-booking-input"

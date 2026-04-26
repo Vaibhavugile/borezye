@@ -59,7 +59,17 @@ const detectOverlaps = (allBookings) => {
         if (!A.pickupDate || !B.pickupDate) continue;
 
         // ignore cancelled
-        if (A.stage === "cancelled" || B.stage === "cancelled") continue;
+       const ignoredStages = [
+  "cancelled",
+  "successful",
+  "postponed",
+  "return"
+];
+
+if (
+  ignoredStages.includes(A.stage) ||
+  ignoredStages.includes(B.stage)
+) continue;
 
         const overlap =
           A.pickupDate <= B.returnDate &&

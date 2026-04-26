@@ -66,6 +66,19 @@ const formatDateDMY = (timestamp) => {
     year: "numeric",
   }).format(date);
 };
+const formatDateForInput = (timestamp) => {
+
+  if (!timestamp) return "";
+
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+};
 
 const BookingDetailsPage = () => {
   const { receiptNumber } = useParams();
@@ -106,7 +119,9 @@ const BookingDetailsPage = () => {
   const [customerBy, setCustomerBy] = useState('');
   const [receiptBy, setReceiptBy] = useState('');
   const [isReturningDeposit, setIsReturningDeposit] = useState(false);
-
+const [editPickupDate, setEditPickupDate] = useState("");
+const [editReturnDate, setEditReturnDate] = useState("");
+const [showDateEditModal, setShowDateEditModal] = useState(false);
   const [refundAmount, setRefundAmount] = useState("");
   const [refundMode, setRefundMode] = useState("");
   const [refundDetails, setRefundDetails] = useState("");
@@ -130,7 +145,36 @@ const BookingDetailsPage = () => {
   const [paymentDoc, setPaymentDoc] = useState(null);
   const location = useLocation();
   const isDeleted = location.state?.isDeleted || false;
+const mergeDateKeepTime = (oldDate, newDate) => {
 
+const old =
+  oldDate?.toDate ? oldDate.toDate() : new Date(oldDate);
+
+const newD = new Date(newDate);
+
+if (isNaN(old) || isNaN(newD)) return null;
+
+newD.setHours(
+old.getHours(),
+old.getMinutes(),
+old.getSeconds(),
+old.getMilliseconds()
+);
+
+return newD;
+
+};
+const formatLocalDate = (date) => {
+
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+};
 useEffect(() => {
 
   const fetchBookingAndProductDetails = async () => {
@@ -574,6 +618,70 @@ const depositPending = Math.max(deposit - depositCollected, 0);
 
     }
   };
+ const handleUpdateDates = async () => {
+
+try {
+
+if (!editPickupDate || !editReturnDate) {
+  toast.error("Please select pickup and return date");
+  return;
+}
+
+const batch = writeBatch(db);
+
+const oldPickup = bookings[0].pickupDate;
+const oldReturn = bookings[0].returnDate;
+
+const newPickup = mergeDateKeepTime(oldPickup, new Date(editPickupDate));
+const newReturn = mergeDateKeepTime(oldReturn, new Date(editReturnDate));
+
+if (!newPickup || !newReturn) {
+  toast.error("Invalid date selected");
+  return;
+}
+
+const paymentRef = doc(
+db,
+`products/${userData.branchCode}/payments`,
+receiptNumber
+);
+
+batch.update(paymentRef,{
+pickupDate:newPickup,
+returnDate:newReturn
+});
+
+bookings
+.filter(b => !b.archived)
+.forEach((booking)=>{
+
+const bookingRef = doc(
+db,
+`products/${userData.branchCode}/products/${booking.productId}/bookings`,
+booking.id
+);
+
+batch.update(bookingRef,{
+pickupDate:newPickup,
+returnDate:newReturn
+});
+
+});
+
+await batch.commit();
+
+toast.success("Booking dates updated");
+
+setShowDateEditModal(false);
+
+} catch(err){
+
+console.error(err);
+toast.error("Failed to update dates");
+
+}
+
+};
 
 
 
@@ -1556,8 +1664,33 @@ await batch2.commit();
     >
       Add Product
     </button>
+    
+  )}
+   {userData?.role !== "Subuser" && (
+  <button
+onClick={() => {
+
+
+
+const booking = bookings.find(b => !b.archived) || bookings[0];
+
+setEditPickupDate(
+  formatDateForInput(booking?.pickupDate)
+);
+
+setEditReturnDate(
+  formatDateForInput(booking?.returnDate)
+);
+
+setShowDateEditModal(true);
+
+}}
+>
+Edit Dates
+</button>
   )}
 </div>
+
 
                 <div className="product-table-wrapper">
                   <table className="product-table">
@@ -2203,7 +2336,51 @@ await batch2.commit();
   </div>
 
 )}
+{showDateEditModal && (
 
+<div className="date-edit-overlay">
+
+<div className="date-edit-modal">
+
+<h3>Edit Booking Dates</h3>
+
+<input
+className="date-edit-input"
+type="date"
+value={editPickupDate}
+onChange={(e)=>setEditPickupDate(e.target.value)}
+/>
+
+<input
+className="date-edit-input"
+type="date"
+value={editReturnDate}
+onChange={(e)=>setEditReturnDate(e.target.value)}
+/>
+
+<div className="date-edit-actions">
+
+<button
+className="date-edit-update"
+onClick={handleUpdateDates}
+>
+Update Dates
+</button>
+
+<button
+className="date-edit-cancel"
+onClick={()=>setShowDateEditModal(false)}
+>
+Cancel
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+)}
       <ToastContainer position="top-left" />
     </>
   );

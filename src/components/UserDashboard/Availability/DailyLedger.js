@@ -8,9 +8,10 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 import FinanceSummary from "./FinanceSummary";
+import { useNavigate } from "react-router-dom";
 
 const DailyLedger = ({ branchCode }) => {
-
+const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [modes, setModes] = useState([]);
 
@@ -122,12 +123,19 @@ const DailyLedger = ({ branchCode }) => {
 
     /* Ensure deposit returns appear after deposits */
 
-    rows.sort((a,b)=>{
-      if(a.type === "depositReturn" && b.type !== "depositReturn") return 1
-      if(a.type !== "depositReturn" && b.type === "depositReturn") return -1
-      return 0
-    });
+  rows.sort((a, b) => {
 
+  const dateA = a.createdAt?.seconds
+    ? new Date(a.createdAt.seconds * 1000)
+    : new Date(a.createdAt);
+
+  const dateB = b.createdAt?.seconds
+    ? new Date(b.createdAt.seconds * 1000)
+    : new Date(b.createdAt);
+
+  return dateA - dateB; // oldest first, newest last
+
+});
     setModes(Array.from(modesSet));
     setRows(rows);
 
@@ -140,10 +148,56 @@ const DailyLedger = ({ branchCode }) => {
 
   };
 
+
   useEffect(()=>{
     if(branchCode) fetchLedger();
   },[startDate,endDate,branchCode]);
+const exportToCSV = () => {
 
+  const headers = [
+    "Date",
+    "Receipt",
+    "Client",
+    "Created By",
+    ...modes.map(m => `Rent ${m}`),
+    ...modes.map(m => `Deposit ${m}`)
+  ];
+
+  const csvRows = [];
+
+  csvRows.push(headers.join(","));
+
+  rows.forEach(row => {
+
+    const date = row.createdAt?.seconds
+      ? new Date(row.createdAt.seconds * 1000)
+      : new Date(row.createdAt);
+
+    const values = [
+      date.toLocaleDateString(),
+      row.receiptNumber || "",
+      row.customerName || "",
+      row.createdBy || "",
+      ...modes.map(m => row.rent[m] || ""),
+      ...modes.map(m => row.deposit[m] || "")
+    ];
+
+    csvRows.push(values.join(","));
+
+  });
+
+  const blob = new Blob([csvRows.join("\n")], {
+    type: "text/csv"
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "ledger-export.csv";
+  link.click();
+
+};
   return (
 
   <div className="ledger-container">
@@ -167,7 +221,12 @@ const DailyLedger = ({ branchCode }) => {
           value={formatDateInput(endDate)}
           onChange={(e)=>setEndDate(new Date(e.target.value))}
         />
-
+<button
+  className="ledger-export-btn"
+  onClick={exportToCSV}
+>
+Export CSV
+</button>
       </div>
 
     </div>
@@ -225,8 +284,23 @@ const DailyLedger = ({ branchCode }) => {
 
           <tr key={row.id}>
 
-            <td>{date.toLocaleDateString()}</td>
-            <td>{row.receiptNumber}</td>
+            <td>
+  {date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  })}
+</td>
+            <td
+  className="ledger-receipt-link"
+  onClick={() =>
+    navigate(`/booking-details/${row.receiptNumber}`)
+  }
+>
+  {row.receiptNumber}
+</td>
             <td>{row.customerName}</td>
             <td>{row.createdBy}</td>
 
@@ -312,7 +386,7 @@ const DailyLedger = ({ branchCode }) => {
 
         {/* TOTAL DEPOSIT */}
 
-        <tr className="total-row">
+        {/* <tr className="total-row">
 
           <td colSpan="4"><strong>Total Deposit</strong></td>
 
@@ -326,7 +400,7 @@ const DailyLedger = ({ branchCode }) => {
             </td>
           ))}
 
-        </tr>
+        </tr> */}
 
       </tbody>
 

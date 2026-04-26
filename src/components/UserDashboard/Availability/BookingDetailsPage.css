@@ -516,6 +516,170 @@ font-weight:600;
   color: #d32f2f; /* red */
   font-weight: 600;
 }
+/* OVERLAY */
+
+.date-edit-overlay{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,0.45);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+z-index:1000;
+
+}
+
+
+/* MODAL BOX */
+
+.date-edit-modal{
+
+width:380px;
+background:#fff;
+
+border-radius:12px;
+
+padding:22px;
+
+box-shadow:0 20px 40px rgba(0,0,0,0.15);
+
+animation:fadeInScale .25s ease;
+
+}
+
+
+/* TITLE */
+
+.date-edit-modal h3{
+
+margin-bottom:18px;
+font-size:18px;
+font-weight:600;
+color:#111827;
+
+}
+
+
+/* INPUT */
+
+.date-edit-input{
+
+width:100%;
+height:42px;
+
+border-radius:8px;
+border:1px solid #d1d5db;
+
+padding:0 12px;
+font-size:14px;
+
+margin-bottom:14px;
+
+transition:all .2s;
+
+}
+
+.date-edit-input:focus{
+
+outline:none;
+border-color:#2563eb;
+
+box-shadow:0 0 0 2px rgba(37,99,235,0.15);
+
+}
+
+
+/* BUTTON ROW */
+
+.date-edit-actions{
+
+display:flex;
+justify-content:flex-end;
+gap:10px;
+margin-top:10px;
+
+}
+
+
+/* UPDATE BUTTON */
+
+.date-edit-update{
+
+background:#2563eb;
+color:#fff;
+
+border:none;
+border-radius:8px;
+
+padding:9px 16px;
+
+font-size:14px;
+font-weight:500;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.date-edit-update:hover{
+
+background:#1d4ed8;
+
+}
+
+
+/* CANCEL BUTTON */
+
+.date-edit-cancel{
+
+background:#f3f4f6;
+color:#374151;
+
+border:none;
+border-radius:8px;
+
+padding:9px 16px;
+
+font-size:14px;
+
+cursor:pointer;
+
+}
+
+.date-edit-cancel:hover{
+
+background:#e5e7eb;
+
+}
+
+
+/* ANIMATION */
+
+@keyframes fadeInScale{
+
+from{
+
+opacity:0;
+transform:scale(.9);
+
+}
+
+to{
+
+opacity:1;
+transform:scale(1);
+
+}
+
+}
 /* FULL PAGE OVERLAY */
 .add-product-overlay {
 

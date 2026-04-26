@@ -50,6 +50,7 @@ function Booking() {
   const [loggedInBranchCode, setLoggedInBranchCode] = useState('');
   const { userData } = useUser();
   const [discount, setDiscount] = useState(0); // State for the discount input
+  
   // State for the updated grand total
   const [productSuggestions, setProductSuggestions] = useState([]);
 
