@@ -564,35 +564,79 @@ const depositPending = Math.max(deposit - depositCollected, 0);
     }
   };
 
-  const handleSavePaymentDetails = async () => {
-    if (bookings.length === 0) return;
+const handleSavePaymentDetails = async () => {
+  if (bookings.length === 0) return;
 
-    const bookingId = bookings[0].id;
-    const productId = bookings[0].productId;
-    const bookingRef = doc(db, `products/${userData.branchCode}/products/${productId}/bookings`, bookingId);
+  try {
 
-    try {
-      await updateDoc(bookingRef, {
-        'userDetails.grandTotalRent': grandTotalRent,
-        'userDetails.discountOnRent': discountOnRent,
-        'userDetails.finalrent': finalRent,
-        'userDetails.grandTotalDeposit': grandTotalDeposit,
-        'userDetails.discountOnDeposit': discountOnDeposit,
-        'userDetails.finaldeposite': finalDeposit,
-        'userDetails.totalamounttobepaid': amountToBePaid,
-        'userDetails.amountpaid': amountPaid,
-        'userDetails.balance': balance,
-        'userDetails.paymentstatus': paymentStatus,
-        'userDetails.firstpaymentdtails': firstPaymentDetails,
-        'userDetails.firstpaymentmode': firstPaymentMode,
+    const batch = writeBatch(db);
+
+    // 🔹 Update only ACTIVE bookings (skip deleted/archived)
+    bookings
+      .filter(b => !b.archived)
+      .forEach((booking) => {
+
+        const bookingRef = doc(
+          db,
+          `products/${userData.branchCode}/products/${booking.productId}/bookings`,
+          booking.id
+        );
+
+        batch.update(bookingRef, {
+          "userDetails.grandTotalRent": Number(grandTotalRent),
+          "userDetails.discountOnRent": Number(discountOnRent),
+          "userDetails.finalrent": Number(finalRent),
+
+          "userDetails.grandTotalDeposit": Number(grandTotalDeposit),
+          "userDetails.discountOnDeposit": Number(discountOnDeposit),
+          "userDetails.finaldeposite": Number(finalDeposit),
+
+          "userDetails.totalamounttobepaid": Number(amountToBePaid),
+          "userDetails.amountpaid": Number(amountPaid),
+          "userDetails.balance": Number(balance),
+
+          "userDetails.paymentstatus": paymentStatus,
+          "userDetails.firstpaymentdtails": firstPaymentDetails,
+          "userDetails.firstpaymentmode": firstPaymentMode
+        });
+
       });
 
-      toast.success('Payment Details Updated Successfully');
-      setIsEditingPayment(false);
-    } catch (error) {
-      toast.error('Error updating payment details:', error);
-    }
-  };
+    // 🔹 Update payment document
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    batch.update(paymentRef, {
+      grandTotalRent: Number(grandTotalRent),
+      discountOnRent: Number(discountOnRent),
+      finalRent: Number(finalRent),
+
+      grandTotalDeposit: Number(grandTotalDeposit),
+      discountOnDeposit: Number(discountOnDeposit),
+      finalDeposit: Number(finalDeposit),
+
+      totalAmount: Number(amountToBePaid),
+      amountPaid: Number(amountPaid),
+      balance: Number(balance),
+
+      paymentStatus: paymentStatus,
+      firstPaymentMode: firstPaymentMode,
+      firstPaymentDetails: firstPaymentDetails
+    });
+
+    await batch.commit();
+
+    toast.success("Payment details updated everywhere");
+    setIsEditingPayment(false);
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Error updating payment details");
+  }
+};
   const handleContactNumberClick = () => {
     const contactNo = userDetails?.contact || '';
     setSelectedContactNo(contactNo);
@@ -736,6 +780,42 @@ const depositPending = Math.max(deposit - depositCollected, 0);
     sendWhatsAppMessage(contactNo, message);
     setIsModalOpen(false);
   };
+  const refreshPaymentData = async () => {
+  if (!userData?.branchCode || !receiptNumber) return;
+
+  try {
+    // refresh payment document
+    const paymentRef = doc(
+      db,
+      `products/${userData.branchCode}/payments`,
+      receiptNumber
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+    if (paymentSnap.exists()) {
+      setPaymentDoc(paymentSnap.data());
+    }
+
+    // refresh transactions
+    const transactionsRef = collection(
+      db,
+      `products/${userData.branchCode}/payments/${receiptNumber}/transactions`
+    );
+
+    const q = query(transactionsRef, orderBy("paymentNumber", "asc"));
+    const snapshot = await getDocs(q);
+
+    const transactions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setPaymentTransactions(transactions);
+
+  } catch (error) {
+    console.error("Refresh error:", error);
+  }
+};
   const handleAddPayment = async () => {
 
     if (paymentLocked) return;
@@ -888,7 +968,7 @@ if (newBalance < 0) {
       ]);
 
       toast.success("Payment added successfully");
-
+      await refreshPaymentData();
       setIsAddingPayment(false);
       setNewPaymentAmount("");
       setNewPaymentMode("");
@@ -976,7 +1056,7 @@ if (newBalance < 0) {
       ]);
 
       toast.success("Deposit refunded");
-
+      await refreshPaymentData();
       setRefundAmount("");
       setRefundMode("");
       setRefundDetails("");
@@ -1569,17 +1649,17 @@ await batch2.commit();
                     <label>Balance</label>
                     <input value={balance} onChange={(e) => setBalance(e.target.value)} />
 
-                    <label>Payment Status</label>
-                    <input value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} />
+                    {/* <label>Payment Status</label>
+                    <input value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} /> */}
                   </div>
 
-                  <div className="info-row">
+                  {/* <div className="info-row">
                     <label>First Payment Details</label>
                     <input value={firstPaymentDetails} onChange={(e) => setFirstPaymentDetails(e.target.value)} />
 
                     <label>First Payment Mode</label>
                     <input value={firstPaymentMode} onChange={(e) => setFirstPaymentMode(e.target.value)} />
-                  </div>
+                  </div> */}
 
                   <div className="form-actions">
                     <button onClick={handleSavePaymentDetails}>Save</button>
@@ -1603,17 +1683,25 @@ await batch2.commit();
                     <p><strong>Final Deposit:</strong> ₹{paymentDoc?.finalDeposit || "N/A"}</p>
                   </div>
 
-                  <div className="info-row">
-                    <p><strong>Amount To Be Paid:</strong> ₹{paymentDoc?.totalAmount || "N/A"}</p>
-                    <p><strong>Applied Credit:</strong> ₹{paymentDoc?.appliedCredit || "N/A"}</p>
-                  </div>
+                 <div className="info-row">
+  <p className="amount-due">
+    <strong>Amount To Be Paid:</strong> ₹{paymentDoc?.totalAmount || "N/A"}
+  </p>
+  <p>
+    <strong>Applied Credit:</strong> ₹{paymentDoc?.appliedCredit || "N/A"}
+  </p>
+</div>
 
-                  <div className="info-row">
-                    <p><strong>Amount Paid:</strong> ₹{paymentDoc?.amountPaid || "N/A"}</p>
-                    <p><strong>Balance:</strong> ₹{paymentDoc?.balance || "N/A"}</p>
-                  </div>
+<div className="info-row">
+  <p className="amount-paid">
+    <strong>Amount Paid:</strong> ₹{paymentDoc?.amountPaid || "N/A"}
+  </p>
+  <p className="balance">
+    <strong>Balance:</strong> ₹{paymentDoc?.balance || "N/A"}
+  </p>
+</div>
 
-                  <div className="info-row">
+                  {/* <div className="info-row">
                     <p><strong>Payment Status:</strong> {paymentDoc?.paymentStatus || "N/A"}</p>
                     <p><strong>First Payment Mode:</strong> {paymentDoc?.firstPaymentMode || "N/A"}</p>
                   </div>
@@ -1625,7 +1713,7 @@ await batch2.commit();
 
                   <div className="info-row">
                     <p><strong>Second Payment Details:</strong> {paymentDoc?.secondPaymentDetails || "N/A"}</p>
-                  </div>
+                  </div> */}
                 </>
               )}
             </section>

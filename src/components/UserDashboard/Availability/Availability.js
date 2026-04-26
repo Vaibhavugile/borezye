@@ -177,7 +177,15 @@ const [stageFilter, setStageFilter] = useState(
   const [showFieldDropdown, setShowFieldDropdown] = useState(false);
   const [tempVisibleFields, setTempVisibleFields] = useState({});
   const [savingFields, setSavingFields] = useState(false);
+const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
 
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedQuery(searchQuery);
+  }, 300); // wait 300ms after typing stops
+
+  return () => clearTimeout(timer);
+}, [searchQuery]);
   useEffect(() => {
   setStageFilter(searchParams.get('stage') || 'all');
   setSearchField(searchParams.get('field') || '');
@@ -1055,16 +1063,16 @@ useEffect(() => {
     }
   }, [isModalOpen]);
 
-  useEffect(() => {
+useEffect(() => {
   const params = {};
 
   if (stageFilter && stageFilter !== 'all') params.stage = stageFilter;
   if (searchField) params.field = searchField;
-  if (searchQuery) params.query = searchQuery;
+  if (debouncedQuery) params.query = debouncedQuery;
   if (viewMode && viewMode !== 'compact') params.view = viewMode;
 
   setSearchParams(params, { replace: true });
-}, [stageFilter, searchField, searchQuery, viewMode]);
+}, [stageFilter, searchField, debouncedQuery, viewMode]);
 
   return (
     <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>

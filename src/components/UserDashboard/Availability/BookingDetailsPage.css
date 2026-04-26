@@ -502,6 +502,20 @@ font-weight:600;
   border-radius: 6px;
   cursor: pointer;
 }
+.amount-due {
+  color: #ff9800; /* orange */
+  font-weight: 600;
+}
+
+.amount-paid {
+  color: #2e7d32; /* green */
+  font-weight: 600;
+}
+
+.balance {
+  color: #d32f2f; /* red */
+  font-weight: 600;
+}
 /* FULL PAGE OVERLAY */
 .add-product-overlay {
 
