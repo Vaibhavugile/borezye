@@ -1,0 +1,30 @@
+.page-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 60px 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.7;
+}
+
+h1 {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  margin-top: 30px;
+  font-size: 22px;
+}
+
+p {
+  margin: 10px 0;
+  color: #444;
+}
+
+ul {
+  margin-left: 20px;
+}
+
+li {
+  margin: 6px 0;
+}

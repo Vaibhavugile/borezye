@@ -60,6 +60,8 @@ import AccountPage from './components/UserDashboard/Availability/AccountsReportP
 import AccountPageLogic from './components/UserDashboard/Availability/AccountsReportPage';
 import UpdateRentalPeriodHardcoded from './components/UserDashboard/Availability/UpdateRentalPeriodHardcoded';
 import InactivityGuard from "./components/Auth/InactivityGuard";
+import PrivacyPolicy from './components/UserDashboard/PrivacyPolicy';
+import Support from './components/UserDashboard/Support';
 
 const App = () => (
 
@@ -69,7 +71,8 @@ const App = () => (
       <Routes>
         {/* Public Route - Login Page */}
         <Route path="/" element={<Landing />} />
-
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/support" element={<Support />} />
         {/* Public Route - Login Page */}
         <Route path="/Login" element={<Login />} />
         <Route path="/__/auth/action" element={<FirebaseAuthActionHandler />} />
@@ -353,6 +356,8 @@ const App = () => (
               <SingleComponent />
             </PrivateRoute>
           } />
+
+          
           <Route path="overview" element={
             <PrivateRoute>
               <Overview />

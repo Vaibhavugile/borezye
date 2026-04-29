@@ -29,21 +29,27 @@ const EXPORT_FIELDS = [
   "createdAt",
   "stage",
   "products",
-  "IdentityProof",
+  
   "IdentityNumber",
   "Source",
   "CustomerBy",
   "ReceiptBy",
+
   "Alterations",
   "SpecialNote",
+  "IdentityProof",
   "GrandTotalRent",
-  "DiscountOnRent",
-  "FinalRent",
   "GrandTotalDeposit",
-  "DiscountOnDeposit",
-  "FinalDeposit",
   "AmountToBePaid",
+  "DiscountOnRent",
+  "DiscountOnDeposit",
   "AmountPaid",
+  "FinalRent",
+
+
+  "FinalDeposit",
+  
+  
   "Balance",
   "PaymentStatus",
   "FirstPaymentDetails",
@@ -1378,7 +1384,7 @@ useEffect(() => {
                       )}
 
                       <div className="row-actions">
-                        <button
+                        {/* <button
                           className="icon-btn whatsapp"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1386,7 +1392,7 @@ useEffect(() => {
                           }}
                         >
                           <FaWhatsapp />
-                        </button>
+                        </button> */}
 
                         {userData?.role !== 'Subuser' && (
                           <button

@@ -332,6 +332,275 @@ const handleShowOverlaps = () => {
   setFilteredBookings(grouped);
 };
 
+const migrateProductsWithoutBookingsAllBranches = async () => {
+
+  console.log("🚀 Starting migration");
+
+  const branchesSnap = await getDocs(collection(db, "products"));
+
+  for (const branchDoc of branchesSnap.docs) {
+
+    const branchCode = branchDoc.id;
+
+    console.log("Processing branch:", branchCode);
+
+    const productsRef = collection(db, `products/${branchCode}/products`);
+    const productsSnap = await getDocs(productsRef);
+
+    const batch = writeBatch(db);
+    let writes = 0;
+
+    const checks = productsSnap.docs.map(async (productDoc) => {
+
+      const productId = productDoc.id;
+      const productData = productDoc.data();
+
+      const bookingsRef = collection(
+        db,
+        `products/${branchCode}/products/${productId}/bookings`
+      );
+
+      const bookingsSnap = await getDocs(bookingsRef);
+
+      if (bookingsSnap.empty) {
+
+        const movementRef = doc(
+          collection(db, `products/${branchCode}/inventoryMovements`)
+        );
+
+        batch.set(movementRef, {
+          branchCode,
+          productCode: productData.productCode,
+          productName: productData.productName || "",
+          type: "IN",
+          reason: "initialStock",
+          quantity: productData.quantity || 1,
+          createdAt: serverTimestamp(),
+          createdBy: "migration"
+        });
+
+        writes++;
+
+      }
+
+    });
+
+    await Promise.all(checks);
+
+    if (writes > 0) {
+      await batch.commit();
+      console.log(`✅ ${writes} movements created for branch ${branchCode}`);
+    }
+
+  }
+
+  console.log("🎉 Migration finished");
+
+};
+const migrateProductsWithoutBookings = async () => {
+
+  const branchCode = userData.branchCode;
+
+  console.log("Starting migration for branch:", branchCode);
+
+  const productsRef = collection(
+    db,
+    `products/${branchCode}/products`
+  );
+
+  const productsSnap = await getDocs(productsRef);
+
+  let batch = writeBatch(db);
+  let writes = 0;
+
+  for (const productDoc of productsSnap.docs) {
+
+    const productId = productDoc.id;
+    const productData = productDoc.data();
+
+    const bookingsRef = collection(
+      db,
+      `products/${branchCode}/products/${productId}/bookings`
+    );
+
+    const bookingsSnap = await getDocs(bookingsRef);
+
+    if (bookingsSnap.empty) {
+
+      const movementRef = doc(
+        collection(db, `products/${branchCode}/inventoryMovements`)
+      );
+
+      batch.set(movementRef, {
+        branchCode,
+        productCode: productData.productCode,
+        productName: productData.productName || "",
+        type: "IN",
+        reason: "initialStock",
+        quantity: productData.quantity || 1,
+        createdAt: serverTimestamp(),
+        createdBy: userData.email || "migration"
+      });
+
+      writes++;
+
+      // Firestore batch limit protection
+      if (writes === 400) {
+        await batch.commit();
+        batch = writeBatch(db);
+        writes = 0;
+      }
+
+    }
+
+  }
+
+  if (writes > 0) {
+    await batch.commit();
+  }
+
+  console.log("Migration complete");
+
+};
+const migrateReceiptProducts = async () => {
+
+  const branchCode = "4444";
+
+  console.log("🚀 Starting migration for branch:", branchCode);
+
+  const bookingsQuery = query(collectionGroup(db, "bookings"));
+  const bookingsSnap = await getDocs(bookingsQuery);
+
+  const receiptsMap = {};
+
+  bookingsSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
+
+    if (data.branchCode !== branchCode) return;
+
+    const receipt = data.receiptNumber;
+    if (!receipt) return;
+
+    if (!receiptsMap[receipt]) {
+      receiptsMap[receipt] = [];
+    }
+
+    receiptsMap[receipt].push({
+      ...data,
+      productId: docSnap.ref.parent.parent.id
+    });
+
+  });
+
+  const tasks = Object.keys(receiptsMap).map(async (receiptNumber) => {
+
+    const bookings = receiptsMap[receiptNumber];
+
+    const productsArray = bookings.map(b => ({
+      productId: b.productId,
+      productCode: b.productCode || "",
+      productName: b.productName || "",
+      imageUrl: b.imageUrls || "",
+      quantity: b.quantity || 1,
+      price: b.price || 0,
+      deposit: b.deposit || 0,
+      totalCost: b.totalCost || 0,
+      pickupDate: b.pickupDate || null,
+      returnDate: b.returnDate || null
+    }));
+
+    const paymentRef = doc(
+      db,
+      `products/${branchCode}/payments/${receiptNumber}`
+    );
+
+    const paymentSnap = await getDoc(paymentRef);
+
+    if (!paymentSnap.exists()) {
+      console.log("⚠️ Payment not found:", receiptNumber);
+      return;
+    }
+
+    await updateDoc(paymentRef, {
+      products: productsArray
+    });
+
+    console.log("✅ Migrated:", receiptNumber);
+
+  });
+
+  // 🔥 run all migrations in parallel
+  await Promise.all(tasks);
+
+  console.log("🎉 Migration completed");
+
+};
+const migrateProductNamesAndImages = async () => {
+
+  const branchCode = "222";
+
+  console.log("🚀 Migrating productName + imageUrl for branch:", branchCode);
+
+  // fetch all products once
+  const productsSnap = await getDocs(
+    collection(db, `products/${branchCode}/products`)
+  );
+
+  const productsMap = {};
+
+  productsSnap.forEach(doc => {
+
+    const data = doc.data();
+
+    productsMap[doc.id] = {
+      productName: data.productName || "",
+      imageUrl: Array.isArray(data.imageUrls)
+        ? data.imageUrls[0]
+        : data.imageUrls || ""
+    };
+
+  });
+
+  console.log("Products loaded:", Object.keys(productsMap).length);
+
+  // fetch payments
+  const paymentsSnap = await getDocs(
+    collection(db, `products/${branchCode}/payments`)
+  );
+
+  const tasks = paymentsSnap.docs.map(async (paymentDoc) => {
+
+    const paymentData = paymentDoc.data();
+    const products = paymentData.products || [];
+
+    const updatedProducts = products.map(p => {
+
+      const product = productsMap[p.productId];
+
+      if (!product) return p;
+
+      return {
+        ...p,
+        productName: product.productName,
+        imageUrl: product.imageUrl
+      };
+
+    });
+
+    await updateDoc(paymentDoc.ref, {
+      products: updatedProducts
+    });
+
+    console.log("Updated receipt:", paymentDoc.id);
+
+  });
+
+  await Promise.all(tasks);
+
+  console.log("🎉 Product names + images migration done");
+
+};
 
 
 
@@ -390,6 +659,19 @@ Run Booking Migration
 >
   Fix Successful Receipts
 </button> */}
+{/* <button onClick={migrateProductsWithoutBookingsAllBranches}>
+Run Inventory Migration
+</button>
+<button onClick={migrateProductsWithoutBookings}>
+Initialize Product Stock
+</button> */}
+<button onClick={migrateReceiptProducts}>
+Migrate Products → Payments
+</button>
+<button onClick={migrateProductNamesAndImages}>
+Fix Product Names & Images
+</button>
+
 
 
         <div className="kpi-grid">
