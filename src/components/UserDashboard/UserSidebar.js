@@ -81,6 +81,13 @@ const UserSidebar = ({ isOpen }) => {
               <FaGift style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Account Report
             </Link>
           </li>
+          {userData?.role !== 'Subuser' && (
+          <li className={`sidebar-link ${location.pathname === '/attendanceoverview' ? 'active' : ''}`}>
+            <Link to="/attendanceoverview" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Attendance Report
+            </Link>
+          </li>
+          )}
        
           <li className={`sidebar-link ${location.pathname==='/logout'}`}>
             < Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>

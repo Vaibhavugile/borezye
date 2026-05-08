@@ -237,7 +237,177 @@ border:1px solid #e5e7eb;
 background:#fff;
 font-size:14px;
 }
+/* ================= OVERLAY ================= */
+.prd-collection-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+/* ================= MODAL BOX ================= */
+.prd-collection-modal-box {
+  width: 92%;
+  max-width: 520px;
+  max-height: 80vh;
+
+  background: #ffffff;
+  border-radius: 18px;
+
+  padding: 22px;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+
+  overflow-y: auto;
+
+  animation: prdCollectionFade 0.25s ease;
+}
+
+/* ================= TITLE ================= */
+.prd-collection-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+/* ================= GROUP ================= */
+.prd-collection-group {
+  margin-bottom: 22px;
+}
+
+/* ================= GROUP TITLE ================= */
+.prd-collection-group-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+
+  margin-bottom: 10px;
+}
+
+/* ================= CHECKBOX ROW ================= */
+.prd-collection-checkbox {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 8px 10px;
+  margin-bottom: 6px;
+
+  border-radius: 10px;
+
+  transition: all 0.2s ease;
+
+  cursor: pointer;
+}
+
+/* HOVER EFFECT */
+.prd-collection-checkbox:hover {
+  background: #f6f4ff;
+}
+
+/* ================= CHECKBOX ================= */
+.prd-collection-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+
+  accent-color: #6a3de8;
+
+  cursor: pointer;
+}
+
+/* ================= TEXT ================= */
+.prd-collection-label-text {
+  font-size: 14px;
+  color: #333;
+  letter-spacing: 0.3px;
+}
+
+/* ================= ACTION BUTTONS ================= */
+.prd-collection-modal-actions {
+  margin-top: 22px;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* SAVE BUTTON */
+.prd-collection-btn-save {
+  background: #6a3de8;
+  color: #fff;
+
+  border: none;
+  border-radius: 10px;
+
+  padding: 8px 16px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.prd-collection-btn-save:hover {
+  background: #5930d4;
+}
+
+/* CANCEL BUTTON */
+.prd-collection-btn-cancel {
+  background: #eeeeee;
+  color: #333;
+
+  border: none;
+  border-radius: 10px;
+
+  padding: 8px 16px;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.prd-collection-btn-cancel:hover {
+  background: #dddddd;
+}
+
+/* ================= SCROLLBAR ================= */
+.prd-collection-modal-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prd-collection-modal-box::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 10px;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes prdCollectionFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 .prd-table{
 width:100%;
 border-collapse:collapse;

@@ -1179,6 +1179,53 @@ button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
+.attachments-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
+  margin-top:18px;
+}
+
+.attachment-card{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  border:1px solid #eee;
+  box-shadow:0 4px 16px rgba(0,0,0,.04);
+}
+
+.attachment-card h4{
+  margin:0;
+  font-size:16px;
+  font-weight:600;
+}
+
+.attachment-note{
+  margin-top:10px;
+  color:#666;
+  line-height:1.5;
+  font-size:14px;
+}
+
+.attachment-images{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  margin-top:14px;
+}
+
+.attachment-images img{
+  width:90px;
+  height:120px;
+  object-fit:cover;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.attachment-images img:hover{
+  transform:scale(1.04);
+}
 
 /* =====================================================
    PRINT MODE

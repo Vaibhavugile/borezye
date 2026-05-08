@@ -15,6 +15,8 @@ const AddUser = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [salary, setSalary] = useState('');
+  const [weekOffs,setWeekOffs] =
+    useState([]);
   const [contactNumber, setContactNumber] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Subuser'); // Default role set to "Subuser"
@@ -22,7 +24,15 @@ const AddUser = () => {
   const [date, setDate] = useState('');
   const [branchCode, setBranchCode] = useState(''); // Store branch code
   const [userLimitReached, setUserLimitReached] = useState(false); // State to track user limit
-
+const weekDays = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
   // Redirect if the user is not authorized
   useEffect(() => {
     if (!userData || (userData.role !== 'Super Admin' && userData.role !== 'Branch Manager')) {
@@ -74,11 +84,13 @@ const AddUser = () => {
         name,
         email,
         salary,
+        weekOffs,
         contactNumber,
         password,
         role,
         permission,
         date,
+        
         isActive: true,
         branchCode,
       };
@@ -113,6 +125,7 @@ const AddUser = () => {
       setName('');
       setEmail('');
       setSalary('');
+      setWeekOffs([]);
       setContactNumber('');
       setPassword('');
       setRole('Subuser');
@@ -180,6 +193,57 @@ const AddUser = () => {
               disabled={userLimitReached}
             />
           </div>
+          <div className="form-group">
+
+  <label>
+    Weekly Offs
+  </label>
+
+  <div className="weekoff-grid">
+
+    {weekDays.map((day)=>(
+
+      <label
+        key={day}
+        className="weekoff-item"
+      >
+
+        <input
+          type="checkbox"
+
+          checked={
+            weekOffs.includes(day)
+          }
+
+          onChange={(e)=>{
+
+            if(e.target.checked){
+
+              setWeekOffs([
+                ...weekOffs,
+                day
+              ]);
+
+            }else{
+
+              setWeekOffs(
+
+                weekOffs.filter(
+                  d=>d !== day
+                )
+              );
+            }
+          }}
+        />
+
+        {day}
+
+      </label>
+    ))}
+
+  </div>
+
+</div>
           <div className="form-group">
             <label>Date</label>
             <input

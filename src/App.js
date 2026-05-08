@@ -62,7 +62,13 @@ import UpdateRentalPeriodHardcoded from './components/UserDashboard/Availability
 import InactivityGuard from "./components/Auth/InactivityGuard";
 import PrivacyPolicy from './components/UserDashboard/PrivacyPolicy';
 import Support from './components/UserDashboard/Support';
-
+import ManageBanners from './components/UserDashboard/Banners/ManageBanners';
+import ManageCollections from './components/UserDashboard/Banners/ManageCollections';
+import ManagePromotions from './components/UserDashboard/Banners/ManagePromotions';
+import ManageSubCollections from './components/UserDashboard/Banners/ManageSubCollections';
+import ManageOccasions from './components/UserDashboard/Banners/ManageOccasions';
+import AttendanceOverviewPage from './components/UserDashboard/AttendanceOverview/AttendanceOverviewPage';
+import EmployeeAttendanceDetailsPage from './components/UserDashboard/AttendanceOverview/EmployeeAttendanceDetailsPage';
 const App = () => (
 
   <UserProvider>
@@ -73,6 +79,7 @@ const App = () => (
         <Route path="/" element={<Landing />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/support" element={<Support />} />
+
         {/* Public Route - Login Page */}
         <Route path="/Login" element={<Login />} />
         <Route path="/__/auth/action" element={<FirebaseAuthActionHandler />} />
@@ -301,8 +308,43 @@ const App = () => (
             <EditCreditNote />
           </PrivateRoute>
         } />
+        <Route path="/attendanceoverview" element={
+  <PrivateRoute>
+  <AttendanceOverviewPage />
+  </PrivateRoute>
+} />
 
-
+<Route path="/manage-banners" element={
+  <PrivateRoute>
+  <ManageBanners />
+  </PrivateRoute>
+} />
+<Route path="/manage-collections" element={
+  <PrivateRoute>
+  <ManageCollections />
+  </PrivateRoute>
+} />
+<Route path="/manage-promotions" element={
+  <PrivateRoute>
+  <ManagePromotions/>
+  </PrivateRoute>
+} />
+<Route path="/manage-subcollection" element={
+  <PrivateRoute>
+  <ManageSubCollections/>
+  </PrivateRoute>
+} />
+<Route path="/manage-occasions" element={
+  <PrivateRoute>
+  <ManageOccasions/>
+  </PrivateRoute>
+} />
+<Route
+  path="/attendance/:userId"
+  element={
+    <EmployeeAttendanceDetailsPage />
+  }
+/>
         <Route path="/usersidebar/dashboard" element={
           <PrivateRoute>
             <Dashboard />

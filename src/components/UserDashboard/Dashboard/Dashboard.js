@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc ,updateDoc,writeBatch,where} from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc ,updateDoc,writeBatch,where,arrayUnion} from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import './Dahboard.css';
 import { useUser } from '../../Auth/UserContext';
@@ -601,9 +601,550 @@ const migrateProductNamesAndImages = async () => {
   console.log("🎉 Product names + images migration done");
 
 };
+const migrateCustomersFromPayments = async () => {
 
+  console.log("🚀 Starting customer migration");
 
+  const paymentsSnap = await getDocs(
+    collectionGroup(db, "payments")
+  );
 
+  console.log("Payments found:", paymentsSnap.size);
+
+  for (const paymentDoc of paymentsSnap.docs) {
+
+    const data = paymentDoc.data();
+
+    let phone = data.contact || "";
+    phone = phone
+      .replace("+91","")
+      .replace("+","")
+      .replace(/\s/g,"")
+      .trim();
+
+    const receipt = data.receiptNumber;
+
+    if (!phone || !receipt) continue;
+
+    await setDoc(
+      doc(db, "customers", phone),
+      {
+        phone: phone,
+        name: data.clientName || "",
+        receipts: arrayUnion(receipt)
+      },
+      { merge: true }
+    );
+
+    console.log("Migrated:", phone, receipt);
+
+  }
+
+  console.log("🎉 Customer migration completed");
+
+};
+const migrateCustomerReceiptStats = async () => {
+
+  console.log("🚀 Starting parallel migration");
+
+  const paymentsSnap = await getDocs(collectionGroup(db, "payments"));
+
+  const customerMap = {};
+
+  paymentsSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
+
+    let phone = data.contact || "";
+    phone = phone.replace("+91","").replace("+","").replace(/\s/g,"").trim();
+
+    const branch = data.branchCode;
+
+    if(!phone || !branch) return;
+
+    if(!customerMap[phone]) {
+      customerMap[phone] = {
+        receiptCount: 0,
+        branchStats: {}
+      };
+    }
+
+    customerMap[phone].receiptCount++;
+
+    if(!customerMap[phone].branchStats[branch]) {
+      customerMap[phone].branchStats[branch] = { receipts: 0 };
+    }
+
+    customerMap[phone].branchStats[branch].receipts++;
+
+  });
+
+  const phones = Object.keys(customerMap);
+
+  console.log("Customers found:", phones.length);
+
+  const chunks = [];
+
+  for(let i=0;i<phones.length;i+=400){
+    chunks.push(phones.slice(i,i+400));
+  }
+
+  await Promise.all(
+
+    chunks.map(async(chunk)=>{
+
+      const batch = writeBatch(db);
+
+      chunk.forEach(phone=>{
+
+        const stats = customerMap[phone];
+
+        batch.set(
+          doc(db,"customers",phone),
+          {
+            phone,
+            receiptCount: stats.receiptCount,
+            branchStats: stats.branchStats,
+            migratedAt: serverTimestamp()
+          },
+          { merge:true }
+        );
+
+      });
+
+      await batch.commit();
+
+    })
+
+  );
+
+  console.log("🎉 Parallel migration finished");
+
+};
+const migrateCustomerCreditBalance = async () => {
+
+  console.log("🚀 Starting credit balance migration");
+
+  const creditSnap = await getDocs(collectionGroup(db, "creditNotes"));
+
+  console.log("Credit notes found:", creditSnap.size);
+
+  const customerMap = {};
+
+  creditSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
+
+    let phone = data.mobileNumber || "";
+    phone = phone
+      .replace("+91","")
+      .replace("+","")
+      .replace(/\s/g,"")
+      .trim();
+
+    if (!phone) return;
+
+    const branch = docSnap.ref.parent.parent.id;
+
+    const balance = Number(data.Balance || 0);
+
+    if (!customerMap[phone]) {
+      customerMap[phone] = {
+        creditBalanceTotal: 0,
+        branchStats: {}
+      };
+    }
+
+    customerMap[phone].creditBalanceTotal += balance;
+
+    if (!customerMap[phone].branchStats[branch]) {
+      customerMap[phone].branchStats[branch] = {
+        creditBalance: 0
+      };
+    }
+
+    customerMap[phone].branchStats[branch].creditBalance += balance;
+
+  });
+
+  let batch = writeBatch(db);
+  let counter = 0;
+
+  for (const phone in customerMap) {
+
+    const stats = customerMap[phone];
+
+    batch.set(
+      doc(db, "customers", phone),
+      {
+        phone,
+        creditBalanceTotal: stats.creditBalanceTotal,
+        branchStats: stats.branchStats
+      },
+      { merge: true }
+    );
+
+    counter++;
+
+    if (counter % 400 === 0) {
+      await batch.commit();
+      batch = writeBatch(db);
+      console.log("Committed batch:", counter);
+    }
+
+  }
+
+  await batch.commit();
+
+  console.log("🎉 Credit balance migration finished");
+
+};
+const migrateSubcollectionsFlat = async () => {
+
+  console.log("🚀 START MIGRATION");
+
+  const branchCode = "7007"; // ✅ HARDCODE
+
+  const collectionsSnap = await getDocs(
+    collection(db, `products/${branchCode}/collections`)
+  );
+
+  console.log("Collections found:", collectionsSnap.size);
+
+  for (const collectionDoc of collectionsSnap.docs) {
+
+    const collectionId = collectionDoc.id;
+    console.log("➡️ Collection:", collectionId);
+
+    const subSnap = await getDocs(
+      collection(
+        db,
+        `products/${branchCode}/collections/${collectionId}/subcollections`
+      )
+    );
+
+    console.log("   Subcollections:", subSnap.size);
+
+    for (const subDoc of subSnap.docs) {
+
+      console.log("   🔄 Processing:", subDoc.id);
+
+      const subData = subDoc.data();
+
+      await setDoc(
+        doc(db, `products/${branchCode}/subcollections/${subDoc.id}`),
+        {
+          ...subData,
+          collectionId: collectionId,
+          collectionName: collectionDoc.data().title || "",
+          migratedAt: serverTimestamp(),
+        }
+      );
+
+      console.log("   ✅ CREATED:", subDoc.id);
+    }
+  }
+
+  console.log("🎉 MIGRATION DONE");
+};
+const migrateCustomersBranchWiseFast = async () => {
+
+  console.log("🚀 STARTING FAST CUSTOMER MIGRATION");
+
+  const snap = await getDocs(collection(db, "customers"));
+
+  const docs = snap.docs;
+  const total = docs.length;
+
+  console.log("📊 Total customers:", total);
+
+  let processed = 0;
+
+  const chunkSize = 50; // ⚡ parallel size
+  const chunks = [];
+
+  for (let i = 0; i < docs.length; i += chunkSize) {
+    chunks.push(docs.slice(i, i + chunkSize));
+  }
+
+  for (const chunk of chunks) {
+
+    await Promise.all(
+
+      chunk.map(async (docSnap) => {
+
+        const phone = docSnap.id;
+        const data = docSnap.data();
+
+        const branchStats = data.branchStats || {};
+        const receipts = data.receipts || [];
+
+        const baseData = {
+          name: data.name || "",
+          phone: data.phone || phone,
+          branchStats,
+          allReceipts: receipts,
+          creditBalanceTotal: data.creditBalanceTotal || 0,
+          receiptCountTotal: data.receiptCount || receipts.length,
+          migratedAt: serverTimestamp(),
+        };
+
+        const branchWrites = Object.keys(branchStats).map(async (branchId) => {
+
+          const branchData = branchStats[branchId] || {};
+
+          const branchReceipts = receipts.filter(r =>
+            r.startsWith(branchId + "-")
+          );
+
+          await setDoc(
+            doc(db, `customers/${branchId}/users/${phone}`),
+            {
+              ...baseData,
+              branch: branchId,
+              receipts: branchReceipts,
+              receiptCount: branchReceipts.length,
+              creditBalance: branchData.creditBalance || 0,
+            },
+            { merge: true }
+          );
+
+        });
+
+        await Promise.all(branchWrites);
+
+        processed++;
+
+        /// 🔥 PROGRESS LOG
+        if (processed % 50 === 0 || processed === total) {
+          console.log(
+            `⚡ Progress: ${processed}/${total} (${(
+              (processed / total) *
+              100
+            ).toFixed(1)}%)`
+          );
+        }
+
+      })
+    );
+  }
+
+  console.log("🎉 FAST MIGRATION COMPLETED");
+};
+const cleanCustomerData = async () => {
+
+  console.log("🧹 START CLEANUP");
+
+  const branchesSnap = await getDocs(collection(db, "customers"));
+
+  let total = 0;
+  let processed = 0;
+
+  const allTasks = [];
+
+  for (const branchDoc of branchesSnap.docs) {
+
+    const branchId = branchDoc.id;
+
+    const usersSnap = await getDocs(
+      collection(db, `customers/${branchId}/users`)
+    );
+
+    total += usersSnap.size;
+
+    usersSnap.docs.forEach(docSnap => {
+
+      allTasks.push(async () => {
+
+        const phone = docSnap.id;
+        const data = docSnap.data();
+
+        const allReceipts = data.allReceipts || [];
+        const branch = branchId;
+
+        /// 🔥 FILTER RECEIPTS AGAIN (SAFETY)
+        const cleanReceipts = allReceipts.filter(r =>
+          r.startsWith(branch + "-")
+        );
+
+        /// 🔥 FINAL CLEAN DATA
+        const updatedData = {
+          name: data.name || "",
+          phone: data.phone || phone,
+          branch: branch,
+
+          receipts: cleanReceipts,
+          receiptCount: cleanReceipts.length,
+
+          creditBalance: data.creditBalance || 0,
+          creditBalanceTotal: data.creditBalanceTotal || 0,
+
+          migratedAt: serverTimestamp(),
+        };
+
+        /// 🔥 UPDATE DOC
+        await setDoc(
+          doc(db, `customers/${branch}/users/${phone}`),
+          updatedData,
+          { merge: false } // 🔥 overwrite clean
+        );
+
+        processed++;
+
+        if (processed % 100 === 0 || processed === total) {
+          console.log(
+            `⚡ Clean Progress: ${processed}/${total} (${(
+              (processed / total) *
+              100
+            ).toFixed(1)}%)`
+          );
+        }
+
+      });
+
+    });
+  }
+
+  /// 🔥 PARALLEL EXECUTION
+  const chunkSize = 50;
+
+  for (let i = 0; i < allTasks.length; i += chunkSize) {
+    const chunk = allTasks.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(fn => fn()));
+  }
+
+  console.log("🎉 CLEANUP COMPLETE");
+};
+const finalCleanUltraFast = async () => {
+  console.log("🚀 ULTRA FAST CLEAN START");
+
+  try {
+    const branchesSnap = await getDocs(collection(db, "customers"));
+
+    console.log("📦 Branches:", branchesSnap.size);
+
+    let processed = 0;
+    const tasks = [];
+
+    /// 🔥 STEP 1: COLLECT ALL TASKS (NO WAITING)
+    for (const branchDoc of branchesSnap.docs) {
+      const branchId = branchDoc.id;
+
+      console.log(`📍 Collecting: ${branchId}`);
+
+      const usersSnap = await getDocs(
+        collection(db, `customers/${branchId}/users`)
+      );
+
+      usersSnap.docs.forEach((docSnap) => {
+        tasks.push(async () => {
+          const phone = docSnap.id;
+          const data = docSnap.data();
+
+          const receipts = data.receipts || [];
+          const receiptCount = receipts.length;
+
+          const branchStats = data.branchStats || {};
+          const branchData = branchStats[branchId] || {};
+
+          const creditBalance =
+            branchData.creditBalance || data.creditBalance || 0;
+
+          const cleanDoc = {
+            name: data.name || "",
+            phone: data.phone || phone,
+            branch: branchId,
+            receipts,
+            receiptCount,
+            creditBalance,
+            creditBalanceTotal: data.creditBalanceTotal || 0,
+            migratedAt: serverTimestamp(),
+          };
+
+          try {
+            await setDoc(
+              doc(db, `customers/${branchId}/users/${phone}`),
+              cleanDoc,
+              { merge: false }
+            );
+
+            processed++;
+
+            if (processed % 100 === 0 || processed === tasks.length) {
+              console.log(
+                `⚡ ${processed}/${tasks.length} (${(
+                  (processed / tasks.length) *
+                  100
+                ).toFixed(1)}%)`
+              );
+            }
+          } catch (e) {
+            console.error(`❌ ${phone}`, e);
+          }
+        });
+      });
+    }
+
+    console.log("📊 Total tasks:", tasks.length);
+
+    /// 🔥 STEP 2: RUN IN BIG PARALLEL CHUNKS
+    const chunkSize = 200; // 🚀 increase for speed
+
+    for (let i = 0; i < tasks.length; i += chunkSize) {
+      const chunk = tasks.slice(i, i + chunkSize);
+      await Promise.all(chunk.map((fn) => fn()));
+    }
+
+    console.log("🎉 ULTRA FAST CLEAN DONE");
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+  }
+};
+const deleteOldCustomers = async () => {
+  console.log("🧹 DELETING OLD CUSTOMER DOCS");
+
+  const snap = await getDocs(collection(db, "customers"));
+
+  let deleted = 0;
+  let skipped = 0;
+
+  const tasks = [];
+
+  snap.docs.forEach((docSnap) => {
+    const id = docSnap.id;
+
+    /// 🔥 KEEP BRANCH DOCS (usually short numeric like 007, 222, 7007)
+    if (id.length <= 8) {
+      skipped++;
+      return;
+    }
+
+    /// 🔥 DELETE OLD PHONE DOCS
+    tasks.push(async () => {
+      try {
+        await deleteDoc(doc(db, "customers", id));
+        deleted++;
+
+        console.log(`❌ Deleted old: ${id}`);
+      } catch (e) {
+        console.error(`Error deleting ${id}`, e);
+      }
+    });
+  });
+
+  console.log(`📊 To delete: ${tasks.length}`);
+  console.log(`⏭️ Skipped (branches): ${skipped}`);
+
+  /// ⚡ PARALLEL DELETE
+  const chunkSize = 100;
+
+  for (let i = 0; i < tasks.length; i += chunkSize) {
+    const chunk = tasks.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(fn => fn()));
+  }
+
+  console.log(`🎉 Deleted: ${deleted}`);
+};
   return (
   <div className={`dashboard-container ${sidebarOpen ? "sidebar-open" : ""}`}>
     <UserSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
@@ -665,12 +1206,27 @@ Run Inventory Migration
 <button onClick={migrateProductsWithoutBookings}>
 Initialize Product Stock
 </button> */}
-<button onClick={migrateReceiptProducts}>
+{/* <button onClick={migrateReceiptProducts}>
 Migrate Products → Payments
 </button>
 <button onClick={migrateProductNamesAndImages}>
 Fix Product Names & Images
+</button> */}
+{/* <button onClick={migrateCustomersFromPayments}>
+Migrate Customers
 </button>
+<button onClick={migrateCustomerReceiptStats}>
+Migrate Customersss
+</button>
+<button onClick={migrateCustomerCreditBalance}>
+Credit Note Migration
+</button> */}
+{/* <button onClick={migrateSubcollectionsFlat}>
+  Migrate Subcollections (Flatten)
+</button> */}
+
+
+
 
 
 

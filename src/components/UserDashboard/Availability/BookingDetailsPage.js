@@ -127,6 +127,7 @@ const [showDateEditModal, setShowDateEditModal] = useState(false);
   const [refundDetails, setRefundDetails] = useState("");
   const [deletePreview, setDeletePreview] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
   // Payment Details State
   const [grandTotalRent, setGrandTotalRent] = useState('');
   const [discountOnRent, setDiscountOnRent] = useState('');
@@ -2208,6 +2209,66 @@ Edit Dates
               </div>
 
             </section>
+            <section className="card">
+
+  <div className="card-header">
+    <h3>Attachments</h3>
+  </div>
+
+  {!paymentDoc?.attachments?.length ? (
+
+    <p>No attachments available</p>
+
+  ) : (
+
+    <div className="attachments-grid">
+
+      {paymentDoc.attachments.map((item, index) => (
+
+        <div
+          className="attachment-card"
+          key={index}
+        >
+
+          <h4>
+            {item.title || "Untitled"}
+          </h4>
+
+          {item.note && (
+            <p className="attachment-note">
+              {item.note}
+            </p>
+          )}
+
+          {item.images?.length > 0 && (
+
+            <div className="attachment-images">
+
+              {item.images.map((img, i) => (
+
+                <img
+                  key={i}
+                  src={img}
+                  alt="attachment"
+
+                  onClick={() =>
+                    setAttachmentPreview(img)
+                  }
+                />
+
+              ))}
+
+            </div>
+          )}
+
+        </div>
+
+      ))}
+
+    </div>
+  )}
+
+</section>
 
           </main>
         </div>
@@ -2231,6 +2292,39 @@ Edit Dates
           </div>
         </div>
       )}
+      {attachmentPreview && (
+
+  <div
+    className="image-preview-overlay"
+    onClick={() =>
+      setAttachmentPreview(null)
+    }
+  >
+
+    <div
+      className="image-preview-modal"
+      onClick={(e)=>e.stopPropagation()}
+    >
+
+      <img
+        src={attachmentPreview}
+        alt="Attachment Preview"
+      />
+
+      <button
+        className="image-preview-close"
+        onClick={() =>
+          setAttachmentPreview(null)
+        }
+      >
+        ✕
+      </button>
+
+    </div>
+
+  </div>
+
+)}
       {showDeleteModal && deletePreview && (
         <div className="delete-modal-overlay">
 

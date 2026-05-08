@@ -1069,6 +1069,26 @@ await setDoc(paymentRef, {
     rent: Number(p.price || 0),
     deposit: Number(p.deposit || 0)
   })),
+  products: products.map(p => ({
+  productId: p.productCode || "",
+
+  productCode: p.productCode || "",
+  productName: p.productName || "",
+
+  imageUrl: Array.isArray(p.imageUrls)
+    ? p.imageUrls[0]
+    : p.imageUrls || "",
+
+  quantity: Number(p.quantity || 0),
+
+  price: Number(p.price || 0),
+  deposit: Number(p.deposit || 0),
+
+  totalCost: Number(p.totalCost || 0),
+
+  pickupDate: new Date(p.pickupDate),
+  returnDate: new Date(p.returnDate)
+})),
 
   // Timestamp
   createdAt: serverTimestamp()

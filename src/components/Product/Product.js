@@ -29,6 +29,9 @@ const ProductDashboard = () => {
   const [searchField, setSearchField] = useState('productName');
   const navigate = useNavigate();
   const { userData } = useUser();
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+const [collectionsData, setCollectionsData] = useState([]);
+const [selectedCollections, setSelectedCollections] = useState([]);
   const [customFields, setCustomFields] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [zipping, setZipping] = useState(false);
@@ -498,6 +501,107 @@ const handleImport = (event) => {
     }
   });
 };
+const fetchCollections = async () => {
+  if (!userData?.branchCode) return;
+
+  const collectionsSnap = await getDocs(
+    collection(db, `products/${userData.branchCode}/collections`)
+  );
+
+  const result = [];
+
+  for (const colDoc of collectionsSnap.docs) {
+    const subSnap = await getDocs(
+      collection(
+        db,
+        `products/${userData.branchCode}/collections/${colDoc.id}/subcollections`
+      )
+    );
+
+    result.push({
+      id: colDoc.id,
+      title: colDoc.data().title,
+      subcollections: subSnap.docs.map(d => ({
+        id: d.id,
+        title: d.data().title
+      }))
+    });
+  }
+
+  setCollectionsData(result);
+};
+const openCollectionModal = async (product) => {
+  setSelectedProduct(product);
+
+  await fetchCollections();
+
+  // 🔥 convert keys → checkbox format
+  const existing = (product.collectionKeys || []).map(key => {
+    const [collectionId, subcollectionId] = key.split("_");
+    return { collectionId, subcollectionId };
+  });
+
+  setSelectedCollections(existing);
+
+  setCollectionModalOpen(true);
+};
+const toggleSelection = (collectionId, subcollectionId) => {
+  const exists = selectedCollections.find(
+    x =>
+      x.collectionId === collectionId &&
+      x.subcollectionId === subcollectionId
+  );
+
+  if (exists) {
+    setSelectedCollections(prev =>
+      prev.filter(
+        x =>
+          !(
+            x.collectionId === collectionId &&
+            x.subcollectionId === subcollectionId
+          )
+      )
+    );
+  } else {
+    setSelectedCollections(prev => [
+      ...prev,
+      { collectionId, subcollectionId }
+    ]);
+  }
+};
+const saveCollectionsMapping = async () => {
+  if (!selectedProduct) return;
+
+  const ref = doc(
+    db,
+    `products/${userData.branchCode}/products`,
+    selectedProduct.id
+  );
+
+  const keys = selectedCollections.map(
+    x => `${x.collectionId}_${x.subcollectionId}`
+  );
+
+  await setDoc(
+    ref,
+    { collectionKeys: keys },
+    { merge: true }
+  );
+
+  // 🔥 UPDATE LOCAL STATE (IMPORTANT)
+  const updatedProducts = allProducts.map(p =>
+    p.id === selectedProduct.id
+      ? { ...p, collectionKeys: keys }
+      : p
+  );
+
+  setAllProducts(updatedProducts);
+  setProducts(updatedProducts);
+
+  toast.success("Collections saved");
+
+  setCollectionModalOpen(false);
+};
 
 
   const handlecopy = (product) => {
@@ -836,7 +940,9 @@ return (
 <FaTrash />
 </button>
 )}
-
+<button onClick={() => openCollectionModal(product)}>
+  🗂
+</button>
 </td>
 
 </tr>
@@ -861,6 +967,74 @@ return (
         */}
       </div>
     </div>
+   {collectionModalOpen && (
+  <div className="prd-collection-modal-overlay">
+    <div className="prd-collection-modal-box">
+
+      <h3 className="prd-collection-modal-title">
+        Select Collections
+      </h3>
+
+      {collectionsData.map(col => (
+        <div
+          key={col.id}
+          className="prd-collection-group"
+        >
+
+          <h4 className="prd-collection-group-title">
+            {col.title}
+          </h4>
+
+          {col.subcollections.map(sub => {
+
+            const checked = selectedCollections.some(
+              x =>
+                x.collectionId === col.id &&
+                x.subcollectionId === sub.id
+            );
+
+            return (
+              <label
+  key={sub.id}
+  className="prd-collection-checkbox"
+>
+  <input
+    type="checkbox"
+    checked={checked}
+    onChange={() =>
+      toggleSelection(col.id, sub.id)
+    }
+  />
+
+  <span className="prd-collection-label-text">
+    {sub.title}
+  </span>
+</label>
+            );
+          })}
+
+        </div>
+      ))}
+
+      <div className="prd-collection-modal-actions">
+        <button
+          className="prd-collection-btn-save"
+          onClick={saveCollectionsMapping}
+        >
+          Save
+        </button>
+
+        <button
+          className="prd-collection-btn-cancel"
+          onClick={() => setCollectionModalOpen(false)}
+        >
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
   </div>
 );
 

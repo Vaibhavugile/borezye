@@ -12,8 +12,18 @@ const EditUser = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
+  const [weekOffs, setWeekOffs] = useState([]);
   const navigate = useNavigate();
   const { userData } = useUser(); // Get user data from context
+  const weekDays = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -22,6 +32,7 @@ const EditUser = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const userData = docSnap.data();
+          setWeekOffs(userData.weekOffs || []);
           setUser(userData);
           setIsActive(userData.isActive || false);
         } else {
@@ -48,6 +59,7 @@ const EditUser = () => {
       await updateDoc(docRef, {
         ...user,
         isActive,
+        weekOffs,
       });
       toast.success('User updated successfully!');
       setTimeout(() => navigate('/usersidebar/users'), 5000);
@@ -111,7 +123,49 @@ const EditUser = () => {
           />
 
           
+<label>Weekly Offs:</label>
 
+<div className="weekoff-grid">
+
+  {weekDays.map((day) => (
+
+    <label
+      key={day}
+      className="weekoff-item"
+    >
+
+      <input
+        type="checkbox"
+
+        checked={weekOffs.includes(day)}
+
+        onChange={(e) => {
+
+          if (e.target.checked) {
+
+            setWeekOffs([
+              ...weekOffs,
+              day,
+            ]);
+
+          } else {
+
+            setWeekOffs(
+
+              weekOffs.filter(
+                (d) => d !== day
+              )
+            );
+          }
+        }}
+      />
+
+      {day}
+
+    </label>
+  ))}
+
+</div>
           <label>Active:</label>
           <input
             type="checkbox"

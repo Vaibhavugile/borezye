@@ -1,0 +1,312 @@
+.attendance-container{
+  width:100%;
+  min-height:100vh;
+  background:#f8f6f2;
+}
+
+.attendance-section{
+  padding:110px 24px 30px;
+}
+
+.attendance-topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+  flex-wrap:wrap;
+  gap:16px;
+}
+
+.attendance-topbar h2{
+  margin:0;
+  font-size:30px;
+  font-weight:700;
+  color:#111;
+}
+
+.attendance-topbar p{
+  margin-top:6px;
+  color:#777;
+}
+
+.attendance-filters select{
+  padding:12px 16px;
+  border:none;
+  border-radius:14px;
+  background:#fff;
+  font-size:14px;
+  box-shadow:0 4px 18px rgba(0,0,0,.06);
+}
+
+.attendance-stats{
+  display:grid;
+  grid-template-columns:
+      repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+  margin-bottom:28px;
+}
+
+.attendance-stat-card{
+  background:#fff;
+  padding:22px;
+  border-radius:22px;
+  box-shadow:0 4px 20px rgba(0,0,0,.05);
+}
+
+.attendance-stat-card span{
+  display:block;
+  color:#777;
+  font-size:14px;
+  margin-bottom:10px;
+}
+
+.attendance-stat-card strong{
+  font-size:34px;
+  color:#111;
+}
+
+.attendance-stat-card.success{
+  border-left:5px solid #27ae60;
+}
+
+.attendance-stat-card.warning{
+  border-left:5px solid #f39c12;
+}
+
+.attendance-table-card{
+  background:#fff;
+  border-radius:24px;
+  overflow:auto;
+  box-shadow:0 4px 20px rgba(0,0,0,.05);
+}
+
+.attendance-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.attendance-table thead{
+  background:#faf7f2;
+}
+
+.attendance-table th{
+  padding:18px;
+  text-align:left;
+  font-size:14px;
+  color:#666;
+  font-weight:600;
+}
+
+.attendance-table td{
+  padding:18px;
+  border-top:1px solid #eee;
+  font-size:14px;
+}
+
+.attendance-status{
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.attendance-status.completed{
+  background:#eafaf1;
+  color:#27ae60;
+}
+
+.attendance-status.active{
+  background:#fff5e6;
+  color:#f39c12;
+}
+
+.attendance-selfie{
+  width:50px;
+  height:50px;
+  object-fit:cover;
+  border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.attendance-loading{
+  padding:60px;
+  text-align:center;
+  color:#777;
+}
+.employee-grid{
+
+  display:grid;
+
+  grid-template-columns:
+      repeat(
+        auto-fill,
+        minmax(340px,1fr)
+      );
+
+  gap:22px;
+}
+
+.employee-card{
+
+  background:#fff;
+
+  border-radius:28px;
+
+  padding:24px;
+
+  box-shadow:
+      0 6px 24px
+      rgba(0,0,0,.05);
+
+  transition:.25s;
+
+  cursor:pointer;
+
+  border:1px solid #f1f1f1;
+}
+
+.employee-card:hover{
+
+  transform:translateY(-5px);
+
+  box-shadow:
+      0 12px 28px
+      rgba(0,0,0,.08);
+}
+
+.employee-card-top{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:16px;
+}
+
+.employee-card-top img{
+
+  width:72px;
+
+  height:72px;
+
+  border-radius:50%;
+
+  object-fit:cover;
+
+  border:3px solid #f7f3eb;
+}
+
+.employee-card-top h3{
+
+  margin:0;
+
+  font-size:20px;
+
+  font-weight:700;
+
+  color:#111;
+}
+
+.employee-card-top p{
+
+  margin-top:6px;
+
+  color:#777;
+
+  font-size:13px;
+}
+
+.employee-card-stats{
+
+  display:grid;
+
+  grid-template-columns:
+      repeat(3,1fr);
+
+  gap:14px;
+
+  margin-top:26px;
+}
+
+.employee-card-stats div{
+
+  background:#faf7f2;
+
+  border-radius:18px;
+
+  padding:16px;
+
+  text-align:center;
+}
+
+.employee-card-stats span{
+
+  display:block;
+
+  font-size:12px;
+
+  color:#777;
+
+  margin-bottom:8px;
+}
+
+.employee-card-stats strong{
+
+  font-size:24px;
+
+  color:#111;
+}
+
+.employee-card-footer{
+
+  margin-top:24px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+}
+
+.employee-card-footer span{
+
+  display:block;
+
+  font-size:12px;
+
+  color:#777;
+
+  margin-bottom:4px;
+}
+
+.employee-card-footer strong{
+
+  font-size:20px;
+
+  color:#111;
+}
+
+.employee-card-footer button{
+
+  border:none;
+
+  background:#111;
+
+  color:#fff;
+
+  padding:12px 18px;
+
+  border-radius:14px;
+
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.employee-card-footer button:hover{
+
+  opacity:.9;
+}
