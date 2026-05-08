@@ -1,161 +1,743 @@
-/* Additional styling for table and other elements */
-.table-container {
-  margin-top: 80px;
+/* =========================================
+   BRANCHES PREMIUM SAAS UI
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+
+  --bg-main: #f6f8fc;
+  --card-bg: #ffffff;
+
+  --primary-color: #5b5cf0;
+  --primary-hover: #4b4ce6;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+
+  --border-color: #e5e7eb;
+
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.04);
+
+  --shadow-md: 0 10px 30px rgba(15,23,42,0.06);
+
+  --shadow-lg: 0 20px 45px rgba(15,23,42,0.08);
+
+  --success-bg: #dcfce7;
+  --success-text: #16a34a;
+
+  --warning-bg: #fef3c7;
+  --warning-text: #d97706;
+
+  --danger-bg: #fee2e2;
+  --danger-text: #dc2626;
+}
+
+
+/* =========================================
+   GLOBAL
+========================================= */
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body{
+
+  font-family: 'Inter', sans-serif;
+
+  background: var(--bg-main);
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   PAGE
+========================================= */
+
+.branches-page{
+
+  display: flex;
+
+  min-height: 100vh;
+
+  background: var(--bg-main);
+}
+
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+.branches-main-content{
+
+  flex: 1;
+
   width: 100%;
-  max-height: 500px; /* Adjust as needed for vertical overflow */
- /* Enable vertical scrolling */
-  position: relative; /* For positioning the scrollbar wrapper */
-}
 
-/* Create a wrapper for horizontal scroll */
+  padding: 24px;
 
-/* Table styling */
-.table {
-  text-align: left;
-  width: 100%; /* Ensure table takes full width of its container */
-  border-collapse: collapse;
-  box-sizing: border-box; /* Include padding and border in width calculations */
-  border-bottom: 1px solid #666666;
-}
-
-/* Table headers and cells styling */
-.table th, .table td {
-  padding: 15px;
-  border-bottom: 1px solid #efefef;
-  font-family: 'Public Sans', sans-serif;
-  font-size: 13px;
-}
-
-.table th {
-  background: #EFEFEF;
-  font-weight: 600;
-  color: #000000;
-}
-
-.table td {
-  background: #FFFFFF;
-  font-weight: 400;
-  color: #000000;
-}
-
-/* New styles for status colors */
-.table td.status-active {
-  color: #008101;
-}
-
-.table td.status-deactive {
-  color: #FF0000;
-}
-
-/* Styles for the Create Branch button */
-
-/* Styles for filter buttons */
-.filter-buttons-container {
-  margin: 20px 0;
-}
-
-.filter-buttons-container span {
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.active-filter {
-  font-weight: bold;
+  overflow-x: hidden;
 }
 
 
+/* =========================================
+   WRAPPER
+========================================= */
+
+.branches-content-wrapper{
+
+  width: 100%;
+
+  margin-top: 90px;
+}
 
 
+/* =========================================
+   HEADER
+========================================= */
 
-/* Parent container for search bar, action buttons, and create branch button */
-.toolbar-container {
+.branches-header-section{
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
+}
+
+.branches-title-wrapper{
+  flex: 1;
+}
+
+.branches-page-title{
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--text-primary);
+
+  margin-bottom: 10px;
+
+  letter-spacing: -1px;
+}
+
+.branches-page-description{
+
+  font-size: 16px;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   STATS CARD
+========================================= */
+
+.branches-stat-card{
+
+  min-width: 220px;
+
+  background: white;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 24px;
+
+  padding: 24px;
+
+  box-shadow: var(--shadow-md);
+}
+
+.branches-stat-label{
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: var(--text-secondary);
+}
+
+.branches-stat-value{
+
+  margin-top: 8px;
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.branches-toolbar{
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.branches-search-container{
+
+  flex: 1;
+
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* Aligns items to the right side */
-  gap: 20px; /* Add spacing between elements */
-  position: absolute;
-  top: 120px;
-  right: 20px; /* Adjust as needed */
+
+  max-width: 720px;
+
+  height: 60px;
+
+  background: white;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  padding: 0 18px;
+
+  gap: 14px;
+
+  box-shadow: var(--shadow-sm);
 }
 
-/* Styles for search bar */
-.search-bar-container {
-  display: flex;
-  align-items: center;
-  height: 33px;
+.branches-search-icon{
+
+  width: 18px;
+  height: 18px;
+
+  opacity: 0.5;
+
+  flex-shrink: 0;
 }
 
-.search-bar-container input {
-  padding: 10px 30px;
-  width: 150px;
+.branches-search-select{
+
+  width: 180px;
+
+  min-width: 180px;
+
   border: none;
   outline: none;
-  font-family: 'Public Sans', sans-serif;
-  font-weight: 400;
-  font-size: 13px;
-  color: #666666;
-  border-bottom: 1px solid #A39D9D;
-  margin-right: 20px; /* Add space between search bar and buttons */
+
+  background: transparent;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: var(--text-primary);
+
+  cursor: pointer;
+
+  flex-shrink: 0;
 }
 
-.search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+.branches-search-input{
+
+  flex: 1;
+
+  width: 100%;
+
+  min-width: 0;
+
+  height: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 15px;
+
+  color: var(--text-primary);
 }
 
-/* Action buttons */
-.action-buttons {
+.branches-search-input::placeholder{
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.branches-toolbar-actions{
+
   display: flex;
+
   align-items: center;
-  gap: 10px; /* Spacing between buttons */
+
+  gap: 16px;
+
+  flex-wrap: wrap;
 }
 
-.action-button {
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.branches-secondary-btn,
+.branches-primary-btn{
+
+  height: 54px;
+
+  padding: 0 26px;
+
+  border-radius: 16px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.3s ease;
+
+  white-space: nowrap;
+}
+
+
+/* SECONDARY */
+
+.branches-secondary-btn{
+
+  border: 1px solid var(--border-color);
+
+  background: white;
+
+  color: var(--text-primary);
+
+  box-shadow: var(--shadow-sm);
+}
+
+.branches-secondary-btn:hover{
+
+  transform: translateY(-2px);
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* PRIMARY */
+
+.branches-primary-btn{
+
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5b5cf0,
+      #7c3aed
+    );
+
+  color: white;
+
+  box-shadow:
+    0 12px 30px rgba(91,92,240,0.22);
+}
+
+.branches-primary-btn:hover{
+
+  transform: translateY(-3px);
+}
+
+
+/* =========================================
+   TABLE CARD
+========================================= */
+
+.branches-table-card{
+
+  width: 100%;
+
+  background: white;
+
+  border-radius: 28px;
+
+  border: 1px solid var(--border-color);
+
+  overflow: hidden;
+
+  box-shadow: var(--shadow-md);
+}
+
+.branches-table-scroll{
+  overflow-x: auto;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.branches-table{
+
+  width: 100%;
+
+  min-width: 1600px;
+
+  border-collapse: collapse;
+}
+
+.branches-table thead{
+  background: #f9fafb;
+}
+
+.branches-table th{
+
+  padding: 22px;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: var(--text-secondary);
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.branches-table td{
+
+  padding: 22px;
+
+  font-size: 14px;
+
+  color: var(--text-primary);
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+
+/* =========================================
+   ROW HOVER
+========================================= */
+
+.branches-table-row{
+  transition: all 0.25s ease;
+}
+
+.branches-table-row:hover{
+  background: #f8fafc;
+}
+
+
+/* =========================================
+   NAME BLOCK
+========================================= */
+
+.branches-name-block{
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.branches-name-text{
+
+  color: #4f46e5;
+
+  font-weight: 600;
+}
+
+.branches-email-text{
+
+  font-size: 12px;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.branches-status-pill{
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.branches-status-active{
+
+  background: var(--success-bg);
+
+  color: var(--success-text);
+}
+
+.branches-status-warning{
+
+  background: var(--warning-bg);
+
+  color: var(--warning-text);
+}
+
+.branches-status-expired{
+
+  background: var(--danger-bg);
+
+  color: var(--danger-text);
+}
+
+
+/* =========================================
+   ACTION ICONS
+========================================= */
+
+.branches-action-group{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.branches-icon-btn{
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
-  height: 33px;
-  width: 133px;
-  background-color:#164dc3 ;
-  border: none;
-  border-radius: 5px;
-  font-family: 'Public Sans', sans-serif;
-  font-weight: 500;
-  font-size: 13px;
-  text-align: center;
-  color: #FFFFFF;
+
   cursor: pointer;
+
+  transition: all 0.3s ease;
 }
 
-.action-button img {
-  margin-right: 8px;
+.branches-icon-btn:hover{
+
+  background: #eef2ff;
+
+  color: #4f46e5;
+
+  transform: translateY(-2px);
 }
 
-.action-button:hover {
-  background: linear-gradient(187.36deg, #0E3799 5.38%, #175CFF 93.96%);
-}
 
-/* Create Branch Button */
-.create-branch-container {
-  height: 33px;
-}
+/* =========================================
+   WHATSAPP
+========================================= */
 
-.create-branch-container button {
-  height: 33px;
-  background: #28a745;
+.branches-whatsapp-btn{
+
+  width: 42px;
+  height: 42px;
+
   border: none;
-  border-radius: 5px;
-  font-family: 'Public Sans', sans-serif;
-  font-weight: 500;
-  font-size: 13px;
-  color: #FFFFFF;
+
+  border-radius: 14px;
+
+  background: #25d366;
+
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
-  width: 133px;
+
+  transition: all 0.3s ease;
 }
 
-.create-branch-container button:hover {
-  background: linear-gradient(187.36deg, #0E3799 5.38%, #175CFF 93.96%);
+.branches-whatsapp-btn:hover{
+
+  transform: translateY(-2px);
+
+  background: #1ebe5d;
+}
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+.branches-modal-overlay{
+
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(15,23,42,0.35);
+
+  backdrop-filter: blur(5px);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+.branches-modal-card{
+
+  width: 90%;
+  max-width: 450px;
+
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 28px;
+
+  box-shadow: var(--shadow-lg);
+}
+
+.branches-modal-title{
+
+  font-size: 22px;
+  font-weight: 700;
+
+  margin-bottom: 24px;
+
+  color: var(--text-primary);
+}
+
+.branches-template-list{
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+
+  margin-bottom: 24px;
+}
+
+.branches-template-item{
+
+  padding: 16px;
+
+  border-radius: 16px;
+
+  border: 1px solid var(--border-color);
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.branches-template-item:hover{
+
+  background: #f8fafc;
+
+  border-color: #c7d2fe;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width: 1200px){
+
+  .branches-toolbar{
+
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .branches-search-container{
+    max-width: 100%;
+  }
+}
+
+
+@media(max-width: 768px){
+
+  .branches-main-content{
+    padding: 16px;
+  }
+
+  .branches-page-title{
+    font-size: 32px;
+  }
+
+  .branches-toolbar-actions{
+
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+  .branches-secondary-btn,
+  .branches-primary-btn{
+    width: 100%;
+  }
+
+  .branches-search-container{
+
+    height: auto;
+
+    flex-wrap: wrap;
+
+    padding: 14px;
+  }
+
+  .branches-search-select{
+
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .branches-table{
+    min-width: 1500px;
+  }
 }

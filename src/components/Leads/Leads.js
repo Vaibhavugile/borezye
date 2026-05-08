@@ -236,108 +236,260 @@ const Leads = () => {
     toast.success("Lead details copied to clipboard:\n" );
   };
   return (
-    <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      <Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-      <div className="dashboard-content">
-        <Header onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
-        <h2 style={{ marginLeft: '10px', marginTop: '100px' }}>
-          {filterTitleMap[location.pathname.split('/').pop()] || 'Total Leads'} ({filteredLeads.length})
-        </h2>
-        <div className="toolbar-container">
-          <div className="search-bar-container7">
-            <img src={search} alt="search icon" className="search-icon7" />
-            <select
-            
-              value={searchField}
-              onChange={(e) => setSearchField(e.target.value)}
-              className="search-dropdown7"
-            >
-              
-              <option value="businessName">Business Name</option>
-              <option value="contactNumber">Contact Number</option>
-              <option value="emailId">Email ID</option>
-              <option value="location">Location</option>
-              <option value="assignedTo">Assigned To</option>
-              <option value="source">Source</option>
-              <option value="status">Status</option>
-              <option value="nextFollowup">Next Followup Date</option>
-            </select>
-            <input
-              type="text"
-              placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="action-buttons">
-          <label className="export-button" onClick={exportToCSV}>
-          <FaUpload />
-              Export
-              
-            </label>
-            <label htmlFor="import" className="import-button">
-            <FaDownload />
-              Import
-              <input
-                type="file"
-                id="import"
-                accept=".csv"
-                onChange={handleImport}
-                style={{ display: 'none' }}
-              />
-            </label>  
-            <label className="add-product-button" onClick={() => navigate('/create-lead')}>
-          <FaPlus />
-              Add lead
-            </label>
-            </div>
+    <div className={`leads-dashboard ${sidebarOpen ? 'sidebar-expanded' : ''}`}>
+
+  <Sidebar
+    isOpen={sidebarOpen}
+    onToggle={handleSidebarToggle}
+  />
+
+  <div className="leads-main-content">
+
+    <Header
+      onMenuClick={handleSidebarToggle}
+      isSidebarOpen={sidebarOpen}
+    />
+
+    <div className="leads-page-wrapper">
+
+      {/* TOP HEADER */}
+
+      <div className="leads-top-section">
+
+        <div className="page-heading-block">
+
+          <h1 className="page-main-title">
+            {filterTitleMap[location.pathname.split('/').pop()] || 'Total Leads'}
+          </h1>
+
+          <p className="page-subtitle">
+            Track, manage and organize your customer leads efficiently
+          </p>
+
         </div>
 
-        <div className="table-container">
-          <table className="table">
+        <div className="top-stats-container">
+
+          <div className="stats-card-modern">
+
+            <span className="stats-label">
+              Total Leads
+            </span>
+
+            <h2 className="stats-value">
+              {filteredLeads.length}
+            </h2>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* TOOLBAR */}
+
+      <div className="toolbar-modern">
+
+        {/* SEARCH */}
+
+        <div className="search-box-modern">
+
+          <img
+            src={search}
+            alt="search"
+            className="search-icon-modern"
+          />
+
+          <select
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value)}
+            className="search-select-modern"
+          >
+
+            <option value="businessName">Business Name</option>
+            <option value="contactNumber">Contact Number</option>
+            <option value="emailId">Email ID</option>
+            <option value="location">Location</option>
+            <option value="assignedTo">Assigned To</option>
+            <option value="source">Source</option>
+            <option value="status">Status</option>
+            <option value="nextFollowup">Next Followup Date</option>
+
+          </select>
+
+          <input
+            type="text"
+            className="search-input-modern"
+            placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+        </div>
+
+        {/* ACTION BUTTONS */}
+
+        <div className="toolbar-actions-modern">
+
+          <button
+            className="glass-btn"
+            onClick={exportToCSV}
+          >
+            <FaUpload />
+            Export
+          </button>
+<button
+  type="button"
+  className="glass-btn"
+  onClick={() => document.getElementById('import-file-input').click()}
+>
+
+  <FaDownload />
+
+  <span>Import</span>
+
+  <input
+    type="file"
+    id="import-file-input"
+    accept=".csv"
+    onChange={handleImport}
+    hidden
+  />
+
+</button>
+          <button
+            className="primary-btn-modern"
+            onClick={() => navigate('/create-lead')}
+          >
+
+            <FaPlus />
+            Add Lead
+
+          </button>
+
+        </div>
+
+      </div>
+
+      {/* TABLE SECTION */}
+
+      <div className="table-card-modern">
+
+        <div className="table-scroll-container">
+
+          <table className="modern-leads-table">
+
             <thead>
+
               <tr>
+
                 <th>Sr. No.</th>
                 <th>Business Name</th>
                 <th>Business Type</th>
                 <th>Contact Number</th>
-                <th>Email ID</th>
                 <th>Location</th>
                 <th>Assigned To</th>
                 <th>Source</th>
                 <th>Status</th>
                 <th>Next Followup</th>
                 <th>Actions</th>
+
               </tr>
+
             </thead>
+
             <tbody>
+
               {filteredLeads.map((lead, index) => (
-                <tr key={lead.id}>
+
+                <tr
+                  key={lead.id}
+                  className="table-row-modern"
+                >
+
                   <td>{index + 1}</td>
-                  <td className="business-name" onClick={() => handleBusinessNameClick(lead)} style={{ cursor: 'pointer' }}>{lead.businessName}</td>
-                  <td>{lead.businessType}</td>
-                  <td>{lead.contactNumber}</td>
-                  <td>{lead.emailId}</td>
-                  <td>{lead.location}</td>
-                  <td>{lead.assignedTo}</td>
-                  <td>{lead.source}</td>
-                  <td>{lead.status}</td>
-                  <td>{formatDate(lead.nextFollowup)}</td>
+
                   <td>
-                  <div className="action-buttons">
-                  <label onClick={() => handleEdit(lead.id)}><FaEdit style={{ color: '#757575', cursor: 'pointer' }}/></label>
-                  <label onClick={() => handlecopy(lead)}><FaCopy style={{ color: '#757575', cursor: 'pointer' }} /> </label>  
-                  </div>
+
+                    <span
+                      className="business-name-modern"
+                      onClick={() => handleBusinessNameClick(lead)}
+                    >
+                      {lead.businessName}
+                    </span>
+
                   </td>
+
+                  <td>{lead.businessType}</td>
+
+                  <td>{lead.contactNumber}</td>
+
+
+                  <td>{lead.location}</td>
+
+                  <td>{lead.assignedTo}</td>
+
+                  <td>{lead.source}</td>
+
+                  <td>
+
+                    <span className={`status-pill ${lead.status?.toLowerCase().replace(/\s/g, '-')}`}>
+                      {lead.status}
+                    </span>
+
+                  </td>
+
+                  <td>
+                    {formatDate(lead.nextFollowup)}
+                  </td>
+
+                  <td>
+
+                    <div className="table-actions-modern">
+
+                      <button
+                        className="table-icon-btn"
+                        onClick={() => handleEdit(lead.id)}
+                      >
+                        <FaEdit />
+                      </button>
+
+                      <button
+                        className="table-icon-btn"
+                        onClick={() => handlecopy(lead)}
+                      >
+                        <FaCopy />
+                      </button>
+
+                    </div>
+
+                  </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
-        <ToastContainer/>
+
       </div>
-      <RightSidebar isOpen={rightSidebarOpen} onClose={closeRightSidebar} selectedLead={selectedLead} />
+
+      <ToastContainer />
+
     </div>
+
+  </div>
+
+  <RightSidebar
+    isOpen={rightSidebarOpen}
+    onClose={closeRightSidebar}
+    selectedLead={selectedLead}
+  />
+
+</div>
   );
 };
 

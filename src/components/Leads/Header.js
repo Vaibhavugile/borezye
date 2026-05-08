@@ -1,34 +1,123 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import logo1 from '../../assets/screenshot-20240801-at-125204-pmremovebgpreview-1@2x.png';
+
+import {
+  useNavigate,
+  useLocation
+} from 'react-router-dom';
+
+import {
+  FaBars,
+  FaBell,
+  FaSearch
+} from 'react-icons/fa';
+
+import logo1 from '../../assets/Bore.jpg';
+
 import profileIcon from '../../assets/Profile.png';
-import menuImage from '../../assets/Menu.png';
+
 import './Header.css';
 
 const Header = ({ onMenuClick, isSidebarOpen }) => {
-  const navigate = useNavigate(); // Use useNavigate for navigation
+
+  const navigate = useNavigate();
+
   const location = useLocation();
 
-  // List of routes where the header should be hidden
-  const hiddenRoutes = ['/login', '/signup', '/profile'];
-  const shouldHideHeader = hiddenRoutes.includes(location.pathname);
+  /* HIDE HEADER ROUTES */
+
+  const hiddenRoutes = [
+    '/login',
+    '/signup'
+  ];
+
+  const shouldHideHeader =
+    hiddenRoutes.includes(location.pathname);
+
+  if (shouldHideHeader) return null;
 
   return (
-    <header className={`header1 ${isSidebarOpen ? 'sidebar-open' : ''} ${shouldHideHeader ? 'hidden' : ''}`}>
-      <button className="menu-button" onClick={onMenuClick}>
-        <img className='menu-image' src={menuImage} alt="Menu" />
-      </button>
-      <div className="header-logo">
-        <img src={logo1} alt="Logo" />
+
+    <header className={`premium-header ${isSidebarOpen ? 'header-sidebar-open' : ''}`}>
+
+      {/* LEFT SECTION */}
+
+      <div className="header-left-section">
+
+        {/* MENU BUTTON */}
+
+        <button
+          className="header-menu-btn"
+          onClick={onMenuClick}
+        >
+
+          <FaBars />
+
+        </button>
+
+        {/* LOGO */}
+
+        <div className="header-brand-wrapper">
+
+          <img
+            src={logo1}
+            alt="logo"
+            className="header-brand-logo"
+          />
+
+          
+
+        </div>
+
       </div>
-      <div className="header-profile">
-        <img
-          src={profileIcon}
-          alt="Profile"
-          onClick={() => navigate('/profile')} // Navigate to the profile page
-        />
+
+      {/* CENTER SEARCH */}
+
+      
+      {/* RIGHT SECTION */}
+
+      <div className="header-right-section">
+
+        {/* NOTIFICATION */}
+
+        <button className="header-notification-btn">
+
+          <FaBell />
+
+          <span className="notification-dot"></span>
+
+        </button>
+
+        {/* PROFILE */}
+
+        <div
+          className="header-profile-wrapper"
+          onClick={() => navigate('/profile')}
+        >
+
+          <img
+            src={profileIcon}
+            alt="profile"
+            className="header-profile-image"
+          />
+
+          <div className="header-profile-info">
+
+            <h4>
+              Admin User
+            </h4>
+
+            <span>
+              Super Admin
+            </span>
+
+          </div>
+
+        </div>
+
       </div>
+
     </header>
+
   );
 };
 

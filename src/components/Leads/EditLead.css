@@ -1,169 +1,465 @@
-.create-branch {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0px 80px;
-    border-radius: 10px;
-    background-color: transparent;
+/* =========================================
+   PREMIUM LIGHT SAAS CRM FORM
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+
+  --bg-main: #f6f8fc;
+  --card-bg: #ffffff;
+
+  --primary-color: #5b5cf0;
+  --primary-hover: #4b4ce6;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+
+  --border-color: #e5e7eb;
+
+  --input-bg: #ffffff;
+
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.04);
+
+  --shadow-md: 0 10px 30px rgba(15,23,42,0.06);
+
+  --shadow-lg: 0 20px 45px rgba(15,23,42,0.08);
+}
+
+
+/* =========================================
+   GLOBAL
+========================================= */
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body{
+
+  font-family: 'Inter', sans-serif;
+
+  background: var(--bg-main);
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   MAIN PAGE
+========================================= */
+
+.edit-lead-page{
+
+  display: flex;
+
+  min-height: 100vh;
+
+  background: var(--bg-main);
+}
+
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+.edit-lead-main{
+
+  flex: 1;
+
+  width: 100%;
+
+  padding: 24px;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   WRAPPER
+========================================= */
+
+.edit-lead-wrapper{
+
+  width: 100%;
+
+  margin-top: 90px;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.edit-page-header{
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
+}
+
+.edit-header-left{
+
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-page-title{
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--text-primary);
+
+  margin-bottom: 10px;
+
+  letter-spacing: -1px;
+}
+
+.edit-page-subtitle{
+
+  font-size: 16px;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.lead-form-card{
+
+  width: 100%;
+
+  background: white;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 28px;
+
+  padding: 40px;
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =========================================
+   GRID
+========================================= */
+
+.lead-form-grid{
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 32px;
+
+  margin-bottom: 28px;
+}
+
+
+/* =========================================
+   FORM COLUMN
+========================================= */
+
+.lead-form-column{
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 22px;
+}
+
+
+/* =========================================
+   FORM GROUP
+========================================= */
+
+.lead-form-group{
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+/* =========================================
+   LABELS
+========================================= */
+
+.lead-form-group label{
+
+  margin-bottom: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.lead-form-group input,
+.lead-form-group select,
+.lead-form-group textarea{
+
+  width: 100%;
+
+  min-height: 56px;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 16px;
+
+  background: var(--input-bg);
+
+  font-size: 14px;
+
+  color: var(--text-primary);
+
+  outline: none;
+
+  transition: all 0.3s ease;
+
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* =========================================
+   TEXTAREA
+========================================= */
+
+.lead-form-group textarea{
+
+  min-height: 140px;
+
+  padding: 18px;
+
+  resize: vertical;
+}
+
+
+/* =========================================
+   INPUT FOCUS
+========================================= */
+
+.lead-form-group input:focus,
+.lead-form-group select:focus,
+.lead-form-group textarea:focus{
+
+  border-color: #818cf8;
+
+  box-shadow:
+    0 0 0 4px rgba(99,102,241,0.12);
+}
+
+
+/* =========================================
+   PLACEHOLDER
+========================================= */
+
+.lead-form-group input::placeholder,
+.lead-form-group textarea::placeholder{
+
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   FULL WIDTH
+========================================= */
+
+.full-width-group{
+
+  width: 100%;
+
+  margin-bottom: 28px;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.lead-form-actions{
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 16px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.secondary-btn,
+.primary-btn{
+
+  height: 54px;
+
+  padding: 0 28px;
+
+  border-radius: 16px;
+
+  border: none;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.3s ease;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   SECONDARY BUTTON
+========================================= */
+
+.secondary-btn{
+
+  background: white;
+
+  border: 1px solid var(--border-color);
+
+  color: var(--text-primary);
+
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary-btn:hover{
+
+  transform: translateY(-2px);
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =========================================
+   PRIMARY BUTTON
+========================================= */
+
+.primary-btn{
+
+  background:
+    linear-gradient(
+      135deg,
+      #5b5cf0,
+      #7c3aed
+    );
+
+  color: white;
+
+  box-shadow:
+    0 12px 30px rgba(91,92,240,0.22);
+}
+
+.primary-btn:hover{
+
+  transform: translateY(-3px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #4b4ce6,
+      #6d28d9
+    );
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+.Toastify__toast{
+
+  border-radius: 14px;
+
+  font-family: 'Inter', sans-serif;
+
+  box-shadow: var(--shadow-md);
+}
+
+.Toastify__toast--success{
+  background: #16a34a;
+}
+
+.Toastify__toast--error{
+  background: #dc2626;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width: 992px){
+
+  .lead-form-grid{
+
+    grid-template-columns: 1fr;
   }
-  
-  .create-branch h2 {
-    text-align: left;
-    font-family: 'Public Sans';
-    font-style: normal;
-    font-weight: 600;
-    font-size: 24px;
-    line-height: 28px;
-    color: #000000;
+
+  .lead-form-card{
+
+    padding: 28px;
   }
-  
-  .create-branch form {
-    display: flex;
+}
+
+
+@media(max-width: 768px){
+
+  .edit-lead-main{
+
+    padding: 16px;
+  }
+
+  .edit-page-title{
+
+    font-size: 32px;
+  }
+
+  .lead-form-card{
+
+    padding: 20px;
+  }
+
+  .lead-form-actions{
+
     flex-direction: column;
   }
-  
-  .create-branch label {
-    margin-bottom: 5px;
-    font-family: 'Public Sans';
-    font-style: normal;
-    font-weight: 500;
-    font-size: 13px;
-    line-height: 15px;
-    color: #000000;
-  }
-  
-  .create-branch input[type="text"],
-  .create-branch input[type="email"],
-  .create-branch input[type="date"],
-  .create-branch input[type="number"],
-  .create-branch input[type="password"],
-  .create-branch input[type="datetime-local"],
-  .create-branch select,
-  .create-branch textarea { /* Added textarea */
-    width: 400px;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #000000;
-    border-radius: 10px;
-    box-sizing: border-box;
-    opacity: 0.8;
-  }
-  
-  
-  .create-branch textarea {
-    resize: vertical;
-    min-height: 100px; /* Adjust height as needed */
-  }
-  
-  .create-branch button[type="button"] {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 0 5px;
-  }
-  
-  .create-branch button[type="submit"] {
-    left: 822px;
-    bottom: 80px;
-    position: absolute;
-    width: 131px;
-    height: 40px;
-    color: #ffffff;
-    background-color: #28a745;
-    border-radius: 10px;
-    border-color: #ffffff;
-  }
-  
-  .create-branch button[type="submit"]:hover {
-    background-color: #23913d;
-  }
-  .bu{
-    background-color: #28a745;
-  }
-  .create-branch .error-message {
-    color: red;
-    font-weight: bold;
-    margin-top: 10px;
-  }
-  
-  .create-branch .success-message {
-    color: green;
-    font-weight: bold;
-    margin-top: 10px;
-  }
-  
-  .create-branch .date-fields-container {
-    display: flex;
-    gap: 16px;
-    z-index: 1;
-  }
-  
-  .create-branch .date-fields-container > div {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .create-branch .field-row,
-  .create-branch .number-of-users-amount-container,
-  .create-branch .amount-container  {
-    display: flex;
-    gap: 8px;
-    /* margin-bottom: 0px; */
-  }
-  
-  .create-branch .field-row div,
-  .create-branch .number-of-users-amount-container,
-  .create-branch .amount-container {
-    display: flex;
-    flex-direction: column;
-    width: 400px;
-  }
-  
-  .create-branch .field-row input {
-    padding: 8px;
-    border: 1px solid #000000;
-    border-radius: 10px;
-    box-sizing: border-box;
-    opacity: 0.8;
-    width: 400px;
-  }
-  /* Custom CSS for react-toastify notifications */
 
-/* Toast container styling */
-.Toastify__toast-container {
-  font-family: Arial, sans-serif;
-  z-index: 9999; /* Ensure toast notifications appear above other elements */
-}
+  .secondary-btn,
+  .primary-btn{
 
-/* Success toast styling */
-.Toastify__toast--success {
-  background-color: #28a745; /* Green background for success messages */
-  color: white; /* White text color */
+    width: 100%;
+  }
 }
-
-/* Error toast styling */
-.Toastify__toast--error {
-  background-color: #dc3545; /* Red background for error messages */
-  color: white; /* White text color */
-}
-
-/* General toast styling */
-.Toastify__toast {
-  border-radius: 4px; /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow */
-}
-
-/* Toast body styling */
-.Toastify__toast-body {
-  font-size: 14px; /* Font size for toast message */
-  padding: 10px; /* Padding around the toast message */
-}
-
-/* Toast progress bar styling */
-.Toastify__progress-bar {
-  height: 3px; /* Height of the progress bar */
-  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
-}
-  

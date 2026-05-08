@@ -1,400 +1,641 @@
-/* Additional styling for table and other elements */
-.dashboard-container{
-  background-color: #ffffff;
+/* =========================================
+   PREMIUM LIGHT SAAS CRM UI
+========================================= */
 
-}
-.table-container {
-    margin-top: 90px;
-    width: 97%;
-    
-    max-height: 500px; /* Adjust as needed for vertical overflow */
-    /* Enable vertical scrolling */
-    position: relative; /* For positioning the scrollbar wrapper */
-  }
-  .search-bar-container {
-    display: flex;
-    align-items: center;
-  
-  }
-  
-  .search-icon {
-    margin-right: 10px; /* Spacing between icons */
-  }
-  
-  .search-dropdown {
-    position: absolute; /* Position the dropdown relative to the parent */
-    background-color: #ffffff; /* Set background color */
-    border: 1px solid #ddd; /* Add a light border */
-    border-radius: 4px; /* Round the corners */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Add a slight shadow */
-    margin-top: 5px; /* Add space from the trigger */
-    padding: 10px;
-    width: 150px; /* Set a fixed width */
-    z-index: 100; /* Ensure it appears on top */
-    overflow-y: hidden;
-  }
-  
-  .search-dropdown > div {
-    padding: 8px 12px;
-    cursor: pointer;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-  }
-  
-  .search-dropdown > div:hover {
-    background-color: #f2f2f2; /* Highlight the item on hover */
-  }
-  
-  /* Container wrapper to manage relative positioning */
-  
-  
-  input {
-    padding: 8px 12px;
-    width: 250px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    margin-left: 10px;
-  }
-  
-  /* Create a wrapper for horizontal scroll */
-  
-  /* Table styling */
-  .table1 {
-    text-align: left;
-    width: 100%; /* Ensure table takes full width of its container */
-    border-collapse: collapse;
-    box-sizing: border-box; /* Include padding and border in width calculations */
-    
-  }
-  
-  /* Table headers and cells styling */
-  .table1 th, .table1 td {
-    padding: 15px;
-    border-bottom: 1px solid #F3EFFC;
-    font-family: 'Public Sans', sans-serif;
-    font-size: 13px;
-  }
-  
-  .table1 th {
-    border: 1px solid #ddd;
-    height: 40px;
-    font-weight: 600;
-    color: #000000;
-    position: sticky;  /* Use sticky positioning */
-    top: 0;            /* Stick to the top */
-    background-color: #F3EFFC; /* Set a background color */
-    z-index: 1;        /* Ensure it stays above the table rows */
-    padding: 10px;     /* Padding for spacing */
-  }
-  
-  .table1 td {
-    border: 1px solid #ececec;
-    background: #FFFFFF;
-    font-weight: 400;
-    color: #000000;
-    
-  }
-  
-  /* New styles for status colors */
-  .table1 td.status-active {
-    color: #008101;
-  }
-  
-  .table1 td.status-deactive {
-    color: #FF0000;
-  }
-  .table td.status-expiring-soon {
-    color:yellow;
-  }
-  
+:root{
 
-  
-  /* Styles for the Create Branch button */
-  
-  /* Styles for filter buttons */
-  .filter-buttons-container {
-    margin: 20px 0;
-  }
-  
-  .filter-buttons-container span {
-    cursor: pointer;
-    margin-right: 10px;
-  }
-  
-  .active-filter {
-    font-weight: bold;
-  }
-  
-  
-  
-  
-  
-  /* Parent container for search bar, action buttons, and create branch button */
-  .toolbar-container {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 20px;
-    position: absolute;
-    top: 120px;
-    right: 20px;
-  }
-  
-  /* Styles for search bar container */
-  .search-bar-container {
-    display: flex;
-    align-items: center;
-    position: relative;
-    height: 33px;
-    background-color: white;
-    border: 1px solid #A39D9D;
-    border-radius: 5px;
-    overflow: hidden;
-    width: 260px;
-  }
-  
-  /* Styles for the search input */
-  .search-bar-container input {
-    padding: 10px;
-    width: 100px;
-    border: none;
-    outline: none;
-    font-family: 'Public Sans', sans-serif;
-    font-weight: 400;
-    font-size: 13px;
-    color: #666666;
-    background-color: transparent;
-  }
-  
-  /* Styles for the search dropdown */
-  .search-dropdown {
-    padding: 25px;
-    width: 150px;
-    border: none;
-    outline: none;
-    font-family: 'Public Sans', sans-serif;
-    font-weight: 400;
-    font-size: 13px;
-    color: #2d2c2c;
-    background-color: transparent;
-    cursor: pointer;
-    appearance: none;
-    border-left: 1px solid #A39D9D;
-  }
-  
-  /* Align the search icon */
-  .search-icon {
-    position: absolute;
-    left:0px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+  --bg-main: #f6f8fc;
+  --bg-card: #ffffff;
 
+  --primary-color: #5b5cf0;
+  --primary-hover: #4b4ce6;
 
-  
-  
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
 
-  .import-button,
-  .export-button{
-    background-color: #164DC3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-    
-  }
+  --border-color: #e5e7eb;
 
-  
-  .import-button svg,
-  .export-button svg,
-  .add-product-button svg {
-    margin-right: 5px;
-  }
-  
-  .add-product-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
-  }
-  
-  
-  /* Create Branch Button */
-  .create-branch-container {
-    height: 33px;
-  }
-  
-  .create-branch-container button {
-    height: 33px;
-    background-color: #28a745;
-    border: none;
-    border-radius: 5px;
-    font-family: 'Public Sans', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    color: #FFFFFF;
-    cursor: pointer;
-    width: 133px;
-  }
-  
-  
-  .product-image {
-    /* Set a maximum height for the image */
-    width: 40px; /* Adjust width automatically */
-    height: 40px; /* Adjust height automatically */
-    object-fit: cover; /* Cover the defined dimensions while maintaining aspect ratio */
-    border-radius: 8px; /* Optional: Add rounded corners */
-  }
-  
-  .dashboard-container.sidebar-open .dashboard-content {
-    margin-left: 250px; /* Adjust this value based on your sidebar width */
-    transition: margin-left 0.3s ease; /* Smooth transition */
-  }
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
 
+  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.06);
 
-  
-  .table-container {
-    margin-top: 20px;
-    padding: 0 20px;
-  }
-  
+  --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.08);
 
+  --success-bg: #dcfce7;
+  --success-text: #16a34a;
 
-  
+  --danger-bg: #fee2e2;
+  --danger-text: #dc2626;
 
+  --warning-bg: #fef3c7;
+  --warning-text: #d97706;
 
-/* Hover effect for table rows in tbody */
-.table tbody tr:hover {
-  background-color: #f0f8ff;
-  /* Light blue background */
-  transform: translateY(-1px) scale(1.02);
-  /* Lift the row slightly and scale */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  /* Add a subtle shadow */
-  cursor: pointer;
-  /* Pointer cursor */
+  --info-bg: #dbeafe;
+  --info-text: #2563eb;
 }
 
-/* Optional: Add smooth hover effect to table cells */
-.table tbody td {
-  transition: color 0.3s ease;
-}
 
-.table tbody tr:hover td {
-  color: #164DC3;
-  /* Change text color on hover */
-}
+/* =========================================
+   GLOBAL
+========================================= */
 
-/* Disable hover effect when modal is open */
-body.modal-open .table tbody tr:hover {
-  background-color: transparent;
-  /* Disable background color change */
-  transform: none;
-  /* Disable the transform effect */
-  box-shadow: none;
-  /* Remove shadow */
-  cursor: default;
-  /* Change cursor to default */
-}
-
-body.modal-open .table tbody tr:hover td {
-  color: inherit;
-  /* Don't change text color */
-}
-
-/* Modal Overlay - smooth transition */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  /* Dim background */
-  z-index: 999;
-  opacity: 0;
-  visibility: hidden;
-  /* Hidden by default */
-  transition: opacity 0.3s ease, visibility 0s 0.3s;
-  /* Fade-in/fade-out transition */
-  pointer-events: none;
-  /* Prevent interactions with background */
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  /* Make visible when modal is open */
-  transition: opacity 0.3s ease, visibility 0s 0s;
-  /* Immediate visibility change when modal is active */
-  pointer-events: auto;
-  /* Enable interactions when the modal is open */
-}
-
-/* Modal Popup style */
-.modal-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  max-width: 400px;
-  width: 90%;
-}
-
-/* Close button */
-.close-button {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #ccc;
-  color: #000000;
-  border: none;
-  cursor: pointer;
-}
-
-/* Template list style */
-.template-list {
-  list-style-type: none;
+*{
+  margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-.template-item {
-  padding: 10px;
-  margin: 5px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #f9f9f9;
-  transition: background-color 0.3s ease;
+html,
+body{
+  width: 100%;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
 }
 
-.template-item:hover {
-  background-color: #e3f2fd;
-  /* Light blue on hover */
+
+/* =========================================
+   MAIN LAYOUT
+========================================= */
+
+.leads-dashboard{
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-main);
 }
 
-/* WhatsApp Button */
-.whatsapp-button {
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #25D366;
-  color: white;
+.leads-main-content{
+  flex: 1;
+  width: 100%;
+  overflow-x: hidden;
+  padding: 24px;
+}
+
+.leads-page-wrapper{
+  width: 100%;
+  margin-top: 90px;
+}
+
+
+/* =========================================
+   TOP SECTION
+========================================= */
+
+.leads-top-section{
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
+}
+
+.page-heading-block{
+  flex: 1;
+}
+
+.page-main-title{
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--text-primary);
+
+  margin-bottom: 10px;
+
+  letter-spacing: -1px;
+}
+
+.page-subtitle{
+
+  font-size: 17px;
+
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   STATS CARD
+========================================= */
+
+.top-stats-container{
   display: flex;
   align-items: center;
+}
+
+.stats-card-modern{
+
+  min-width: 190px;
+
+  padding: 24px;
+
+  background: white;
+
+  border-radius: 24px;
+
+  border: 1px solid var(--border-color);
+
+  box-shadow: var(--shadow-md);
+}
+
+.stats-label{
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.stats-value{
+
+  margin-top: 8px;
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.toolbar-modern{
+
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================
+   SEARCH BAR
+========================================= */
+
+.search-box-modern{
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  max-width: 720px;
+
+  height: 60px;
+
+  background: white;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  padding: 0 18px;
+
+  gap: 14px;
+
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* SEARCH ICON */
+
+.search-icon-modern{
+
+  width: 18px;
+  height: 18px;
+
+  opacity: 0.5;
+
+  flex-shrink: 0;
+}
+
+
+/* SELECT */
+
+.search-select-modern{
+
+  width: 180px;
+
+  min-width: 180px;
+
   border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: var(--text-primary);
+
   cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+
+/* INPUT */
+
+.search-input-modern{
+
+  flex: 1;
+
+  width: 100%;
+
+  min-width: 0;
+
+  height: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 15px;
+
+  color: var(--text-primary);
+}
+
+.search-input-modern::placeholder{
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.toolbar-actions-modern{
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 16px;
+
+  flex-wrap: wrap;
+}
+
+
+/* BUTTON */
+
+.glass-btn,
+.primary-btn-modern{
+
+  height: 54px;
+
+  padding: 0 26px;
+
+  border-radius: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: all 0.3s ease;
+
+  white-space: nowrap;
+}
+
+
+/* SECONDARY BUTTON */
+
+.glass-btn{
+
+  border: 1px solid var(--border-color);
+
+  background: white;
+
+  color: var(--text-primary);
+
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-btn:hover{
+
+  transform: translateY(-2px);
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* PRIMARY BUTTON */
+
+.primary-btn-modern{
+
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5b5cf0,
+      #7c3aed
+    );
+
+  color: white;
+
+  box-shadow:
+    0 12px 30px rgba(91,92,240,0.22);
+}
+
+.primary-btn-modern:hover{
+
+  transform: translateY(-3px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #4b4ce6,
+      #6d28d9
+    );
+}
+
+
+/* =========================================
+   TABLE CARD
+========================================= */
+
+.table-card-modern{
+
+  width: 100%;
+
+  background: white;
+
+  border-radius: 28px;
+
+  border: 1px solid var(--border-color);
+
+  overflow-x: auto;
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.modern-leads-table{
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 1100px;
+}
+
+.modern-leads-table thead{
+  background: #f9fafb;
+}
+
+.modern-leads-table th{
+
+  padding: 22px;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: var(--text-secondary);
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modern-leads-table td{
+
+  padding: 22px;
+
+  font-size: 14px;
+
+  color: var(--text-primary);
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+
+/* =========================================
+   TABLE ROW
+========================================= */
+
+.table-row-modern{
+  transition: all 0.25s ease;
+}
+
+.table-row-modern:hover{
+  background: #f8fafc;
+}
+
+
+/* =========================================
+   BUSINESS NAME
+========================================= */
+
+.business-name-modern{
+
+  color: #4f46e5;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   STATUS PILL
+========================================= */
+
+.status-pill{
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+
+  border-radius: 999px;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-pill.lead-lost{
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-pill.lead-won{
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-pill.fresh-lead{
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.status-pill.demo-scheduled{
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-pill.demo-done{
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+
+/* =========================================
+   TABLE ACTIONS
+========================================= */
+
+.table-actions-modern{
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.table-icon-btn{
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.table-icon-btn:hover{
+
+  background: #eef2ff;
+
+  color: #4f46e5;
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar{
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb{
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width: 1200px){
+
+  .toolbar-modern{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box-modern{
+    max-width: 100%;
+  }
+
+  .toolbar-actions-modern{
+    justify-content: flex-start;
+  }
+}
+
+
+@media(max-width: 768px){
+
+  .leads-main-content{
+    padding: 16px;
+  }
+
+  .page-main-title{
+    font-size: 32px;
+  }
+
+  .toolbar-actions-modern{
+
+    width: 100%;
+
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .glass-btn,
+  .primary-btn-modern{
+    width: 100%;
+  }
+
+  .search-box-modern{
+
+    height: auto;
+
+    flex-wrap: wrap;
+
+    padding: 14px;
+  }
+
+  .search-select-modern{
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .search-input-modern{
+    min-height: 44px;
+  }
+
+  .modern-leads-table{
+    min-width: 1000px;
+  }
 }

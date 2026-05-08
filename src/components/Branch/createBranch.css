@@ -1,247 +1,475 @@
-.create-branch {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0px 80px;
-  border-radius: 10px;
-  background-color: transparent;
+/* =========================================
+   PREMIUM SAAS CREATE BRANCH UI
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+
+  --branch-bg: #f6f8fc;
+  --branch-card: #ffffff;
+
+  --branch-primary: #5b5cf0;
+  --branch-primary-hover: #4b4ce6;
+
+  --branch-text: #111827;
+  --branch-text-light: #6b7280;
+
+  --branch-border: #e5e7eb;
+
+  --branch-shadow-sm:
+    0 2px 8px rgba(15,23,42,0.04);
+
+  --branch-shadow-md:
+    0 10px 30px rgba(15,23,42,0.06);
+
+  --branch-shadow-lg:
+    0 20px 45px rgba(15,23,42,0.08);
 }
 
-.create-branch h2 {
-  text-align: left;
-  font-family: 'Public Sans';
-  font-style: normal;
-  font-weight: 600;
-  font-size: 24px;
-  line-height: 28px;
-  color: #000000;
-}
 
-.create-branch form {
-  display: flex;
-  flex-direction: column;
-}
+/* =========================================
+   GLOBAL
+========================================= */
 
-.create-branch label {
-  margin-bottom: 5px;
-  font-family: 'Public Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-size: 13px;
-  line-height: 15px;
-  color: #000000;
-}
-
-.create-branch input[type="text"],
-.create-branch input[type="email"],
-.create-branch input[type="date"],
-.create-branch input[type="number"],
-.create-branch input[type="password"],
-.create-branch input[type="datetime-local"],
-.create-branch select,
-.create-branch textarea { /* Added textarea */
-  width: 400px;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #000000;
-  border-radius: 10px;
+*{
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  opacity: 0.8;
+}
+
+html,
+body{
+
+  font-family: 'Inter', sans-serif;
+
+  background: var(--branch-bg);
+
+  overflow-x: hidden;
 }
 
 
-.create-branch textarea {
-  resize: vertical;
-  min-height: 100px; /* Adjust height as needed */
-}
+/* =========================================
+   PAGE
+========================================= */
 
-.create-branch button[type="button"] {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 0 5px;
-}
+.branch-create-page{
 
-.create-branch button[type="submit"] {
-  left: 822px;
-  bottom: 80px;
-  position: absolute;
-  width: 131px;
-  height: 40px;
-  color: #ffffff;
-  background: linear-gradient(187.36deg, #175CFF 5.38%, #0E3799 93.96%);
-  border-radius: 10px;
-  border-color: #ffffff;
-}
-
-.create-branch button[type="submit"]:hover {
-  background-color: linear-gradient(187.36deg, #175CFF 5.38%, #0E3799 93.96%);
-}
-.create-branch button[type="submit1"] {
-  left: 660px;
-  bottom: 80px;
-  position: absolute;
-  width: 131px;
-  height: 40px;
-  color: #000;
-  background: #d0d0d0;
-  border-radius: 10px;
-  border-color: #ffffff;
-}
-
-.create-branch button[type="submit1"]:hover {
-  background-color: linear-gradient(187.36deg, #175CFF 5.38%, #0E3799 93.96%);
-}
-
-.create-branch .error-message {
-  color: red;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.create-branch .success-message {
-  color: green;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.create-branch .date-fields-container {
   display: flex;
-  gap: 16px;
-  z-index: 1;
+
+  min-height: 100vh;
+
+  background: var(--branch-bg);
 }
 
-.create-branch .date-fields-container > div {
-  display: flex;
-  flex-direction: column;
-}
 
-.create-branch .field-row,
-.create-branch .number-of-users-amount-container,
-.create-branch .amount-container  {
-  display: flex;
-  gap: 8px;
-  /* margin-bottom: 0px; */
-}
+/* =========================================
+   MAIN CONTENT
+========================================= */
 
-.create-branch .field-row div,
-.create-branch .number-of-users-amount-container,
-.create-branch .amount-container {
-  display: flex;
-  flex-direction: column;
-  width: 400px;
-}
+.branch-create-main{
 
-.create-branch .field-row input {
-  padding: 8px;
-  border: 1px solid #000000;
-  border-radius: 10px;
-  box-sizing: border-box;
-  opacity: 0.8;
-  width: 400px;
-}
-.modal {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
+  flex: 1;
+
   width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5); /* Dark background */
+
+  padding: 24px;
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================
+   WRAPPER
+========================================= */
+
+.branch-create-wrapper{
+
+  width: 100%;
+
+  margin-top: 90px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.branch-create-header{
+
   display: flex;
-  justify-content: center;
+
+  justify-content: space-between;
   align-items: center;
+
+  margin-bottom: 32px;
+
+  flex-wrap: wrap;
 }
 
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
+.branch-create-header-left{
+
+  display: flex;
+  flex-direction: column;
 }
 
-.modal-content p {
-  margin-bottom: 20px;
+.branch-create-title{
+
+  font-size: 42px;
+  font-weight: 700;
+
+  color: var(--branch-text);
+
+  margin-bottom: 10px;
+
+  letter-spacing: -1px;
+}
+
+.branch-create-subtitle{
+
   font-size: 16px;
+
+  color: var(--branch-text-light);
 }
 
-.modal-content button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
 
-.modal-content button:hover {
-  background-color: #0056b3;
-}
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-}
+/* =========================================
+   FORM CARD
+========================================= */
 
-.popup-content {
+.branch-form-card{
+
+  width: 100%;
+
   background: white;
-  padding: 20px;
-  border-radius: 5px;
-  text-align: center;
+
+  border: 1px solid var(--branch-border);
+
+  border-radius: 28px;
+
+  padding: 40px;
+
+  box-shadow: var(--branch-shadow-md);
 }
 
-.error-message {
-  color: red;
+
+/* =========================================
+   FORM GRID
+========================================= */
+
+.branch-form-grid{
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 32px;
+
+  margin-bottom: 28px;
 }
 
-.success-message {
-  color: green;
-}
-.Toastify__toast-container {
-  font-family: Arial, sans-serif;
-  z-index: 9999; /* Ensure toast notifications appear above other elements */
-}
 
-/* Success toast styling */
-.Toastify__toast--success {
-  background-color: #28a745; /* Green background for success messages */
-  color: white; /* White text color */
-}
+/* =========================================
+   FORM COLUMN
+========================================= */
 
-/* Error toast styling */
-.Toastify__toast--error {
-  background-color: #dc3545; /* Red background for error messages */
-  color: white; /* White text color */
+.branch-form-column{
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 22px;
 }
 
-/* General toast styling */
-.Toastify__toast {
-  border-radius: 4px; /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+
+/* =========================================
+   FORM GROUP
+========================================= */
+
+.branch-form-group{
+
+  display: flex;
+
+  flex-direction: column;
 }
 
-/* Toast body styling */
-.Toastify__toast-body {
-  font-size: 14px; /* Font size for toast message */
-  padding: 10px; /* Padding around the toast message */
+
+/* =========================================
+   LABELS
+========================================= */
+
+.branch-form-group label{
+
+  margin-bottom: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--branch-text);
 }
 
-/* Toast progress bar styling */
-.Toastify__progress-bar {
-  height: 3px; /* Height of the progress bar */
-  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.branch-form-group input,
+.branch-form-group select{
+
+  width: 100%;
+
+  height: 56px;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--branch-border);
+
+  border-radius: 16px;
+
+  background: white;
+
+  font-size: 14px;
+
+  color: var(--branch-text);
+
+  outline: none;
+
+  transition: all 0.3s ease;
+
+  box-shadow: var(--branch-shadow-sm);
 }
-  
 
 
+/* =========================================
+   INPUT FOCUS
+========================================= */
+
+.branch-form-group input:focus,
+.branch-form-group select:focus{
+
+  border-color: #818cf8;
+
+  box-shadow:
+    0 0 0 4px rgba(99,102,241,0.12);
+}
+
+
+/* =========================================
+   PLACEHOLDER
+========================================= */
+
+.branch-form-group input::placeholder{
+
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   BOTTOM GRID
+========================================= */
+
+.branch-bottom-grid{
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.branch-form-actions{
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 16px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.branch-secondary-btn,
+.branch-primary-btn{
+
+  height: 54px;
+
+  padding: 0 28px;
+
+  border-radius: 16px;
+
+  border: none;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  transition: all 0.3s ease;
+}
+
+
+/* =========================================
+   SECONDARY BUTTON
+========================================= */
+
+.branch-secondary-btn{
+
+  background: white;
+
+  border: 1px solid var(--branch-border);
+
+  color: var(--branch-text);
+
+  box-shadow: var(--branch-shadow-sm);
+}
+
+.branch-secondary-btn:hover{
+
+  transform: translateY(-2px);
+
+  box-shadow: var(--branch-shadow-md);
+}
+
+
+/* =========================================
+   PRIMARY BUTTON
+========================================= */
+
+.branch-primary-btn{
+
+  background:
+    linear-gradient(
+      135deg,
+      #5b5cf0,
+      #7c3aed
+    );
+
+  color: white;
+
+  box-shadow:
+    0 12px 30px rgba(91,92,240,0.22);
+}
+
+.branch-primary-btn:hover{
+
+  transform: translateY(-3px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #4b4ce6,
+      #6d28d9
+    );
+}
+
+
+/* =========================================
+   TOASTIFY
+========================================= */
+
+.Toastify__toast{
+
+  border-radius: 14px;
+
+  font-family: 'Inter', sans-serif;
+
+  box-shadow: var(--branch-shadow-md);
+}
+
+.Toastify__toast--success{
+  background: #16a34a;
+}
+
+.Toastify__toast--error{
+  background: #dc2626;
+}
+
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar{
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb{
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width: 992px){
+
+  .branch-form-grid{
+
+    grid-template-columns: 1fr;
+  }
+
+  .branch-bottom-grid{
+
+    grid-template-columns: 1fr;
+  }
+
+  .branch-form-card{
+
+    padding: 28px;
+  }
+}
+
+
+@media(max-width: 768px){
+
+  .branch-create-main{
+
+    padding: 16px;
+  }
+
+  .branch-create-title{
+
+    font-size: 32px;
+  }
+
+  .branch-form-card{
+
+    padding: 20px;
+  }
+
+  .branch-form-actions{
+
+    flex-direction: column;
+  }
+
+  .branch-secondary-btn,
+  .branch-primary-btn{
+
+    width: 100%;
+  }
+}

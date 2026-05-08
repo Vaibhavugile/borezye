@@ -1,72 +1,453 @@
-/* src/components/Header.css */
+/* =========================================
+   PREMIUM SAAS HEADER
+========================================= */
 
-/* Header container */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-.header1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #f8f9fa;
-  padding: 10px 20px;
-  box-shadow: 0px 0px 4px #A39D9D;
+:root{
+
+  --header-bg: rgba(255,255,255,0.88);
+
+  --header-border: #e5e7eb;
+
+  --header-text: #111827;
+  --header-text-light: #6b7280;
+
+  --header-primary: #5b5cf0;
+
+  --header-shadow:
+    0 10px 35px rgba(15,23,42,0.06);
+
+  --header-hover: #f5f7ff;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.premium-header{
+
   position: fixed;
-  width: 100%;
+
   top: 0;
   left: 0;
-  z-index: 1000;
-  transition: left 0.3s ease; /* Smooth transition for sidebar open/close */
-  overflow: auto;
-}
 
-/* Hide header when it should be hidden */
-.header.hidden {
-  display: none; /* Hide header */
-}
+  width: 100%;
 
-/* Sidebar open adjustment */
-.header.sidebar-open {
-  left: 0; /* Adjust position when sidebar is open */
-}
+  height: 72px;
 
-.menu-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.menu-image {
-  height: 20px;
-}
-
-
-.header-logo {
-  flex-grow: 1;
   display: flex;
-  height: fit-content;
-  justify-content: left; /* Center align the logo */
-  position: relative;
-}
 
-.header-logo img {
-  height: 40px; /* Set a consistent height for the logo */
-}
-
-.header-links {
-  /* Style for header links */
-}
-
-.header-profile {
-  display: flex;
   align-items: center;
-  margin-left: auto; /* Push the profile icon to the right */
-  padding-right: 30px; /* Add some right padding if needed */
-  overflow: auto; /* Prevent overflow */
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  background: var(--header-bg);
+
+  backdrop-filter: blur(16px);
+
+  border-bottom: 1px solid var(--header-border);
+
+  box-shadow: var(--header-shadow);
+
+  z-index: 999;
+
+  transition: all 0.3s ease;
 }
 
-.header-profile img {
-  max-width: 40px; /* Adjust this size as needed */
-  max-height: 40px; /* Adjust this size as needed */
-  border-radius: 50%; /* Make it circular if it's a square image */
-  object-fit: cover; /* Ensures the image scales correctly */
+
+/* =========================================
+   LEFT SECTION
+========================================= */
+
+.header-left-section{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  min-width: 280px;
+}
+
+
+/* =========================================
+   MENU BUTTON
+========================================= */
+
+.header-menu-btn{
+
+  width: 46px;
+  height: 46px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: white;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
+
+  color: var(--header-text);
+
+  font-size: 18px;
+
+  transition: all 0.3s ease;
+
+  box-shadow:
+    0 2px 8px rgba(15,23,42,0.05);
+}
+
+.header-menu-btn:hover{
+
+  background: var(--header-hover);
+
+  color: var(--header-primary);
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   BRAND WRAPPER
+========================================= */
+
+.header-brand-wrapper{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.header-brand-logo{
+
+  width: 120px;
+  height: 120px;
+
+  object-fit: contain;
+}
+
+
+/* =========================================
+   BRAND TEXT
+========================================= */
+
+.header-brand-texts{
+
+  display: flex;
+  flex-direction: column;
+}
+
+.header-brand-texts h2{
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: var(--header-text);
+
+  margin-bottom: 2px;
+}
+
+.header-brand-texts span{
+
+  font-size: 12px;
+  font-weight: 500;
+
+  color: var(--header-text-light);
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.header-search-wrapper{
+
+  flex: 1;
+
+  max-width: 520px;
+
+  height: 52px;
+
+  background: white;
+
+  border: 1px solid var(--header-border);
+
+  border-radius: 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 18px;
+
+  margin: 0 28px;
+
+  box-shadow:
+    0 2px 8px rgba(15,23,42,0.04);
+}
+
+
+/* =========================================
+   SEARCH ICON
+========================================= */
+
+.header-search-icon{
+
+  color: #9ca3af;
+
+  font-size: 15px;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================
+   SEARCH INPUT
+========================================= */
+
+.header-search-input{
+
+  flex: 1;
+
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  font-size: 14px;
+
+  color: var(--header-text);
+}
+
+.header-search-input::placeholder{
+
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   RIGHT SECTION
+========================================= */
+
+.header-right-section{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+}
+
+
+/* =========================================
+   NOTIFICATION BUTTON
+========================================= */
+
+.header-notification-btn{
+
+  position: relative;
+
+  width: 48px;
+  height: 48px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: white;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  color: var(--header-text);
+
+  font-size: 18px;
+
+  transition: all 0.3s ease;
+
+  box-shadow:
+    0 2px 8px rgba(15,23,42,0.05);
+}
+
+.header-notification-btn:hover{
+
+  background: var(--header-hover);
+
+  color: var(--header-primary);
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   NOTIFICATION DOT
+========================================= */
+
+.notification-dot{
+
+  position: absolute;
+
+  top: 12px;
+  right: 13px;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: #ef4444;
+
+  border: 2px solid white;
+}
+
+
+/* =========================================
+   PROFILE WRAPPER
+========================================= */
+
+.header-profile-wrapper{
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  background: white;
+
+  border: 1px solid var(--header-border);
+
+  border-radius: 16px;
+
+  padding: 8px 14px 8px 8px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  box-shadow:
+    0 2px 8px rgba(15,23,42,0.04);
+}
+
+.header-profile-wrapper:hover{
+
+  background: var(--header-hover);
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   PROFILE IMAGE
+========================================= */
+
+.header-profile-image{
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 14px;
+
+  object-fit: cover;
+}
+
+
+/* =========================================
+   PROFILE INFO
+========================================= */
+
+.header-profile-info{
+
+  display: flex;
+  flex-direction: column;
+}
+
+.header-profile-info h4{
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--header-text);
+
+  margin-bottom: 2px;
+}
+
+.header-profile-info span{
+
+  font-size: 12px;
+
+  color: var(--header-text-light);
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width: 992px){
+
+  .header-search-wrapper{
+
+    max-width: 300px;
+  }
+
+  .header-brand-texts{
+
+    display: none;
+  }
+}
+
+
+@media(max-width: 768px){
+
+  .premium-header{
+
+    padding: 0 16px;
+
+    gap: 12px;
+  }
+
+  .header-search-wrapper{
+
+    display: none;
+  }
+
+  .header-profile-info{
+
+    display: none;
+  }
+
+  .header-profile-wrapper{
+
+    padding-right: 8px;
+  }
+
+  .header-left-section{
+
+    min-width: auto;
+  }
 }

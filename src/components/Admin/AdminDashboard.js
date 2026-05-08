@@ -10,7 +10,7 @@ import downloadIcon from '../../assets/Download.png'; // Add icon for download
 import uploadIcon from '../../assets/Upload.png'; // Add icon for upload
 import Sidebar from '../Leads/Sidebar';
 import Header from '../Leads/Header';
-import '../Profile/Profile.css';
+import './AdminDashboard.css';
 import search from '../../assets/Search.png';
 import RightSidebar from '../Leads/RightSidebar';
 import { FaDownload, FaUpload, FaPlus, FaEdit, FaCopy, FaWhatsapp } from 'react-icons/fa';
@@ -295,219 +295,421 @@ const AdminDashboard = () => {
     }, [isModalOpen]);
 
   return (
-    <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      <Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-      <div className="dashboard-content">
-        <Header onMenuClick={handleSidebarToggle} isSidebarOpen={sidebarOpen} />
-        <h2 style={{ marginLeft: '10px', marginTop: '100px' }}>
-          {filterTitleMap[location.pathname.split('/').pop()] || 'All Branches'} ({filteredBranches.length})
-        </h2>
-        <div className="toolbar-container">
-          <div className="search-bar-container7">
-            <img src={search} alt="search icon" className="search-icon7" />
-            <select
-              value={searchField}
-              onChange={(e) => setSearchField(e.target.value)}
-              className="search-dropdown7"
-            >
-              <option value="branchName">Branch Name</option>
-              <option value="branchCode">Branch Code</option>
-              <option value="location">Location</option>
-              <option value="ownerName">Owner Name</option>
-              <option value="status">Status</option>
-              <option value="activeDate">Start Date</option>
-              <option value="deactiveDate">End Date</option>
-              <option value="amount">amount</option>
+    <div className={`branches-page ${sidebarOpen ? 'branches-sidebar-open' : ''}`}>
 
-            </select>
-            <input
-              type="text"
-              placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="action-buttons">
-            <label className="export-button" onClick={exportToCSV}>
-              <FaUpload />
-              Export
+  <Sidebar
+    isOpen={sidebarOpen}
+    onToggle={handleSidebarToggle}
+  />
 
-            </label>
-            <label htmlFor="import" className="import-button">
-              <FaDownload />
-              Import
-              <input
-                type="file"
-                id="import"
-                accept=".csv"
-                onChange={handleImport}
-                style={{ display: 'none' }}
-              />
-            </label>
-            <label className="add-product-button" onClick={() => navigate('/create-branch')}>
-              <FaPlus />
-              Add Branch
-            </label>
-          </div>
+  <div className="branches-main-content">
+
+    <Header
+      onMenuClick={handleSidebarToggle}
+      isSidebarOpen={sidebarOpen}
+    />
+
+    <div className="branches-content-wrapper">
+
+      {/* PAGE HEADER */}
+
+      <div className="branches-header-section">
+
+        <div className="branches-title-wrapper">
+
+          <h1 className="branches-page-title">
+
+            {filterTitleMap[location.pathname.split('/').pop()] || 'All Branches'}
+
+          </h1>
+
+          <p className="branches-page-description">
+
+            Manage all branch subscriptions, users and business operations
+
+          </p>
+
         </div>
 
-        <div className="table-container">
-          <table className="table">
+        <div className="branches-stats-wrapper">
+
+          <div className="branches-stat-card">
+
+            <span className="branches-stat-label">
+              Total Branches
+            </span>
+
+            <h2 className="branches-stat-value">
+              {filteredBranches.length}
+            </h2>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* TOOLBAR */}
+
+      <div className="branches-toolbar">
+
+        {/* SEARCH */}
+
+        <div className="branches-search-container">
+
+          <img
+            src={search}
+            alt="search"
+            className="branches-search-icon"
+          />
+
+          <select
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value)}
+            className="branches-search-select"
+          >
+
+            <option value="branchName">
+              Branch Name
+            </option>
+
+            <option value="branchCode">
+              Branch Code
+            </option>
+
+            <option value="location">
+              Location
+            </option>
+
+            <option value="ownerName">
+              Owner Name
+            </option>
+
+            <option value="status">
+              Status
+            </option>
+
+            <option value="activeDate">
+              Start Date
+            </option>
+
+            <option value="deactiveDate">
+              End Date
+            </option>
+
+            <option value="amount">
+              Amount
+            </option>
+
+          </select>
+
+          <input
+            type="text"
+            className="branches-search-input"
+            placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+        </div>
+
+        {/* ACTION BUTTONS */}
+
+        <div className="branches-toolbar-actions">
+
+          {/* EXPORT */}
+
+          <button
+            className="branches-secondary-btn"
+            onClick={exportToCSV}
+          >
+
+            <FaUpload />
+
+            Export
+
+          </button>
+
+          {/* IMPORT */}
+
+          <button
+            type="button"
+            className="branches-secondary-btn"
+            onClick={() => document.getElementById('branches-import-file').click()}
+          >
+
+            <FaDownload />
+
+            Import
+
+            <input
+              type="file"
+              id="branches-import-file"
+              accept=".csv"
+              onChange={handleImport}
+              hidden
+            />
+
+          </button>
+
+          {/* ADD BRANCH */}
+
+          <button
+            className="branches-primary-btn"
+            onClick={() => navigate('/create-branch')}
+          >
+
+            <FaPlus />
+
+            Add Branch
+
+          </button>
+
+        </div>
+
+      </div>
+
+      {/* TABLE CARD */}
+
+      <div className="branches-table-card">
+
+        <div className="branches-table-scroll">
+
+          <table className="branches-table">
+
             <thead>
+
               <tr>
+
                 <th>Sr. No.</th>
                 <th>Branch Code</th>
-                <th>Branch Name/Email</th>
-                <th>Contact Number</th>
+                <th>Branch / Email</th>
+                <th>Contact</th>
                 <th>Location</th>
-                <th>Owner Name</th>
-                <th>Subscription Type</th>
+                <th>Owner</th>
+                <th>Subscription</th>
                 <th>Users</th>
                 <th>Password</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Subscription Fees</th>
-                <th>Remaining Days</th>
+                <th>Fees</th>
+                <th>Remaining</th>
                 <th>Status</th>
                 <th>Actions</th>
                 <th>WhatsApp</th>
+
               </tr>
+
             </thead>
+
             <tbody>
+
               {filteredBranches.map((branch, index) => (
-                <tr key={branch.id}>
+
+                <tr
+                  key={branch.id}
+                  className="branches-table-row"
+                >
+
                   <td>{index + 1}</td>
-                  <td>{branch.branchCode}</td>
-                  <td>{branch.branchName}<br />{branch.emailId}</td>
-                  <td>{branch.contactNumber || 'N/A'}</td>
-                  <td>{branch.location}</td>
-                  <td>{branch.ownerName}</td>
-                  <td>{branch.subscriptionType}</td>
-                  <td>{branch.numberOfUsers}</td>
-                  <td>{branch.password}</td>
-                  <td>{formatDate(branch.activeDate) || 'N/A'}</td>
-                  <td>{formatDate(branch.deactiveDate) || 'N/A'}</td>
-                  <td>{branch.amount}</td>
-                  <td>{calculateRemainingDays(branch.deactiveDate)}</td>
-                  <td
-                    className={
-                      calculateRemainingDays(branch.deactiveDate) > 7
-                        ? 'status-active'
-                        : calculateRemainingDays(branch.deactiveDate) <= 7 &&  calculateRemainingDays(branch.deactiveDate) > 0
-                          ? 'status-expiring-soon'
-                          : 'status-deactive'
-                    }
-                  >
-                    {calculateRemainingDays(branch.deactiveDate) > 7
-                      ? 'Active'
-                      : calculateRemainingDays(branch.deactiveDate) <= 7 &&  calculateRemainingDays(branch.deactiveDate) > 0
-                      ? 'Expiring Soon'
-                        : 'Deactive'}
+
+                  <td>
+                    {branch.branchCode}
+                  </td>
+
+                  {/* BRANCH INFO */}
+
+                  <td>
+
+                    <div className="branches-name-block">
+
+                      <span className="branches-name-text">
+                        {branch.branchName}
+                      </span>
+
+                      <small className="branches-email-text">
+                        {branch.emailId}
+                      </small>
+
+                    </div>
+
                   </td>
 
                   <td>
-                    <div className="action-buttons">
-                      <label onClick={() => handleEdit(branch.id)}><FaEdit style={{ color: '#757575', cursor: 'pointer' }} /></label>
-                      <label onClick={() => handlecopy(branch)}><FaCopy style={{ color: '#757575', cursor: 'pointer' }} /> </label>
-                    </div>
+                    {branch.contactNumber || 'N/A'}
                   </td>
+
                   <td>
-                    <div className="action-buttons">
+                    {branch.location}
+                  </td>
+
+                  <td>
+                    {branch.ownerName}
+                  </td>
+
+                  <td>
+                    {branch.subscriptionType}
+                  </td>
+
+                  <td>
+                    {branch.numberOfUsers}
+                  </td>
+
+                  <td>
+                    {branch.password}
+                  </td>
+
+                  <td>
+                    {formatDate(branch.activeDate) || 'N/A'}
+                  </td>
+
+                  <td>
+                    {formatDate(branch.deactiveDate) || 'N/A'}
+                  </td>
+
+                  <td>
+                    ₹{branch.amount}
+                  </td>
+
+                  <td>
+                    {calculateRemainingDays(branch.deactiveDate)} days
+                  </td>
+
+                  {/* STATUS */}
+
+                  <td>
+
+                    <span
+                      className={`branches-status-pill ${
+                        calculateRemainingDays(branch.deactiveDate) > 7
+                          ? 'branches-status-active'
+                          : calculateRemainingDays(branch.deactiveDate) > 0
+                          ? 'branches-status-warning'
+                          : 'branches-status-expired'
+                      }`}
+                    >
+
+                      {calculateRemainingDays(branch.deactiveDate) > 7
+                        ? 'Active'
+                        : calculateRemainingDays(branch.deactiveDate) > 0
+                        ? 'Expiring Soon'
+                        : 'Deactive'}
+
+                    </span>
+
+                  </td>
+
+                  {/* ACTIONS */}
+
+                  <td>
+
+                    <div className="branches-action-group">
+
                       <button
-                        onClick={() => handleContactNumberClick(branch)}
-                        style={{
-                          padding: "10px",
-                          borderRadius: "5px",
-                          backgroundColor: "#25D366",
-                          color: "white",
-                          display: "flex",
-                          alignItems: "center",
-                          border: "none",
-                          cursor: "pointer",
-                        }}
+                        className="branches-icon-btn"
+                        onClick={() => handleEdit(branch.id)}
                       >
-                        <FaWhatsapp style={{ marginRight: "5px" }} />
+
+                        <FaEdit />
+
                       </button>
 
-                      {/* Modal for Templates */}
-                      {isModalOpen && (
-                        <>
-                          {/* Modal Background Overlay */}
-                          <div
-                            onClick={() => setIsModalOpen(false)}
-                            style={{
-                              position: "fixed",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              backgroundColor: "transparent", // Dimming effect
-                              zIndex: 999,
-                            }}
-                          ></div>
+                      <button
+                        className="branches-icon-btn"
+                        onClick={() => handlecopy(branch)}
+                      >
 
-                          {/* Modal Popup */}
-                          <div
-                            style={{
-                              position: "fixed",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "white",
-                              padding: "20px",
-                              borderRadius: "10px",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-                              zIndex: 1000,
-                              maxWidth: "400px",
-                              width: "90%",
-                            }}
-                          >
-                            <h3>Select a Template</h3>
-                            <ul style={{ listStyleType: "none", padding: 0 }}>
-                              {templates.map((template) => (
-                                <li
-                                  key={template.id}
-                                  onClick={() => handleTemplateClick(template)}
-                                  style={{
-                                    padding: "10px",
-                                    margin: "5px 0",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "5px",
-                                    cursor: "pointer",
-                                    backgroundColor: "#f9f9f9",
-                                  }}
-                                >
-                                  {template.name}
-                                </li>
-                              ))}
-                            </ul>
-                            <button
-                              onClick={() => setIsModalOpen(false)}
-                              style={{
-                                marginTop: "10px",
-                                padding: "10px",
-                                borderRadius: "5px",
-                                backgroundColor: "#ccc",
-                                border: "none",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Close
-                            </button>
-                          </div>
-                        </>
-                      )}
+                        <FaCopy />
+
+                      </button>
+
                     </div>
 
                   </td>
+
+                  {/* WHATSAPP */}
+
+                  <td>
+
+                    <button
+                      className="branches-whatsapp-btn"
+                      onClick={() => handleContactNumberClick(branch)}
+                    >
+
+                      <FaWhatsapp />
+
+                    </button>
+
+                  </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
+
       </div>
-      <RightSidebar isOpen={rightSidebarOpen} onClose={closeRightSidebar} selectedBranch={selectedBranch} />
+
+      {/* TEMPLATE MODAL */}
+
+      {isModalOpen && (
+
+        <div className="branches-modal-overlay">
+
+          <div className="branches-modal-card">
+
+            <h3 className="branches-modal-title">
+              Select a Template
+            </h3>
+
+            <div className="branches-template-list">
+
+              {templates.map((template) => (
+
+                <div
+                  key={template.id}
+                  className="branches-template-item"
+                  onClick={() => handleTemplateClick(template)}
+                >
+
+                  {template.name}
+
+                </div>
+
+              ))}
+
+            </div>
+
+            <button
+              className="branches-secondary-btn"
+              onClick={() => setIsModalOpen(false)}
+            >
+
+              Close
+
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
+
+  </div>
+
+  <RightSidebar
+    isOpen={rightSidebarOpen}
+    onClose={closeRightSidebar}
+    selectedBranch={selectedBranch}
+  />
+
+</div>
   );
 };
 
