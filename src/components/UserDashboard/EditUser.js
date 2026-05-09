@@ -25,6 +25,31 @@ const EditUser = () => {
   "Saturday",
 ];
 
+const [
+  shiftStartTime,
+  setShiftStartTime,
+] = useState("10:00");
+
+
+
+const [
+  shiftEndTime,
+  setShiftEndTime,
+] = useState("19:00");
+
+
+
+const [
+  graceTime,
+  setGraceTime,
+] = useState(15);
+
+
+
+const [
+  overtimeGraceMinutes,
+  setOvertimeGraceMinutes,
+] = useState(30);
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -33,6 +58,36 @@ const EditUser = () => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
           setWeekOffs(userData.weekOffs || []);
+          setShiftStartTime(
+
+  userData.shiftStartTime ||
+
+  "10:00"
+);
+
+
+
+setShiftEndTime(
+
+  userData.shiftEndTime ||
+
+  "19:00"
+);
+
+
+
+setGraceTime(
+
+  userData.graceTime || 15
+);
+
+
+
+setOvertimeGraceMinutes(
+
+  userData
+    .overtimeGraceMinutes || 30
+);
           setUser(userData);
           setIsActive(userData.isActive || false);
         } else {
@@ -59,8 +114,52 @@ const EditUser = () => {
       await updateDoc(docRef, {
         ...user,
         isActive,
-        weekOffs,
+          weekOffs,
+
+
+
+  shiftStartTime,
+
+  shiftEndTime,
+
+
+
+  graceTime:
+    Number(graceTime),
+
+
+
+  overtimeGraceMinutes:
+    Number(
+      overtimeGraceMinutes
+    ),
+        
       });
+      const globalRef = doc(
+  db,
+  `subusers/${id}`
+);
+
+await updateDoc(globalRef, {
+
+  ...user,
+
+  isActive,
+
+  weekOffs,
+
+  shiftStartTime,
+
+  shiftEndTime,
+
+  graceTime:
+    Number(graceTime),
+
+  overtimeGraceMinutes:
+    Number(
+      overtimeGraceMinutes
+    ),
+});
       toast.success('User updated successfully!');
       setTimeout(() => navigate('/usersidebar/users'), 5000);
     } catch (error) {
@@ -166,6 +265,93 @@ const EditUser = () => {
   ))}
 
 </div>
+{/* SHIFT START */}
+
+<label>
+  Shift Start Time:
+</label>
+
+<input
+  type="time"
+
+  value={shiftStartTime}
+
+  onChange={(e)=>
+
+    setShiftStartTime(
+      e.target.value
+    )
+  }
+/>
+
+
+
+{/* SHIFT END */}
+
+<label>
+  Shift End Time:
+</label>
+
+<input
+  type="time"
+
+  value={shiftEndTime}
+
+  onChange={(e)=>
+
+    setShiftEndTime(
+      e.target.value
+    )
+  }
+/>
+
+
+
+{/* GRACE TIME */}
+
+<label>
+  Grace Time (Minutes):
+</label>
+
+<input
+  type="number"
+
+  min="0"
+
+  value={graceTime}
+
+  onChange={(e)=>
+
+    setGraceTime(
+      e.target.value
+    )
+  }
+/>
+
+
+
+{/* OVERTIME */}
+
+<label>
+  Overtime Grace (Minutes):
+</label>
+
+<input
+  type="number"
+
+  min="0"
+
+  value={
+    overtimeGraceMinutes
+  }
+
+  onChange={(e)=>
+
+    setOvertimeGraceMinutes(
+      e.target.value
+    )
+  }
+/>
           <label>Active:</label>
           <input
             type="checkbox"

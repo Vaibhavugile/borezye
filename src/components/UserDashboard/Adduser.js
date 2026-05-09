@@ -33,6 +33,32 @@ const weekDays = [
   "Friday",
   "Saturday",
 ];
+const [
+  shiftStartTime,
+  setShiftStartTime,
+] = useState("10:00");
+
+
+
+const [
+  shiftEndTime,
+  setShiftEndTime,
+] = useState("19:00");
+
+
+
+const [
+  graceTime,
+  setGraceTime,
+] = useState(15);
+
+
+
+const [
+  overtimeGraceMinutes,
+  setOvertimeGraceMinutes,
+] = useState(30);
+
   // Redirect if the user is not authorized
   useEffect(() => {
     if (!userData || (userData.role !== 'Super Admin' && userData.role !== 'Branch Manager')) {
@@ -90,6 +116,19 @@ const weekDays = [
         role,
         permission,
         date,
+        shiftStartTime,
+
+shiftEndTime,
+
+graceTime:
+
+  Number(graceTime),
+
+overtimeGraceMinutes:
+
+  Number(
+    overtimeGraceMinutes
+  ),
         
         isActive: true,
         branchCode,
@@ -127,6 +166,19 @@ const weekDays = [
       setSalary('');
       setWeekOffs([]);
       setContactNumber('');
+      setShiftStartTime(
+  "10:00"
+);
+
+setShiftEndTime(
+  "19:00"
+);
+
+setGraceTime(15);
+
+setOvertimeGraceMinutes(
+  30
+);
       setPassword('');
       setRole('Subuser');
       setPermission('');
@@ -242,6 +294,117 @@ const weekDays = [
     ))}
 
   </div>
+
+</div>
+{/* SHIFT START */}
+
+<div className="form-group">
+
+  <label>
+    Shift Start Time
+  </label>
+
+  <input
+    type="time"
+
+    value={shiftStartTime}
+
+    onChange={(e)=>
+
+      setShiftStartTime(
+        e.target.value
+      )
+    }
+
+    disabled={userLimitReached}
+  />
+
+</div>
+
+
+
+{/* SHIFT END */}
+
+<div className="form-group">
+
+  <label>
+    Shift End Time
+  </label>
+
+  <input
+    type="time"
+
+    value={shiftEndTime}
+
+    onChange={(e)=>
+
+      setShiftEndTime(
+        e.target.value
+      )
+    }
+
+    disabled={userLimitReached}
+  />
+
+</div>
+
+
+
+{/* GRACE TIME */}
+
+<div className="form-group">
+
+  <label>
+    Grace Time (Minutes)
+  </label>
+
+  <input
+    type="number"
+
+    value={graceTime}
+
+    onChange={(e)=>
+
+      setGraceTime(
+        e.target.value
+      )
+    }
+
+    placeholder="15"
+
+    disabled={userLimitReached}
+  />
+
+</div>
+
+
+
+{/* OVERTIME */}
+
+<div className="form-group">
+
+  <label>
+    Overtime Grace (Minutes)
+  </label>
+
+  <input
+    type="number"
+
+    value={
+      overtimeGraceMinutes
+    }
+
+    onChange={(e)=>
+
+      setOvertimeGraceMinutes(
+        e.target.value
+      )
+    }
+
+    placeholder="30"
+
+    disabled={userLimitReached}
+  />
 
 </div>
           <div className="form-group">

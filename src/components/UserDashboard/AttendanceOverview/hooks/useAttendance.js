@@ -129,6 +129,7 @@ const useAttendance = ({
   loading,
 
   attendance,
+  employeeSalaryMap,
 
   refreshAttendance:
     fetchAttendance,

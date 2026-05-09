@@ -69,6 +69,7 @@ import ManageSubCollections from './components/UserDashboard/Banners/ManageSubCo
 import ManageOccasions from './components/UserDashboard/Banners/ManageOccasions';
 import AttendanceOverviewPage from './components/UserDashboard/AttendanceOverview/AttendanceOverviewPage';
 import EmployeeAttendanceDetailsPage from './components/UserDashboard/AttendanceOverview/EmployeeAttendanceDetailsPage';
+import LeaveRequestsPage from './components/UserDashboard/AttendanceOverview/LeaveRequestsPage';
 const App = () => (
 
   <UserProvider>
@@ -345,6 +346,11 @@ const App = () => (
     <EmployeeAttendanceDetailsPage />
   }
 />
+<Route path="/leaverequest" element={
+  <PrivateRoute>
+  <LeaveRequestsPage/>
+  </PrivateRoute>
+} />
         <Route path="/usersidebar/dashboard" element={
           <PrivateRoute>
             <Dashboard />
