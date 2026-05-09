@@ -8,7 +8,7 @@ import { useUser } from './UserContext'; // Import the context
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import './login.css';
 import { CircularProgress } from '@mui/material';
-import Logo from '../../assets/Bore.jpg';
+import Logo from '../../assets/Borebgr.png';
 import BgAbstract from '../../assets/sd.jpg';
 import { fetchRealTimeDate } from '../../utils/fetchRealTimeDate';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
@@ -226,20 +226,130 @@ const Login = () => {
   };
 
   return (
-    <div className="sign-in-container">
-    <div className="sign-in-right">
-      <div className="welcome-text">
-        Welcome to <span className="highlighted-text">BOREZY</span> <br />
-        Booking. Rentals. Made Eazy.
+ <div className="sign-in-container">
+
+  {/* =====================================
+      LEFT PREMIUM PANEL
+  ===================================== */}
+  <div className="sign-in-left">
+
+    {/* LOGO */}
+    <div className="logo-container">
+
+      <img
+        src={Logo}
+        alt="Borezy Logo"
+        className="logo-image"
+      />
+
+    </div>
+
+    {/* OVERLAY */}
+    <div className="left-overlay"></div>
+
+    {/* CONTENT */}
+    <div className="left-content">
+
+      <div className="left-badge">
+
+        ✦ AI Powered Rental OS
+
       </div>
 
-      <h5>Login</h5>
-      <p>Welcome back! Please sign in to your account</p>
+      <h1>
 
-      <form onSubmit={handleLogin}>
+        Run Your Entire <br />
+
+        Rental Business <br />
+
+        with <span>Borezy</span>
+
+      </h1>
+
+      <p>
+
+        Manage bookings, inventory,
+        workforce, analytics, websites,
+        customer apps, and payments —
+        all from one modern platform.
+
+      </p>
+
+      {/* STATS */}
+      <div className="left-stats">
+
+        <div className="left-stat-card">
+
+          <h3>5000+</h3>
+
+          <span>Bookings</span>
+
+        </div>
+
+        <div className="left-stat-card">
+
+          <h3>120+</h3>
+
+          <span>Businesses</span>
+
+        </div>
+
+        <div className="left-stat-card">
+
+          <h3>99.9%</h3>
+
+          <span>Uptime</span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* =====================================
+      RIGHT LOGIN PANEL
+  ===================================== */}
+  <div className="sign-in-right">
+
+    <div className="sign-in-card">
+
+      {/* TOP */}
+      <div className="signin-top">
+
+        <div className="welcome-text">
+
+          Welcome back 👋
+
+        </div>
+
+        <h2>
+
+          Login to <span>Borezy</span>
+
+        </h2>
+
+        <p>
+
+          Access your dashboard and manage
+          your rental operations seamlessly.
+
+        </p>
+
+      </div>
+
+      {/* FORM */}
+      <form
+        onSubmit={handleLogin}
+        className="signin-form"
+      >
+
+        {/* EMAIL */}
         <div className="input-group">
+
           <TextField
-            label="Email ID"
+            label="Email Address"
             variant="outlined"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -253,8 +363,12 @@ const Login = () => {
               ),
             }}
           />
+
         </div>
+
+        {/* PASSWORD */}
         <div className="input-group">
+
           <TextField
             label="Password"
             variant="outlined"
@@ -266,53 +380,105 @@ const Login = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <FaLock /> {/* Start adornment for the lock icon */}
+                  <FaLock />
                 </InputAdornment>
               ),
+
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={togglePasswordVisibility} edge="end" sx={{ background: 'transparent' }}>
-                    {showPassword ? <Visibility /> : <VisibilityOff />}
+
+                  <IconButton
+                    onClick={togglePasswordVisibility}
+                    edge="end"
+                    sx={{
+                      background: 'transparent'
+                    }}
+                  >
+
+                    {showPassword
+                      ? <Visibility />
+                      : <VisibilityOff />
+                    }
+
                   </IconButton>
+
                 </InputAdornment>
               ),
             }}
           />
+
         </div>
 
-        <div className="remember-me">
-          <Checkbox
-            checked={rememberMe}
-            onChange={() => setRememberMe((prev) => !prev)}
-          />
-          <label>Remember Me</label>
+        {/* REMEMBER */}
+        <div className="remember-wrapper">
+
+          <div className="remember-me">
+
+            <Checkbox
+              checked={rememberMe}
+              onChange={() =>
+                setRememberMe((prev) => !prev)
+              }
+            />
+
+            <label>
+              Remember Me
+            </label>
+
+          </div>
+
+          <Link to="/forgot-password">
+
+            Forgot Password?
+
+          </Link>
+
         </div>
 
-        <p> <Link to="/forgot-password">Forgot your password?</Link></p>
-
-        <Button 
-        className="sign-in-button" 
-        fullWidth 
-        variant="contained" 
-        type="submit" 
-        disabled={loading}
-        startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null} // Conditionally show spinner
+        {/* BUTTON */}
+        <Button
+          className="sign-in-button"
+          fullWidth
+          variant="contained"
+          type="submit"
+          disabled={loading}
+          startIcon={
+            loading
+              ? (
+                <CircularProgress
+                  size={20}
+                  color="inherit"
+                />
+              )
+              : null
+          }
         >
-        {loading ? 'Logging-in...' : 'Login'}
+
+          {loading
+            ? 'Signing In...'
+            : 'Login to Dashboard'
+          }
+
         </Button>
 
-        {error && <p className="error-message">{error}</p>}
+        {/* ERROR */}
+        {error && (
+
+          <p className="error-message">
+
+            {error}
+
+          </p>
+
+        )}
+
       </form>
+
     </div>
 
-    <div className="sign-in-left">
-      <h1>The simplest way to manage your workforce</h1>
-    </div>
-
-    <div className="logo-container">
-      <img src={Logo} alt="Logo" className="logo-image" />
-    </div>
   </div>
+
+</div>
   );
 };
 

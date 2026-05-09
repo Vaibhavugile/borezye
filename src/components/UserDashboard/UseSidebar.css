@@ -89,7 +89,7 @@
   
 }
 .sidebar-link.active a {
-  color: white; /* Ensure links inside the active state are white */
+  color: rgb(6, 4, 4); /* Ensure links inside the active state are white */
   font-weight: 0;
 }
  

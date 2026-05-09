@@ -1,20 +1,14 @@
 import React,{
-  useEffect,
   useState,
 } from "react";
 
-import {
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-
 import { useParams } from "react-router-dom";
 
-import { db } from "../../../firebaseConfig";
+import useAttendance from "./hooks/useAttendance";
+
+import {
+  generateEmployeeAttendanceRows,
+} from "./utils/attendanceUtils";
 
 import { useUser } from "../../Auth/UserContext";
 
@@ -23,368 +17,207 @@ import UserSidebar from "../../UserDashboard/UserSidebar";
 
 import "./EmployeeAttendanceDetailsPage.css";
 
-const EmployeeAttendanceDetailsPage = () => {
+const EmployeeAttendanceDetailsPage = ()=>{
 
   const { userId } = useParams();
 
   const { userData } = useUser();
 
+
+
   const [sidebarOpen,setSidebarOpen] =
-      useState(false);
+    useState(false);
 
-  const [attendance,setAttendance] =
-      useState([]);
 
-  const [loading,setLoading] =
-      useState(true);
-
-  const [employeeData,setEmployeeData] =
-      useState(null);
 
   const [selectedMonth,setSelectedMonth] =
-      useState(
-        new Date().getMonth()
-      );
+    useState(
+      new Date().getMonth()
+    );
+
+
 
   const [selectedYear,setSelectedYear] =
-      useState(
-        new Date().getFullYear()
-      );
+    useState(
+      new Date().getFullYear()
+    );
 
-  const handleSidebarToggle = () =>
-      setSidebarOpen(!sidebarOpen);
 
-  useEffect(()=>{
 
-    if(userData?.branchCode){
+  /// FILTER
+  const [activeFilter,setActiveFilter] =
+    useState("all");
 
-      fetchEmployee();
 
-      fetchAttendance();
-    }
 
-  },[
-    userId,
-    selectedMonth,
-    selectedYear,
-    userData?.branchCode,
-  ]);
+  const handleSidebarToggle = ()=>{
 
-  const fetchEmployee = async()=>{
-
-    try{
-
-      const ref = doc(
-
-        db,
-
-        "products",
-
-        userData?.branchCode,
-
-        "subusers",
-
-        userId
-      );
-
-      const snap =
-          await getDoc(ref);
-
-      if(snap.exists()){
-
-        setEmployeeData(
-          snap.data()
-        );
-      }
-
-    }catch(err){
-
-      console.error(err);
-    }
+    setSidebarOpen(
+      !sidebarOpen
+    );
   };
 
-  const fetchAttendance = async()=>{
 
-    try{
 
-      setLoading(true);
+  /// SHARED ATTENDANCE HOOK
+  const {
+    employees,
+    loading,
+    attendance,
+  } = useAttendance({
 
-      const startDate =
-          new Date(
-            selectedYear,
-            selectedMonth,
-            1
-          );
+    branchCode:
+      userData?.branchCode,
 
-      const endDate =
-          new Date(
-            selectedYear,
-            selectedMonth + 1,
-            1
-          );
+    month:selectedMonth,
 
-      const q = query(
+    year:selectedYear,
+  });
 
-        collectionGroup(db,"logs"),
 
-        where(
-          "branchCode",
-          "==",
-          userData?.branchCode
+
+  /// FIND EMPLOYEE
+  const employeeData =
+
+    employees.find(
+      emp=>emp.userId === userId
+    );
+
+
+
+  /// GENERATE DAILY ROWS
+  const rows =
+
+    generateEmployeeAttendanceRows({
+
+      attendance:
+
+        attendance.filter(
+          item=>
+            item.userId === userId
         ),
 
-        where(
-          "userId",
-          "==",
-          userId
-        ),
+      employeeData,
 
-        where(
-          "checkInTime",
-          ">=",
-          startDate
-        ),
+      selectedMonth,
 
-        where(
-          "checkInTime",
-          "<",
-          endDate
-        ),
-      );
+      selectedYear,
+    });
 
-      const snap =
-          await getDocs(q);
 
-      const data =
-          snap.docs.map(doc=>({
 
-        id:doc.id,
-        ...doc.data(),
+  /// FILTERED ROWS
+  const filteredRows =
 
-      }));
+    activeFilter === "all"
 
-      data.sort((a,b)=>{
+      ? rows
 
-        return (
-          b.checkInTime?.seconds || 0
-        ) - (
-          a.checkInTime?.seconds || 0
+      : rows.filter(
+          row=>
+            row.type === activeFilter
         );
-      });
 
-      setAttendance(data);
 
-    }catch(err){
 
-      console.error(err);
+  /// SHARED STATS
+  const presentDays =
+    employeeData?.presentDays || 0;
 
-    }
+  const weekOffDays =
+    employeeData?.autoWeekOffs || 0;
 
-    setLoading(false);
-  };
+  const paidLeaveDays =
+    employeeData?.paidLeaveDays || 0;
 
-  const formatTime=(ts)=>{
+  const absentDays =
+    employeeData?.absentDays || 0;
+
+  const checkoutPending =
+    employeeData?.checkoutPending || 0;
+
+  const totalSalary =
+    employeeData?.totalSalary || 0;
+
+
+
+  const employeeName =
+
+    employeeData?.userName ||
+    "Employee";
+
+
+
+  const selfie =
+
+    employeeData?.selfieUrl ||
+    "";
+
+
+
+  const formatTime = (ts)=>{
 
     if(!ts) return "-";
 
     return ts
       .toDate()
       .toLocaleTimeString([],{
+
         hour:"2-digit",
+
         minute:"2-digit",
       });
   };
+  const formatDuration = (
+  checkIn,
+  checkOut
+)=>{
 
-  const formatDate=(date)=>{
+  if(!checkIn || !checkOut){
+
+    return "-";
+  }
+
+  const inTime =
+    checkIn.toDate();
+
+  const outTime =
+    checkOut.toDate();
+
+  const diffMs =
+    outTime - inTime;
+
+  const hours =
+    Math.floor(
+      diffMs / (1000 * 60 * 60)
+    );
+
+  const minutes =
+    Math.floor(
+
+      (
+        diffMs %
+        (1000 * 60 * 60)
+      ) /
+
+      (1000 * 60)
+    );
+
+  return `${hours}h ${minutes}m`;
+};
+
+
+
+  const formatDate = (date)=>{
 
     if(!date) return "-";
 
     return date.toLocaleDateString();
   };
 
-  const employeeName =
-      employeeData?.name ||
-      attendance[0]?.userName ||
-      "Employee";
 
-  const selfie =
-      attendance[0]?.selfieUrl || "";
 
-  const employeeWeekOffs =
-      employeeData?.weekOffs || [];
-
-  /// MONTHLY SALARY
-  const monthlySalary =
-
-      parseFloat(
-
-        String(
-          employeeData?.salary || 0
-        ).replaceAll(",","")
-
-      ) || 0;
-
-  /// PER DAY
-  
-
-  /// GENERATE MONTH ROWS
-  const rows = [];
-
-const daysInMonth =
-    new Date(
-      selectedYear,
-      selectedMonth + 1,
-      0
-    ).getDate();
-    const perDaySalary =
-    monthlySalary / daysInMonth;
-
-for(
-  let day = 1;
-  day <= daysInMonth;
-  day++
-){
-
-    const currentDate =
-        new Date(
-          selectedYear,
-          selectedMonth,
-          day
-        );
-
-    const dayName =
-        currentDate.toLocaleDateString(
-          "en-US",
-          {
-            weekday:"long"
-          }
-        );
-
-    const existing =
-        attendance.find(item=>{
-
-      const d =
-          item.checkInTime
-              ?.toDate();
-
-      if(!d) return false;
-
-      return (
-
-        d.getDate() ===
-        currentDate.getDate()
-
-      );
-    });
-
-    /// PRESENT
-    if(existing){
-
-      const type =
-
-          existing.attendanceType ||
-
-          (
-            existing.checkOutTime
-              ? "present"
-              : "checkoutpending"
-          );
-
-      rows.push({
-
-        date:currentDate,
-
-        type,
-
-        checkIn:
-            existing.checkInTime,
-
-        checkOut:
-            existing.checkOutTime,
-
-        selfie:
-            existing.selfieUrl || "",
-      });
-
-    }
-
-    /// WEEK OFF
-    else if(
-
-      employeeWeekOffs.includes(
-        dayName
-      )
-
-    ){
-
-      rows.push({
-
-        date:currentDate,
-
-        type:"weekoff",
-      });
-    }
-
-    /// ABSENT
-    else{
-
-      rows.push({
-
-        date:currentDate,
-
-        type:"absent",
-      });
-    }
-  }
-
-  /// PRESENT
-  const presentDays =
-      rows.filter(
-        r=>r.type === "present"
-      ).length;
-
-  /// WEEKOFF
-  const weekOffDays =
-      rows.filter(
-        r=>r.type === "weekoff"
-      ).length;
-
-  /// PAID LEAVE
-  const paidLeaveDays =
-      rows.filter(
-        r=>r.type === "paidleave"
-      ).length;
-
-  /// ABSENT
-  const absentDays =
-      rows.filter(
-        r=>r.type === "absent"
-      ).length;
-
-  /// PENDING
-  const checkoutPending =
-      rows.filter(
-        r=>
-          r.type ===
-          "checkoutpending"
-      ).length;
-
-  /// PAID DAYS
-  const totalPaidDays =
-
-      presentDays +
-      weekOffDays +
-      paidLeaveDays;
-
-  /// FINAL SALARY
-  const totalSalary =
-
-      Math.round(
-        totalPaidDays *
-        perDaySalary
-      );
-
-  return (
+  return(
 
     <div
       className={`dashboard-container ${
@@ -396,8 +229,12 @@ for(
 
       <UserSidebar
         isOpen={sidebarOpen}
-        onToggle={handleSidebarToggle}
+        onToggle={
+          handleSidebarToggle
+        }
       />
+
+
 
       <div className="employee-attendance-container">
 
@@ -411,6 +248,8 @@ for(
           }
         />
 
+
+
         <section className="employee-attendance-section">
 
           <div className="employee-header-card">
@@ -418,6 +257,7 @@ for(
             <div className="employee-profile">
 
               <img
+
                 src={
                   selfie ||
 
@@ -426,6 +266,8 @@ for(
 
                 alt="employee"
               />
+
+
 
               <div>
 
@@ -443,9 +285,55 @@ for(
 
           </div>
 
+
+
           <div className="employee-summary-grid">
 
-            <div className="summary-card success">
+
+
+            {/* ALL */}
+
+            <div
+
+              className={`summary-card ${
+                activeFilter === "all"
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter("all")
+              }
+            >
+
+              <span>
+                All
+              </span>
+
+              <strong>
+                {rows.length}
+              </strong>
+
+            </div>
+
+
+
+            {/* PRESENT */}
+
+            <div
+
+              className={`summary-card success ${
+                activeFilter === "present"
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter(
+                  "present"
+                )
+              }
+            >
 
               <span>
                 Present Days
@@ -457,7 +345,24 @@ for(
 
             </div>
 
-            <div className="summary-card">
+
+
+            {/* WEEKOFF */}
+
+            <div
+
+              className={`summary-card ${
+                activeFilter === "weekoff"
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter(
+                  "weekoff"
+                )
+              }
+            >
 
               <span>
                 Week Off
@@ -469,7 +374,24 @@ for(
 
             </div>
 
-            <div className="summary-card">
+
+
+            {/* PAID LEAVE */}
+
+            <div
+
+              className={`summary-card ${
+                activeFilter === "paidleave"
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter(
+                  "paidleave"
+                )
+              }
+            >
 
               <span>
                 Paid Leave
@@ -481,7 +403,24 @@ for(
 
             </div>
 
-            <div className="summary-card danger">
+
+
+            {/* ABSENT */}
+
+            <div
+
+              className={`summary-card danger ${
+                activeFilter === "absent"
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter(
+                  "absent"
+                )
+              }
+            >
 
               <span>
                 Absent Days
@@ -493,7 +432,26 @@ for(
 
             </div>
 
-            <div className="summary-card warning">
+
+
+            {/* PENDING */}
+
+            <div
+
+              className={`summary-card warning ${
+                activeFilter ===
+                "checkoutpending"
+
+                  ? "active"
+                  : ""
+              }`}
+
+              onClick={()=>
+                setActiveFilter(
+                  "checkoutpending"
+                )
+              }
+            >
 
               <span>
                 Checkout Pending
@@ -504,6 +462,10 @@ for(
               </strong>
 
             </div>
+
+
+
+            {/* SALARY */}
 
             <div className="summary-card dark">
 
@@ -522,12 +484,16 @@ for(
 
           </div>
 
+
+
           <div className="attendance-log-card">
 
             {loading ? (
 
               <div className="attendance-loading">
+
                 Loading attendance...
+
               </div>
 
             ) : (
@@ -543,6 +509,7 @@ for(
                     <th>Check In</th>
 
                     <th>Check Out</th>
+                    <th>Total Duration</th>
 
                     <th>Type</th>
 
@@ -552,20 +519,24 @@ for(
 
                 </thead>
 
+
+
                 <tbody>
 
-                  {rows.map((item,index)=>{
+                  {filteredRows.map((item,index)=>{
 
                     const completed =
 
-                        item.type ===
-                        "present" ||
+                      item.type ===
+                      "present" ||
 
-                        item.type ===
-                        "weekoff" ||
+                      item.type ===
+                      "weekoff" ||
 
-                        item.type ===
-                        "paidleave";
+                      item.type ===
+                      "paidleave";
+
+
 
                     return(
 
@@ -577,17 +548,31 @@ for(
                           )}
                         </td>
 
+
+
                         <td>
                           {formatTime(
                             item.checkIn
                           )}
                         </td>
 
+
+
                         <td>
                           {formatTime(
                             item.checkOut
                           )}
                         </td>
+                        <td>
+
+  {formatDuration(
+    item.checkIn,
+    item.checkOut
+  )}
+
+</td>
+
+
 
                         <td>
 
@@ -601,10 +586,13 @@ for(
 
                         </td>
 
+
+
                         <td>
 
                           <span
                             className={
+
                               completed
 
                                 ? "attendance-status completed"

@@ -193,3 +193,10 @@
 
   color:#777;
 }
+.attendance-log-table th,
+.attendance-log-table td{
+
+  text-align:center;
+
+  vertical-align:middle;
+}

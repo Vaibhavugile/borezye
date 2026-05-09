@@ -1,0 +1,121 @@
+import {
+  collectionGroup,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+
+import { db } from "../../../../firebaseConfig";
+
+/// FETCH ATTENDANCE LOGS
+export const fetchAttendanceLogs =
+async({
+  branchCode,
+  month,
+  year,
+})=>{
+
+  const startDate =
+    new Date(year,month,1);
+
+  const endDate =
+    new Date(year,month + 1,1);
+
+  const q = query(
+
+    collectionGroup(db,"logs"),
+
+    where(
+      "branchCode",
+      "==",
+      branchCode
+    ),
+
+    where(
+      "checkInTime",
+      ">=",
+      startDate
+    ),
+
+    where(
+      "checkInTime",
+      "<",
+      endDate
+    )
+  );
+
+  const snap =
+    await getDocs(q);
+
+  return snap.docs.map(doc=>({
+
+    id:doc.id,
+
+    ...doc.data(),
+  }));
+};
+
+
+/// FETCH EMPLOYEE SALARY DATA
+export const fetchEmployeeSalaryMap =
+async({
+  branchCode,
+  attendanceData,
+})=>{
+
+  const uniqueUsers =
+    [...new Set(
+      attendanceData.map(
+        item=>item.userId
+      )
+    )];
+
+  let salaryMap = {};
+
+  for(const uid of uniqueUsers){
+
+    try{
+
+      const userRef = doc(
+        db,
+        "products",
+        branchCode,
+        "subusers",
+        uid
+      );
+
+      const userSnap =
+        await getDoc(userRef);
+
+      if(userSnap.exists()){
+
+        salaryMap[uid] = {
+
+          salary:
+
+            parseFloat(
+
+              String(
+                userSnap.data()
+                  ?.salary || 0
+              ).replaceAll(",","")
+
+            ) || 0,
+
+          weekOffs:
+
+            userSnap.data()
+              ?.weekOffs || [],
+        };
+      }
+
+    }catch(err){
+
+      console.error(err);
+    }
+  }
+
+  return salaryMap;
+};

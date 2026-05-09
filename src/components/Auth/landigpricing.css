@@ -1,0 +1,754 @@
+/* =========================================
+   PRICING SECTION
+========================================= */
+
+.pricing-section{
+  position: relative;
+  overflow: hidden;
+
+  padding:
+    40px 7% 120px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #faf7ff 0%,
+      #f7f4ff 100%
+    );
+}
+
+/* =========================================
+   BACKGROUND GLOW
+========================================= */
+
+.pricing-glow{
+  position: absolute;
+
+  border-radius: 50%;
+
+  filter: blur(140px);
+
+  pointer-events: none;
+}
+
+.pricing-glow-1{
+  width: 500px;
+  height: 500px;
+
+  top: -180px;
+  left: -180px;
+
+  background:
+    rgba(168,85,247,0.08);
+}
+
+.pricing-glow-2{
+  width: 450px;
+  height: 450px;
+
+  bottom: -180px;
+  right: -180px;
+
+  background:
+    rgba(124,58,237,0.06);
+}
+
+/* =========================================
+   CONTAINER
+========================================= */
+
+.pricing-container{
+  position: relative;
+  z-index: 5;
+
+  max-width: 1320px;
+
+  margin: auto;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.pricing-header{
+  text-align: center;
+
+  max-width: 760px;
+
+  margin:
+    0 auto 70px;
+}
+
+.pricing-header h2{
+  font-size: 54px;
+
+  line-height: 1;
+
+  letter-spacing: -3px;
+
+  color: #111;
+
+  margin:
+    24px 0;
+}
+
+.pricing-header h2 span{
+  background:
+    linear-gradient(
+      135deg,
+      #c084fc,
+      #7c3aed
+    );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pricing-header p{
+  font-size: 17px;
+
+  line-height: 1.8;
+
+  color: #666;
+
+  max-width: 640px;
+
+  margin: auto;
+}
+
+/* =========================================
+   GRID
+========================================= */
+
+.pricing-grid{
+  display: grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap: 24px;
+
+  align-items: stretch;
+}
+
+/* =========================================
+   CARD
+========================================= */
+
+.pricing-card{
+  position: relative;
+
+  padding: 34px 30px;
+
+  border-radius: 28px;
+
+  background:
+    rgba(255,255,255,0.76);
+
+  backdrop-filter: blur(18px);
+
+  border:
+    1px solid rgba(255,255,255,0.7);
+
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.04);
+}
+
+.pricing-card:hover{
+  transform:
+    translateY(-8px);
+
+  box-shadow:
+    0 25px 60px rgba(124,58,237,0.10);
+}
+
+/* =========================================
+   FEATURED CARD
+========================================= */
+
+.featured-plan{
+  background:
+    linear-gradient(
+      180deg,
+      #b46cff,
+      #7c3aed
+    );
+
+  color: white;
+
+  transform: scale(1.02);
+
+  box-shadow:
+    0 25px 60px rgba(124,58,237,0.18);
+}
+
+.featured-plan:hover{
+  transform:
+    scale(1.02)
+    translateY(-8px);
+}
+
+/* =========================================
+   POPULAR BADGE
+========================================= */
+
+.popular-badge{
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,0.16);
+
+  border:
+    1px solid rgba(255,255,255,0.18);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+}
+
+/* =========================================
+   TOP
+========================================= */
+
+.plan-top{
+  margin-bottom: 24px;
+}
+
+.plan-label{
+  font-size: 14px;
+  font-weight: 600;
+
+  opacity: .85;
+}
+
+.plan-top h3{
+  font-size: 56px;
+
+  margin:
+    14px 0 8px;
+
+  line-height: 1;
+}
+
+.plan-top p{
+  font-size: 14px;
+
+  opacity: .75;
+}
+
+/* =========================================
+   DIVIDER
+========================================= */
+
+.plan-divider{
+  width: 100%;
+  height: 1px;
+
+  background:
+    rgba(0,0,0,0.06);
+
+  margin-bottom: 28px;
+}
+
+.featured-plan .plan-divider{
+  background:
+    rgba(255,255,255,0.16);
+}
+
+/* =========================================
+   FEATURES
+========================================= */
+
+.pricing-card ul{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  margin-bottom: 34px;
+
+  padding: 0;
+
+  list-style: none;
+}
+
+.pricing-card ul li{
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  opacity: .92;
+}
+
+/* =========================================
+   BUTTON
+========================================= */
+
+.pricing-card button{
+  width: 100%;
+
+  border: none;
+
+  padding: 16px;
+
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: .3s ease;
+}
+
+/* NORMAL BUTTON */
+
+.starter-plan button,
+.enterprise-plan button{
+  background:
+    linear-gradient(
+      135deg,
+      #c084fc,
+      #7c3aed
+    );
+
+  color: white;
+}
+
+/* FEATURED BUTTON */
+
+.featured-plan button{
+  background: white;
+
+  color: #7c3aed;
+}
+
+.pricing-card button:hover{
+  transform:
+    translateY(-2px);
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media(max-width:1100px){
+
+  .pricing-grid{
+    display: flex;
+
+    gap: 18px;
+
+    overflow-x: auto;
+
+    scroll-snap-type: x mandatory;
+
+    padding-bottom: 10px;
+
+    scrollbar-width: none;
+  }
+
+  .pricing-grid::-webkit-scrollbar{
+    display: none;
+  }
+
+  .pricing-card{
+    min-width: 320px;
+
+    flex-shrink: 0;
+
+    scroll-snap-align: center;
+  }
+
+  .featured-plan{
+    transform: scale(1);
+  }
+
+  .featured-plan:hover{
+    transform:
+      translateY(-8px);
+  }
+
+}
+
+@media(max-width:768px){
+
+  .pricing-section{
+    padding:
+      80px 20px;
+  }
+
+  .pricing-header{
+    margin-bottom: 45px;
+  }
+
+  .pricing-header h2{
+    font-size: 36px;
+
+    line-height: 1.05;
+
+    letter-spacing: -2px;
+  }
+
+  .pricing-header p{
+    font-size: 14px;
+
+    line-height: 1.7;
+  }
+
+  .pricing-grid{
+    padding-left: 2px;
+  }
+
+  .pricing-card{
+    min-width: 280px;
+
+    padding: 26px 22px;
+
+    border-radius: 24px;
+  }
+
+  .plan-top h3{
+    font-size: 42px;
+  }
+
+  .pricing-card ul{
+    gap: 12px;
+  }
+
+  .pricing-card ul li{
+    font-size: 13px;
+  }
+
+  .pricing-card button{
+    padding: 14px;
+
+    font-size: 13px;
+  }
+
+}
+
+
+/* =========================================
+   TESTIMONIALS SECTION
+========================================= */
+
+.testimonials-section{
+  position: relative;
+  overflow: hidden;
+
+  padding:
+    120px 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #faf7ff 100%
+    );
+}
+
+/* =========================================
+   GLOW
+========================================= */
+
+.testimonials-glow{
+  position: absolute;
+
+  width: 550px;
+  height: 550px;
+
+  top: -180px;
+  right: -180px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(168,85,247,0.10);
+
+  filter: blur(140px);
+
+  pointer-events: none;
+}
+
+/* =========================================
+   CONTAINER
+========================================= */
+
+.testimonials-container{
+  position: relative;
+  z-index: 5;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.testimonials-header{
+  text-align: center;
+
+  max-width: 760px;
+
+  margin:
+    0 auto 70px;
+}
+
+.testimonials-header h2{
+  font-size: 58px;
+
+  line-height: 1;
+
+  letter-spacing: -3px;
+
+  color: #111;
+
+  margin:
+    24px 0;
+}
+
+.testimonials-header h2 span{
+  background:
+    linear-gradient(
+      135deg,
+      #c084fc,
+      #7c3aed
+    );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.testimonials-header p{
+  font-size: 17px;
+
+  line-height: 1.8;
+
+  color: #666;
+
+  max-width: 650px;
+
+  margin: auto;
+}
+
+/* =========================================
+   SLIDER
+========================================= */
+
+.testimonials-slider{
+  overflow: hidden;
+
+  width: 100%;
+}
+
+/* TRACK */
+
+.testimonials-track{
+  display: flex;
+  gap: 28px;
+
+  width: max-content;
+
+  animation:
+    scrollTestimonials 40s linear infinite;
+}
+
+/* PAUSE ON HOVER */
+
+.testimonials-slider:hover .testimonials-track{
+  animation-play-state: paused;
+}
+
+/* =========================================
+   CARD
+========================================= */
+
+.testimonial-card{
+  width: 420px;
+
+  padding: 34px 32px;
+
+  border-radius: 30px;
+
+  background:
+    rgba(255,255,255,0.78);
+
+  backdrop-filter: blur(18px);
+
+  border:
+    1px solid rgba(255,255,255,0.7);
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.04);
+
+  transition:
+    transform .4s ease,
+    box-shadow .4s ease;
+
+  flex-shrink: 0;
+}
+
+/* HOVER */
+
+.testimonial-card:hover{
+  transform:
+    translateY(-10px);
+
+  box-shadow:
+    0 30px 70px rgba(124,58,237,0.10);
+}
+
+/* FEATURED */
+
+.featured-testimonial{
+  background:
+    linear-gradient(
+      180deg,
+      #b46cff,
+      #7c3aed
+    );
+
+  color: white;
+}
+
+/* =========================================
+   STARS
+========================================= */
+
+.stars{
+  font-size: 18px;
+
+  letter-spacing: 4px;
+
+  margin-bottom: 24px;
+
+  color: #facc15;
+}
+
+/* =========================================
+   TEXT
+========================================= */
+
+.testimonial-text{
+  font-size: 16px;
+
+  line-height: 1.9;
+
+  margin-bottom: 34px;
+
+  color: inherit;
+
+  opacity: .92;
+}
+
+/* =========================================
+   USER
+========================================= */
+
+.testimonial-user{
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* AVATAR */
+
+.user-avatar{
+  width: 56px;
+  height: 56px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  background:
+    linear-gradient(
+      135deg,
+      #c084fc,
+      #7c3aed
+    );
+
+  color: white;
+}
+
+/* FEATURED AVATAR */
+
+.featured-testimonial .user-avatar{
+  background: white;
+
+  color: #7c3aed;
+}
+
+/* TEXT */
+
+.testimonial-user h4{
+  font-size: 17px;
+
+  margin-bottom: 4px;
+}
+
+.testimonial-user span{
+  font-size: 13px;
+
+  opacity: .7;
+
+  letter-spacing: 1px;
+}
+
+/* =========================================
+   ANIMATION
+========================================= */
+
+@keyframes scrollTestimonials{
+
+  from{
+    transform: translateX(0);
+  }
+
+  to{
+    transform: translateX(-50%);
+  }
+
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:768px){
+
+  .testimonials-section{
+    padding:
+      100px 0;
+  }
+
+  .testimonials-header h2{
+    font-size: 42px;
+  }
+
+  .testimonial-card{
+    width: 320px;
+  }
+
+}

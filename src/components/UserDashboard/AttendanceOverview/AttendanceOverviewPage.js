@@ -1,18 +1,8 @@
-import React, {
-  useEffect,
+import React,{
   useState,
 } from "react";
 
-import {
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-
-import { db } from "../../../firebaseConfig";
+import useAttendance from "./hooks/useAttendance";
 
 import { useUser } from "../../Auth/UserContext";
 
@@ -21,194 +11,58 @@ import UserSidebar from "../../UserDashboard/UserSidebar";
 
 import "./AttendanceOverviewPage.css";
 
-const AttendanceOverviewPage = () => {
+const AttendanceOverviewPage = ()=>{
 
   const { userData } = useUser();
 
+
+
   const [sidebarOpen,setSidebarOpen] =
-      useState(false);
+    useState(false);
 
-  const [attendance,setAttendance] =
-      useState([]);
 
-  const [loading,setLoading] =
-      useState(true);
-
-  const [employeeSalaryMap,
-      setEmployeeSalaryMap] =
-      useState({});
 
   const [selectedMonth,setSelectedMonth] =
-      useState(
-        new Date().getMonth()
-      );
+    useState(
+      new Date().getMonth()
+    );
+
+
 
   const [selectedYear,setSelectedYear] =
-      useState(
-        new Date().getFullYear()
-      );
+    useState(
+      new Date().getFullYear()
+    );
 
-  const handleSidebarToggle = () =>
-      setSidebarOpen(!sidebarOpen);
 
-  useEffect(()=>{
 
-    if(userData?.branchCode){
+  const handleSidebarToggle = ()=>{
 
-      fetchAttendance();
-    }
-
-  },[
-    userData?.branchCode,
-    selectedMonth,
-    selectedYear,
-  ]);
-
-  const fetchAttendance = async()=>{
-
-    try{
-
-      setLoading(true);
-
-      const startDate =
-          new Date(
-            selectedYear,
-            selectedMonth,
-            1
-          );
-
-      const endDate =
-          new Date(
-            selectedYear,
-            selectedMonth + 1,
-            1
-          );
-
-      const q = query(
-
-        collectionGroup(db,"logs"),
-
-        where(
-          "branchCode",
-          "==",
-          userData?.branchCode
-        ),
-
-        where(
-          "checkInTime",
-          ">=",
-          startDate
-        ),
-
-        where(
-          "checkInTime",
-          "<",
-          endDate
-        )
-      );
-
-      const snap =
-          await getDocs(q);
-
-      const data =
-          snap.docs.map(doc=>({
-
-        id:doc.id,
-        ...doc.data(),
-
-      }));
-
-      setAttendance(data);
-
-      /// FETCH EMPLOYEE DATA
-      const uniqueUsers =
-          [...new Set(
-            data.map(
-              item=>item.userId
-            )
-          )];
-
-      let salaryMap = {};
-
-      for(const uid of uniqueUsers){
-
-        try{
-
-          const userRef = doc(
-
-            db,
-
-            "products",
-
-            userData?.branchCode,
-
-            "subusers",
-
-            uid
-          );
-
-          const userSnap =
-              await getDoc(userRef);
-
-          if(userSnap.exists()){
-
-            salaryMap[uid] = {
-
-              salary:
-
-                parseFloat(
-
-                  String(
-                    userSnap.data()
-                        ?.salary || 0
-                  ).replaceAll(",","")
-
-                ) || 0,
-
-              weekOffs:
-
-                userSnap.data()
-                    ?.weekOffs || [],
-            };
-          }
-
-        }catch(err){
-
-          console.error(err);
-        }
-      }
-
-      setEmployeeSalaryMap(
-        salaryMap
-      );
-
-    }catch(err){
-
-      console.error(err);
-
-    }
-
-    setLoading(false);
+    setSidebarOpen(
+      !sidebarOpen
+    );
   };
 
-  const totalEmployees =
-      new Set(
-        attendance.map(
-          a=>a.userId
-        )
-      ).size;
 
-  const completedDays =
-      attendance.filter(
-        a=>a.checkOutTime
-      ).length;
 
-  const activeEmployees =
-      attendance.filter(
-        a=>!a.checkOutTime
-      ).length;
+  /// ATTENDANCE HOOK
+  const {
+    employees,
+    stats,
+    loading,
+  } = useAttendance({
 
-  return (
+    branchCode:
+      userData?.branchCode,
+
+    month:selectedMonth,
+
+    year:selectedYear,
+  });
+
+
+
+  return(
 
     <div
       className={`dashboard-container ${
@@ -220,8 +74,12 @@ const AttendanceOverviewPage = () => {
 
       <UserSidebar
         isOpen={sidebarOpen}
-        onToggle={handleSidebarToggle}
+        onToggle={
+          handleSidebarToggle
+        }
       />
+
+
 
       <div className="attendance-container">
 
@@ -234,6 +92,8 @@ const AttendanceOverviewPage = () => {
             sidebarOpen
           }
         />
+
+
 
         <section className="attendance-section">
 
@@ -252,14 +112,19 @@ const AttendanceOverviewPage = () => {
 
             </div>
 
+
+
             <div className="attendance-filters">
 
               <select
                 value={selectedMonth}
 
                 onChange={(e)=>
+
                   setSelectedMonth(
-                    Number(e.target.value)
+                    Number(
+                      e.target.value
+                    )
                   )
                 }
               >
@@ -272,8 +137,8 @@ const AttendanceOverviewPage = () => {
                 ].map((m,i)=>(
 
                   <option
-                    value={i}
                     key={i}
+                    value={i}
                   >
                     {m}
                   </option>
@@ -286,6 +151,8 @@ const AttendanceOverviewPage = () => {
 
           </div>
 
+
+
           <div className="attendance-stats">
 
             <div className="attendance-stat-card">
@@ -295,10 +162,12 @@ const AttendanceOverviewPage = () => {
               </span>
 
               <strong>
-                {totalEmployees}
+                {stats.totalEmployees}
               </strong>
 
             </div>
+
+
 
             <div className="attendance-stat-card success">
 
@@ -307,10 +176,12 @@ const AttendanceOverviewPage = () => {
               </span>
 
               <strong>
-                {completedDays}
+                {stats.completedDays}
               </strong>
 
             </div>
+
+
 
             <div className="attendance-stat-card warning">
 
@@ -319,12 +190,14 @@ const AttendanceOverviewPage = () => {
               </span>
 
               <strong>
-                {activeEmployees}
+                {stats.activeEmployees}
               </strong>
 
             </div>
 
           </div>
+
+
 
           {loading ? (
 
@@ -338,180 +211,12 @@ const AttendanceOverviewPage = () => {
 
             <div className="employee-grid">
 
-              {Object.values(
-
-                attendance.reduce((acc,item)=>{
-
-                  if(!acc[item.userId]){
-
-                    acc[item.userId] = {
-
-                      userId:item.userId,
-
-                      userName:
-                          item.userName ||
-                          "Unknown",
-
-                      selfieUrl:
-                          item.selfieUrl ||
-                          "",
-
-                      presentDays:0,
-
-                      paidLeaveDays:0,
-
-                      checkoutPending:0,
-                    };
-                  }
-
-                  const type =
-
-                      item.attendanceType ||
-
-                      (
-                        item.checkOutTime
-                          ? "present"
-                          : "checkoutpending"
-                      );
-
-                  /// PRESENT
-                  if(
-                    type === "present"
-                  ){
-
-                    acc[item.userId]
-                        .presentDays++;
-                  }
-
-                  /// PAID LEAVE
-                  if(
-                    type === "paidleave"
-                  ){
-
-                    acc[item.userId]
-                        .paidLeaveDays++;
-                  }
-
-                  /// CHECKOUT PENDING
-                  if(
-                    type ===
-                    "checkoutpending"
-                  ){
-
-                    acc[item.userId]
-                        .checkoutPending++;
-                  }
-
-                  return acc;
-
-                },{})
-
-              ).map((employee)=>{
-
-                const monthlySalary =
-
-                    employeeSalaryMap[
-                      employee.userId
-                    ]?.salary || 0;
-
-                const employeeWeekOffs =
-
-                    employeeSalaryMap[
-                      employee.userId
-                    ]?.weekOffs || [];
-
-                /// AUTO WEEKOFFS
-                let autoWeekOffs = 0;
-
-               const daysInMonth =
-    new Date(
-      selectedYear,
-      selectedMonth + 1,
-      0
-    ).getDate();
-
-for(
-  let day = 1;
-  day <= daysInMonth;
-  day++
-){
-
-                  const currentDate =
-                      new Date(
-                        selectedYear,
-                        selectedMonth,
-                        day
-                      );
-
-                  const dayName =
-                      currentDate.toLocaleDateString(
-                        "en-US",
-                        {
-                          weekday:"long"
-                        }
-                      );
-
-                  if(
-
-                    employeeWeekOffs.includes(
-                      dayName
-                    )
-
-                  ){
-
-                    autoWeekOffs++;
-                  }
-                }
-
-                /// ABSENT
-                /// ABSENT
-const absentDays =
-
-    Math.max(
-
-      0,
-
-      daysInMonth -
-
-      (
-        employee.presentDays +
-
-        autoWeekOffs +
-
-        employee.paidLeaveDays +
-
-        employee.checkoutPending
-      )
-
-    );
-
-                /// PER DAY
-                const perDaySalary =
-    monthlySalary / daysInMonth;
-
-                /// TOTAL PAID DAYS
-                const totalPaidDays =
-
-                    employee.presentDays +
-
-                    autoWeekOffs +
-
-                    employee.paidLeaveDays;
-
-                /// FINAL SALARY
-                const totalSalary =
-
-                    Math.round(
-                      totalPaidDays *
-                      perDaySalary
-                    );
+              {employees.map((employee)=>{
 
                 return(
 
                   <div
-
                     key={employee.userId}
-
                     className="employee-card"
                   >
 
@@ -528,6 +233,8 @@ const absentDays =
                         alt="employee"
                       />
 
+
+
                       <div>
 
                         <h3>
@@ -543,6 +250,8 @@ const absentDays =
 
                     </div>
 
+
+
                     <div className="employee-card-stats">
 
                       <div>
@@ -557,6 +266,8 @@ const absentDays =
 
                       </div>
 
+
+
                       <div>
 
                         <span>
@@ -564,10 +275,12 @@ const absentDays =
                         </span>
 
                         <strong>
-                          {autoWeekOffs}
+                          {employee.autoWeekOffs}
                         </strong>
 
                       </div>
+
+
 
                       <div>
 
@@ -581,6 +294,8 @@ const absentDays =
 
                       </div>
 
+
+
                       <div>
 
                         <span>
@@ -588,10 +303,12 @@ const absentDays =
                         </span>
 
                         <strong>
-                          {absentDays}
+                          {employee.absentDays}
                         </strong>
 
                       </div>
+
+
 
                       <div>
 
@@ -607,6 +324,8 @@ const absentDays =
 
                     </div>
 
+
+
                     <div className="employee-card-footer">
 
                       <div>
@@ -616,13 +335,13 @@ const absentDays =
                         </span>
 
                         <strong>
-
                           ₹
-                          {totalSalary}
-
+                          {employee.totalSalary}
                         </strong>
 
                       </div>
+
+
 
                       <button
 
@@ -631,7 +350,6 @@ const absentDays =
                           window.location.href =
 
                             `/attendance/${employee.userId}`;
-
                         }}
                       >
 
