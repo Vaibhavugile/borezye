@@ -168,7 +168,7 @@ const Lead = () => {
                 value={formData.emailId}
                 onChange={handleChange}
                 placeholder="Enter email address"
-                required
+                
               />
 
             </div>
@@ -186,7 +186,7 @@ const Lead = () => {
                 name="nextFollowup"
                 value={formData.nextFollowup}
                 onChange={handleChange}
-                required
+               
               />
 
             </div>

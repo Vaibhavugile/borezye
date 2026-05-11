@@ -20,7 +20,7 @@ const RightSidebar = ({ isOpen, onClose, selectedLead }) => {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [templateBody, setTemplateBody] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+const [users, setUsers] = useState([]);
   const [selectedContactNo, setSelectedContactNo] = useState(null);
 
   const [templates, setTemplates] = useState([]);
@@ -37,6 +37,39 @@ const RightSidebar = ({ isOpen, onClose, selectedLead }) => {
       setComments(selectedLead.comments || []);
     }
   }, [selectedLead]);
+  useEffect(() => {
+
+  const fetchUsers = async () => {
+
+    try {
+
+      const usersSnapshot =
+          await getDocs(
+        collection(db, "superadmins")
+      );
+
+      const usersList =
+          usersSnapshot.docs.map((doc) => ({
+
+        id: doc.id,
+
+        ...doc.data(),
+      }));
+
+      setUsers(usersList);
+
+    } catch (error) {
+
+      console.error(
+        "Error fetching users:",
+        error
+      );
+    }
+  };
+
+  fetchUsers();
+
+}, []);
 
   const handleSave = async () => {
     // ADDED LOG FOR DEBUGGING: Log the value of selectedLead right before the check
@@ -249,11 +282,35 @@ const RightSidebar = ({ isOpen, onClose, selectedLead }) => {
         <div className="sidebar-row">
           <div className="sidebar-item">
             <h3>Assigned To:</h3>
-            <input
-              type="text"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-            />
+            <select
+  value={assignedTo}
+
+  onChange={(e) =>
+    setAssignedTo(e.target.value)
+  }
+>
+
+  <option value="">
+    Select User
+  </option>
+
+  {users.map((user) => (
+
+    <option
+      key={user.id}
+
+      value={
+        user.name ||
+        user.email
+      }
+    >
+
+      {user.name ||
+       user.email}
+
+    </option>
+  ))}
+</select>
           </div>
         </div>
         <div className="sidebar-row full-width-row">

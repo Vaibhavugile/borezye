@@ -88,7 +88,14 @@ const UserSidebar = ({ isOpen }) => {
             </Link>
           </li>
           )}
-       
+        {userData?.role !== 'Subuser' && (
+          <li className={`sidebar-link ${location.pathname === '/leaverequest' ? 'active' : ''}`}>
+            <Link to="/leaverequest" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Leave Requests
+            </Link>
+          </li>
+          )}
+          
           <li className={`sidebar-link ${location.pathname==='/logout'}`}>
             < Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>
             <FaSignOutAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Logout

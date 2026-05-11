@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,deleteDoc ,updateDoc,writeBatch,where,arrayUnion} from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, collectionGroup, doc, setDoc, getDoc,addDoc,serverTimestamp,Timestamp,deleteDoc ,updateDoc,writeBatch,where,arrayUnion} from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import './Dahboard.css';
 import { useUser } from '../../Auth/UserContext';
@@ -1145,6 +1145,467 @@ const deleteOldCustomers = async () => {
 
   console.log(`🎉 Deleted: ${deleted}`);
 };
+const migrateAttendanceIds = async () => {
+
+  console.log("🚀 Attendance migration started");
+
+  try {
+
+    /// GET ALL LOGS
+    const snap = await getDocs(
+
+      collectionGroup(
+        db,
+        "logs"
+      )
+    );
+
+
+
+    console.log(
+      "Total logs:",
+      snap.size
+    );
+
+
+
+    let migrated = 0;
+
+    let skipped = 0;
+
+
+
+    for (const item of snap.docs) {
+
+      const oldId = item.id;
+
+
+
+      /// SPLIT DATE
+      const parts =
+        oldId.split("-");
+
+
+
+      /// INVALID FORMAT
+      if (parts.length !== 3) {
+
+        console.log(
+          "⚠️ Invalid ID:",
+          oldId
+        );
+
+        skipped++;
+
+        continue;
+      }
+
+
+
+      const year =
+        parts[0];
+
+
+
+      const month =
+
+        String(
+          parts[1]
+        ).padStart(2, "0");
+
+
+
+      const day =
+
+        String(
+          parts[2]
+        ).padStart(2, "0");
+
+
+
+      const newId =
+
+`${year}-${month}-${day}`;
+
+
+
+      /// ALREADY CORRECT
+      if (oldId === newId) {
+
+        skipped++;
+
+        continue;
+      }
+
+
+
+      const data =
+        item.data();
+
+
+
+      const userId =
+        data.userId;
+
+
+
+      if (!userId) {
+
+        console.log(
+          "❌ Missing userId:",
+          oldId
+        );
+
+        skipped++;
+
+        continue;
+      }
+
+
+
+      /// NEW REF
+      const newRef = doc(
+
+        db,
+
+        "attendance",
+
+        userId,
+
+        "logs",
+
+        newId
+      );
+
+
+
+      /// COPY DATA
+      await setDoc(
+        newRef,
+        data
+      );
+
+
+
+      /// DELETE OLD DOC
+      await deleteDoc(
+        item.ref
+      );
+
+
+
+      migrated++;
+
+
+
+      console.log(
+
+`✅ ${oldId}
+→
+${newId}`
+      );
+    }
+
+
+
+    console.log(
+      "🎉 Migration completed"
+    );
+
+
+
+    console.log(
+      "Migrated:",
+      migrated
+    );
+
+
+
+    console.log(
+      "Skipped:",
+      skipped
+    );
+
+  } catch (err) {
+
+    console.error(err);
+  }
+};
+const migrateAttendanceDates =
+async()=>{
+
+  try{
+
+    console.log(
+      "🚀 Attendance date migration started"
+    );
+
+
+
+    const snap =
+      await getDocs(
+
+        collectionGroup(
+          db,
+          "logs"
+        )
+      );
+
+
+
+    console.log(
+      "Total logs:",
+      snap.size
+    );
+
+
+
+    let updated = 0;
+
+    let skipped = 0;
+
+
+
+    for(const item of snap.docs){
+
+      const data =
+        item.data();
+
+
+
+      /// ALREADY HAS DATE
+      if(data.date){
+
+        skipped++;
+
+        continue;
+      }
+
+
+
+      const id =
+        item.id;
+
+
+
+      /// SPLIT ID
+      const parts =
+        id.split("-");
+
+
+
+      /// INVALID FORMAT
+      if(parts.length !== 3){
+
+        console.log(
+          "⚠️ Invalid ID:",
+          id
+        );
+
+        skipped++;
+
+        continue;
+      }
+
+
+
+      const year =
+        Number(parts[0]);
+
+
+
+      const month =
+        Number(parts[1]) - 1;
+
+
+
+      const day =
+        Number(parts[2]);
+
+
+
+      const date =
+
+        new Date(
+          year,
+          month,
+          day
+        );
+
+
+
+      /// UPDATE DOC
+      await updateDoc(
+
+        item.ref,
+
+        {
+          date:
+            Timestamp.fromDate(
+              date
+            ),
+        }
+      );
+
+
+
+      updated++;
+
+
+
+      console.log(
+        `✅ Updated: ${id}`
+      );
+    }
+
+
+
+    console.log(
+      "🎉 Migration completed"
+    );
+
+
+
+    console.log(
+      "Updated:",
+      updated
+    );
+
+
+
+    console.log(
+      "Skipped:",
+      skipped
+    );
+
+  }catch(err){
+
+    console.error(err);
+  }
+};
+const migrateCreditHistory = async () => {
+
+  try {
+
+    const creditRef = collection(
+      db,
+      `products/${userData.branchCode}/creditNotes`
+    );
+
+    const snapshot = await getDocs(creditRef);
+
+    for (const creditDoc of snapshot.docs) {
+
+      const data = creditDoc.data();
+
+      /* ================= HISTORY REF ================= */
+
+      const historyRef = collection(
+        db,
+        `products/${userData.branchCode}/creditNotes/${creditDoc.id}/history`
+      );
+
+      /* ================= CHECK ALREADY MIGRATED ================= */
+
+      const existingHistory =
+        await getDocs(historyRef);
+
+      if (!existingHistory.empty) {
+
+        console.log(
+          `Skipped already migrated: ${creditDoc.id}`
+        );
+
+        continue;
+      }
+
+      /* ================= VALUES ================= */
+
+      const totalAmount =
+        Number(data.amount || 0);
+
+      const usedAmount =
+        Number(data.CreditUsed || 0);
+
+      const balance =
+        Number(data.Balance || 0);
+
+      /* =====================================================
+         ENTRY 1 → ADD CREDIT
+      ===================================================== */
+
+      await addDoc(historyRef, {
+
+        type: 'ADD',
+
+        amount: totalAmount,
+
+        previousBalance: 0,
+
+        newBalance: totalAmount,
+
+        receiptNo: '',
+
+        orderId: '',
+
+        note: 'Migrated existing credit',
+
+        createdAt:
+          data.createdAt || new Date(),
+
+        createdBy:
+          data.createdBy || 'migration',
+      });
+
+      /* =====================================================
+         ENTRY 2 → USED CREDIT
+      ===================================================== */
+
+      if (usedAmount > 0) {
+
+        await addDoc(historyRef, {
+
+          type: 'USED',
+
+          amount: usedAmount,
+
+          previousBalance: totalAmount,
+
+          newBalance: balance,
+
+          receiptNo: '',
+
+          orderId: '',
+
+          note:
+            'Migrated used credit',
+
+          createdAt:
+            data.updatedAt || new Date(),
+
+          createdBy:
+            data.updatedBy || 'migration',
+        });
+
+      }
+
+      console.log(
+        `Migrated successfully: ${creditDoc.id}`
+      );
+    }
+
+   
+
+  } catch (error) {
+
+    console.error(
+      'Migration error:',
+      error
+    );
+
+   
+  }
+};
   return (
   <div className={`dashboard-container ${sidebarOpen ? "sidebar-open" : ""}`}>
     <UserSidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
@@ -1224,10 +1685,22 @@ Credit Note Migration
 {/* <button onClick={migrateSubcollectionsFlat}>
   Migrate Subcollections (Flatten)
 </button> */}
-
-
-
-
+{/* <button
+  onClick={migrateAttendanceIds}
+>
+  Migrate Attendance IDs
+</button> */}
+{/* <button
+  onClick={
+    migrateAttendanceDates
+  }
+>
+  Migrate Attendance Dates
+</button>
+ */}
+<button onClick={migrateCreditHistory}>
+  Migrate Credit History
+</button>
 
 
         <div className="kpi-grid">

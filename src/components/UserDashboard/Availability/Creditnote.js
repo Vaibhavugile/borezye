@@ -265,6 +265,13 @@ const CreditNoteDashboard = () => {
                   {userData?.role !== 'Subuser' && (
                     <FaTrash onClick={() => handleDelete(n.id)} />
                   )}
+                  <button
+  onClick={() =>
+    navigate(`/credit-history/${n.id}`)
+  }
+>
+  History
+</button>
                 </div>
               </div>
             ))}

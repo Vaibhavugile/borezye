@@ -1,0 +1,212 @@
+/* ================= PAGE ================= */
+
+.credit-history-page {
+  padding: 24px;
+  background: #f5f7fb;
+  min-height: 100vh;
+  font-family: Inter, sans-serif;
+}
+
+/* ================= HEADER ================= */
+
+.credit-history-header {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 24px;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.04);
+}
+
+.credit-history-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 18px;
+}
+
+.credit-customer-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 16px;
+}
+
+.credit-info-card {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.credit-info-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.credit-info-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ================= TABLE ================= */
+
+.credit-history-table-wrapper {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.04);
+}
+
+.credit-history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ================= TABLE HEAD ================= */
+
+.credit-history-table thead {
+  background: #f3f4f6;
+}
+
+.credit-history-table th {
+  text-align: left;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ================= TABLE BODY ================= */
+
+.credit-history-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #111827;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.credit-history-row:hover {
+  background: #fafafa;
+}
+
+/* ================= TYPE BADGES ================= */
+
+.credit-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  display: inline-block;
+}
+
+.credit-badge-add {
+  background: #16a34a;
+}
+
+.credit-badge-used {
+  background: #dc2626;
+}
+
+.credit-badge-refund {
+  background: #2563eb;
+}
+
+/* ================= AMOUNT COLORS ================= */
+
+.credit-amount-add {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.credit-amount-used {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* ================= EMPTY ================= */
+
+.credit-history-empty {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+/* ================= RECEIPT TAG ================= */
+
+.receipt-tag {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ================= NOTE ================= */
+
+.credit-note-text {
+  max-width: 280px;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+/* ================= LOADING ================= */
+
+.credit-history-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+
+  font-size: 18px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .credit-history-page {
+    padding: 14px;
+  }
+
+  .credit-history-header {
+    padding: 18px;
+  }
+
+  .credit-history-title {
+    font-size: 22px;
+  }
+
+  .credit-history-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .credit-history-table {
+    min-width: 900px;
+  }
+
+  .credit-history-table th,
+  .credit-history-table td {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+}
+/* ================= DASHBOARD ================= */
+
+.credit-history-dashboard {
+  padding: 24px;
+  background: #f5f7fb;
+  min-height: 100vh;
+}

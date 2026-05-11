@@ -943,26 +943,96 @@ if (
 
       // ... within your function
       if (creditNoteId && appliedCredit > 0) {
-        const creditNoteRef = doc(db, `products/${userData.branchCode}/creditNotes`, creditNoteId);
-        const creditNoteSnap = await getDoc(creditNoteRef);
-        if (creditNoteSnap.exists()) {
-          const currentCredit = creditNoteSnap.data().Balance || 0;
-          const totalcredit = creditNoteSnap.data().amount || 0;
-          const remainingCredit = currentCredit - appliedCredit;
-          const creditUsed = totalcredit - remainingCredit;
 
-          await updateDoc(creditNoteRef, {
-            Balance: remainingCredit,
-            CreditUsed: creditUsed,
-            status: remainingCredit > 0 ? 'active' : 'used',
-            usedReceipts: arrayUnion(receiptNumber),
-          });
+  const creditNoteRef = doc(
+    db,
+    `products/${userData.branchCode}/creditNotes`,
+    creditNoteId
+  );
 
-          toast.success('Credit note updated.');
-        } else {
-          toast.error('Error updating credit note: Credit note not found.');
-        }
+  const creditNoteSnap = await getDoc(creditNoteRef);
+
+  if (creditNoteSnap.exists()) {
+
+    const creditData = creditNoteSnap.data();
+
+    const previousBalance =
+      Number(creditData.Balance || 0);
+
+    const totalcredit =
+      Number(creditData.amount || 0);
+
+    const usedAmount =
+      Number(appliedCredit || 0);
+
+    const remainingCredit =
+      previousBalance - usedAmount;
+
+    const creditUsed =
+      totalcredit - remainingCredit;
+
+    /* ================= UPDATE CREDIT NOTE ================= */
+
+    await updateDoc(creditNoteRef, {
+
+      Balance: remainingCredit,
+
+      CreditUsed: creditUsed,
+
+      status:
+        remainingCredit > 0
+          ? 'active'
+          : 'used',
+
+      usedReceipts:
+        arrayUnion(receiptNumber),
+
+      updatedAt: new Date(),
+
+      updatedBy:
+        userData?.email || 'system',
+    });
+
+    /* ================= ADD CREDIT HISTORY ================= */
+
+    await addDoc(
+      collection(
+        db,
+        `products/${userData.branchCode}/creditNotes/${creditNoteId}/history`
+      ),
+      {
+
+        type: 'USED',
+
+        amount: usedAmount,
+
+        previousBalance: previousBalance,
+
+        newBalance: remainingCredit,
+
+        receiptNo: receiptNumber,
+
+        orderId: receiptNumber,
+
+        note:
+          `Credit used in booking ${receiptNumber}`,
+
+        createdAt: new Date(),
+
+        createdBy:
+          userData?.email || 'system',
       }
+    );
+
+    toast.success('Credit note updated.');
+
+  } else {
+
+    toast.error(
+      'Error updating credit note: Credit note not found.'
+    );
+  }
+}
       // Create Payment Document for Reports
 const paymentRef = doc(
   db,

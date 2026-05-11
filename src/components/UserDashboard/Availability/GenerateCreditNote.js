@@ -24,70 +24,218 @@ const GenerateCreditNote = () => {
 
 const handleGenerateCreditNote = async (e) => {
   e.preventDefault();
-  if (!mobileNumber || !creditAmount || isNaN(Number(creditAmount)) || Number(creditAmount) <= 0) {
-    toast.error('Please enter a valid mobile number and credit amount.');
+
+  if (
+    !mobileNumber ||
+    !creditAmount ||
+    isNaN(Number(creditAmount)) ||
+    Number(creditAmount) <= 0
+  ) {
+    toast.error(
+      'Please enter a valid mobile number and credit amount.'
+    );
     return;
   }
 
   try {
-    if (userData?.branchCode) {
-      const creditNotesRef = collection(db, `products/${userData.branchCode}/creditNotes`);
-      const existingQuery = query(creditNotesRef, where("mobileNumber", "==", mobileNumber));
-      const querySnapshot = await getDocs(existingQuery);
-
-      if (!querySnapshot.empty) {
-        // If a credit note exists, update its balance
-        const docSnapshot = querySnapshot.docs[0];
-        const existingData = docSnapshot.data();
-        const newBalance = (Number(existingData.Balance) || 0) + Number(creditAmount);
-
-        await updateDoc(doc(db, `products/${userData.branchCode}/creditNotes`, docSnapshot.id), {
-          Balance: newBalance,
-          amount: (Number(existingData.amount) || 0) + Number(creditAmount),
-          CreditUsed: Number(existingData.CreditUsed) || 0,
-          Comment: Comment || existingData.Comment || 'N/A',
-          updatedAt: new Date(),
-          updatedBy: userData?.email || 'unknown',
-        });
-
-        toast.success(`Credit note updated successfully for mobile number: ${mobileNumber}`);
-        setName('');
-        setMobileNumber('');
-        setCreditAmount('');
-        SetCreditUsed('');
-        setBalance('');
-        SetComment('');
-        setTimeout(() => navigate('/usersidebar/creditnote'), 5000);
-      } else {
-        // If no credit note exists, create a new one
-        const creditNoteId = uuidv4();
-        await addDoc(creditNotesRef, {
-          creditNoteId: creditNoteId,
-          Name: Name,
-          mobileNumber: mobileNumber,
-          amount: Number(creditAmount),
-          CreditUsed: Number(CreditUsed) || 0,
-          Balance: Number(Balance) || Number(creditAmount),
-          Comment: Comment || 'N/A',
-          createdAt: new Date(),
-          createdBy: userData?.email || 'unknown',
-          status: 'active',
-        });
-        toast.success(`Credit note generated successfully! ID: ${creditNoteId}`);
-        setName('');
-        setMobileNumber('');
-        setCreditAmount('');
-        SetCreditUsed('');
-        setBalance('');
-        SetComment('');
-        setTimeout(() => navigate('/usersidebar/creditnote'), 5000);
-      }
-    } else {
-      toast.error('Branch code not found. Cannot generate credit note.');
+    if (!userData?.branchCode) {
+      toast.error(
+        'Branch code not found. Cannot generate credit note.'
+      );
+      return;
     }
+
+    const creditNotesRef = collection(
+      db,
+      `products/${userData.branchCode}/creditNotes`
+    );
+
+    const existingQuery = query(
+      creditNotesRef,
+      where('mobileNumber', '==', mobileNumber)
+    );
+
+    const querySnapshot = await getDocs(existingQuery);
+
+    /* =======================================================
+       EXISTING CUSTOMER
+    ======================================================= */
+
+    if (!querySnapshot.empty) {
+      const docSnapshot = querySnapshot.docs[0];
+
+      const existingData = docSnapshot.data();
+
+      const previousBalance =
+        Number(existingData.Balance) || 0;
+
+      const addedAmount =
+        Number(creditAmount);
+
+      const newBalance =
+        previousBalance + addedAmount;
+
+      /* ================= UPDATE MAIN CREDIT NOTE ================= */
+
+      await updateDoc(
+        doc(
+          db,
+          `products/${userData.branchCode}/creditNotes`,
+          docSnapshot.id
+        ),
+        {
+          Balance: newBalance,
+
+          amount:
+            (Number(existingData.amount) || 0) +
+            addedAmount,
+
+          CreditUsed:
+            Number(existingData.CreditUsed) || 0,
+
+          Comment:
+            Comment ||
+            existingData.Comment ||
+            'N/A',
+
+          updatedAt: new Date(),
+
+          updatedBy:
+            userData?.email || 'unknown',
+        }
+      );
+
+      /* ================= ADD HISTORY ================= */
+
+      await addDoc(
+        collection(
+          db,
+          `products/${userData.branchCode}/creditNotes/${docSnapshot.id}/history`
+        ),
+        {
+          type: 'ADD',
+
+          amount: addedAmount,
+
+          previousBalance: previousBalance,
+
+          newBalance: newBalance,
+
+          receiptNo: '',
+
+          orderId: '',
+
+          note:
+            Comment || 'Credit added',
+
+          createdAt: new Date(),
+
+          createdBy:
+            userData?.email || 'unknown',
+        }
+      );
+
+      toast.success(
+        `Credit note updated successfully for mobile number: ${mobileNumber}`
+      );
+    }
+
+    /* =======================================================
+       NEW CUSTOMER
+    ======================================================= */
+
+    else {
+      const creditNoteId = uuidv4();
+
+      const openingBalance =
+        Number(Balance) ||
+        Number(creditAmount);
+
+      const creditDoc = await addDoc(
+        creditNotesRef,
+        {
+          creditNoteId: creditNoteId,
+
+          Name: Name,
+
+          mobileNumber: mobileNumber,
+
+          amount: Number(creditAmount),
+
+          CreditUsed:
+            Number(CreditUsed) || 0,
+
+          Balance: openingBalance,
+
+          Comment: Comment || 'N/A',
+
+          createdAt: new Date(),
+
+          createdBy:
+            userData?.email || 'unknown',
+
+          status: 'active',
+        }
+      );
+
+      /* ================= ADD HISTORY ================= */
+
+      await addDoc(
+        collection(
+          db,
+          `products/${userData.branchCode}/creditNotes/${creditDoc.id}/history`
+        ),
+        {
+          type: 'ADD',
+
+          amount: Number(creditAmount),
+
+          previousBalance: 0,
+
+          newBalance: openingBalance,
+
+          receiptNo: '',
+
+          orderId: '',
+
+          note:
+            Comment ||
+            'Initial credit added',
+
+          createdAt: new Date(),
+
+          createdBy:
+            userData?.email || 'unknown',
+        }
+      );
+
+      toast.success(
+        `Credit note generated successfully! ID: ${creditNoteId}`
+      );
+    }
+
+    /* ================= RESET FORM ================= */
+
+    setName('');
+    setMobileNumber('');
+    setCreditAmount('');
+    SetCreditUsed('');
+    setBalance('');
+    SetComment('');
+
+    setTimeout(() => {
+      navigate('/usersidebar/creditnote');
+    }, 2000);
+
   } catch (error) {
-    console.error('Error generating credit note:', error);
-    toast.error('Error generating credit note');
+    console.error(
+      'Error generating credit note:',
+      error
+    );
+
+    toast.error(
+      'Error generating credit note'
+    );
   }
 };
 

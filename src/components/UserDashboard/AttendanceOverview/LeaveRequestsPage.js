@@ -122,9 +122,15 @@ const LeaveRequestsPage = ()=>{
 
         const dayId =
 
-          `${d.getFullYear()}-${
-            d.getMonth() + 1
-          }-${d.getDate()}`;
+`${d.getFullYear()}-${
+String(
+  d.getMonth() + 1
+).padStart(2,"0")
+}-${
+String(
+  d.getDate()
+).padStart(2,"0")
+}`;
 
 
 
@@ -162,6 +168,9 @@ const LeaveRequestsPage = ()=>{
 
             branchCode:
               request.branchCode,
+                /// UNIVERSAL DATE
+    date:
+      Timestamp.fromDate(d),
 
             leaveRequestId:
               request.id,

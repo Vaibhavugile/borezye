@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, deleteDoc, doc,addDoc } from 'firebase/firestore';
-import { db } from '../../firebaseConfig';
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  addDoc,
+  updateDoc
+} from 'firebase/firestore'; import { db } from '../../firebaseConfig';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Papa from 'papaparse';
 import './Leads.css';
@@ -12,7 +18,7 @@ import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import search from '../../assets/Search.png';
 
-import { FaPlus, FaUpload , FaDownload, FaEdit, FaCopy} from 'react-icons/fa';
+import { FaPlus, FaUpload, FaDownload, FaEdit, FaCopy } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
 
 const Leads = () => {
@@ -27,6 +33,12 @@ const Leads = () => {
   const location = useLocation();
   const [combinedLeads, setCombinedLeads] = useState([]);
   const [importedData, setImportedData] = useState([]); // Initialize as an empty array
+  const [selectedLeads, setSelectedLeads] = useState([]);
+
+  const [users, setUsers] = useState([]);
+
+  const [bulkAssignedTo, setBulkAssignedTo] =
+    useState('');
 
   // Update combined data when filteredLeads or importedData change
   useEffect(() => {
@@ -36,9 +48,41 @@ const Leads = () => {
     setSelectedLead(lead);
     setRightSidebarOpen(true);
     // ADDED LOG FOR DEBUGGING
-    console.log("Leads.js: Selected Lead after click:", lead); 
+    console.log("Leads.js: Selected Lead after click:", lead);
   };
+  useEffect(() => {
 
+    const fetchUsers = async () => {
+
+      try {
+
+        const snapshot =
+          await getDocs(
+            collection(db, 'superadmins')
+          );
+
+        const userList =
+          snapshot.docs.map((doc) => ({
+
+            id: doc.id,
+
+            ...doc.data(),
+          }));
+
+        setUsers(userList);
+
+      } catch (error) {
+
+        console.error(
+          'Error fetching users:',
+          error
+        );
+      }
+    };
+
+    fetchUsers();
+
+  }, []);
   const closeRightSidebar = () => {
     setRightSidebarOpen(false);
   };
@@ -66,10 +110,12 @@ const Leads = () => {
         filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'demo scheduled');
       } else if (status === 'detail-shared') {
         filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'details shared');
+      } else if (status === 'fresh lead') {
+        filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'fresh lead');
       } else if (status === 'fresh-lead') {
-      filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'fresh lead');
+        filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'fresh lead');
 
-        
+
       } else if (status === 'demo-done') {
         filtered = filtered.filter(lead => (lead.status || '').toLowerCase() === 'demo done');
       } else if (status === 'lead-won') {
@@ -80,22 +126,22 @@ const Leads = () => {
 
       filtered = filtered.filter(lead => {
         const lowerCaseQuery = searchQuery.toLowerCase();
-      if (searchField === 'nextFollowup') {
-          // Return true immediately if the search query is empty to show all leads
-          if (!searchQuery) return true;
-          
-          const leadDate = lead.nextFollowup ? new Date(lead.nextFollowup) : null;
-          const queryDate = new Date(searchQuery);
+        if (searchField === 'nextFollowup') {
+          // Return true immediately if the search query is empty to show all leads
+          if (!searchQuery) return true;
 
-          // Check if both dates are valid before comparing
-          if (leadDate && !isNaN(leadDate) && !isNaN(queryDate)) {
-            // Compare the dates by their string representation
-            return leadDate.toDateString() === queryDate.toDateString();
-          }
-          return false; // If either date is invalid, it's not a match
-        } else {
-          return (lead[searchField] || '').toLowerCase().includes(lowerCaseQuery);
-        }
+          const leadDate = lead.nextFollowup ? new Date(lead.nextFollowup) : null;
+          const queryDate = new Date(searchQuery);
+
+          // Check if both dates are valid before comparing
+          if (leadDate && !isNaN(leadDate) && !isNaN(queryDate)) {
+            // Compare the dates by their string representation
+            return leadDate.toDateString() === queryDate.toDateString();
+          }
+          return false; // If either date is invalid, it's not a match
+        } else {
+          return (lead[searchField] || '').toLowerCase().includes(lowerCaseQuery);
+        }
       });
 
       setFilteredLeads(filtered);
@@ -120,16 +166,22 @@ const Leads = () => {
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
   };
+  const clearFilters = () => {
+
+  setSearchQuery('');
+
+  setSearchField('emailId');
+};
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric', 
-      hour: 'numeric', 
-      minute: 'numeric' 
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
     });
   };
 
@@ -161,7 +213,7 @@ const Leads = () => {
   const handleImport = (event) => {
     const file = event.target.files[0];
     console.log("Selected File:", file); // Debug file selection
-  
+
     if (file) {
       Papa.parse(file, {
         header: true, // Ensure CSV has headers
@@ -176,20 +228,20 @@ const Leads = () => {
                 parsedNextFollowup = new Date(row.nextFollowup).toISOString();
               }
               const newLead = { // Create a new object to avoid modifying the original row
-                  ...row,
-                  nextFollowup: parsedNextFollowup,
+                ...row,
+                nextFollowup: parsedNextFollowup,
               };
               // IMPORTANT: Delete the 'id' field if it exists in the imported row
               // Firestore will generate its own unique ID with addDoc
               if (newLead.id !== undefined) {
-                  delete newLead.id; 
+                delete newLead.id;
               }
               return newLead;
             });
-  
+
           console.log("Imported Leads:", importedLeads); // Debug processed leads
           setImportedData(importedLeads); // Update state
-  
+
           try {
             // Save data to Firestore
             const leadsCollection = collection(db, 'leads'); // Replace 'leads' with your collection name
@@ -210,15 +262,15 @@ const Leads = () => {
       });
     }
   };
-  
-  
-  
+
+
+
 
   const handlecopy = (leads) => {
     // Destructure product details from the product object
-    const {  businessName, contactNumber, emailId, location, source, status, nextFollowup } = leads;
-      // Format the text for copying
-      const formattedText = `
+    const { businessName, contactNumber, emailId, location, source, status, nextFollowup } = leads;
+    // Format the text for copying
+    const formattedText = `
       Business Name: ${businessName || '-'}
       Mobile No: ${contactNumber || '-'}
       Email: ${emailId || '-'}
@@ -228,268 +280,505 @@ const Leads = () => {
       Follow up Date: ${nextFollowup || '-'}
       
     `;
-  
+
     // Copy to clipboard
     navigator.clipboard.writeText(formattedText.trim());
-  
+
     // Display a confirmation alert
-    toast.success("Lead details copied to clipboard:\n" );
+    toast.success("Lead details copied to clipboard:\n");
   };
+  const handleSelectLead = (id) => {
+
+    setSelectedLeads((prev) =>
+
+      prev.includes(id)
+
+        ? prev.filter(
+          (leadId) =>
+            leadId !== id
+        )
+
+        : [...prev, id]
+    );
+  };
+  const handleSelectAll = () => {
+
+    if (
+      selectedLeads.length ===
+      filteredLeads.length
+    ) {
+
+      setSelectedLeads([]);
+
+    } else {
+
+      setSelectedLeads(
+        filteredLeads.map(
+          (lead) => lead.id
+        )
+      );
+    }
+  };
+  const handleBulkAssign =
+    async () => {
+
+      if (!bulkAssignedTo) {
+
+        toast.error(
+          'Select user first'
+        );
+
+        return;
+      }
+
+      if (
+        selectedLeads.length === 0
+      ) {
+
+        toast.error(
+          'Select leads first'
+        );
+
+        return;
+      }
+
+      try {
+
+        for (const leadId of selectedLeads) {
+
+          await updateDoc(
+
+            doc(db, 'leads', leadId),
+
+            {
+              assignedTo:
+                bulkAssignedTo,
+            }
+          );
+        }
+
+        const updatedLeads =
+          leads.map((lead) =>
+
+            selectedLeads.includes(
+              lead.id
+            )
+
+              ? {
+                ...lead,
+
+                assignedTo:
+                  bulkAssignedTo,
+              }
+
+              : lead
+          );
+
+        setLeads(updatedLeads);
+
+        setSelectedLeads([]);
+
+        setBulkAssignedTo('');
+
+        toast.success(
+          'Leads assigned successfully'
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          'Error assigning leads'
+        );
+      }
+    };
   return (
     <div className={`leads-dashboard ${sidebarOpen ? 'sidebar-expanded' : ''}`}>
 
-  <Sidebar
-    isOpen={sidebarOpen}
-    onToggle={handleSidebarToggle}
-  />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onToggle={handleSidebarToggle}
+      />
 
-  <div className="leads-main-content">
+      <div
+  className="leads-main-content"
 
-    <Header
-      onMenuClick={handleSidebarToggle}
-      isSidebarOpen={sidebarOpen}
-    />
+  onClick={() => {
 
-    <div className="leads-page-wrapper">
+    if (sidebarOpen) {
 
-      {/* TOP HEADER */}
+      setSidebarOpen(false);
+    }
+  }}
+>
 
-      <div className="leads-top-section">
+        <Header
+          onMenuClick={handleSidebarToggle}
+          isSidebarOpen={sidebarOpen}
+        />
 
-        <div className="page-heading-block">
+        <div className="leads-page-wrapper">
 
-          <h1 className="page-main-title">
-            {filterTitleMap[location.pathname.split('/').pop()] || 'Total Leads'}
-          </h1>
+          {/* TOP HEADER */}
 
-          <p className="page-subtitle">
-            Track, manage and organize your customer leads efficiently
-          </p>
+          <div className="leads-top-section">
 
-        </div>
+            <div className="page-heading-block">
 
-        <div className="top-stats-container">
+              <h1 className="page-main-title">
+                {filterTitleMap[location.pathname.split('/').pop()] || 'Total Leads'}
+              </h1>
 
-          <div className="stats-card-modern">
+              <p className="page-subtitle">
+                Track, manage and organize your customer leads efficiently
+              </p>
 
-            <span className="stats-label">
-              Total Leads
-            </span>
+            </div>
 
-            <h2 className="stats-value">
-              {filteredLeads.length}
-            </h2>
+            <div className="top-stats-container">
+
+              <div className="stats-card-modern">
+
+                <span className="stats-label">
+                  Total Leads
+                </span>
+
+                <h2 className="stats-value">
+                  {filteredLeads.length}
+                </h2>
+
+              </div>
+
+            </div>
 
           </div>
 
-        </div>
+          {/* TOOLBAR */}
 
-      </div>
+          <div className="toolbar-modern">
 
-      {/* TOOLBAR */}
+            {/* SEARCH */}
 
-      <div className="toolbar-modern">
+            <div className="search-box-modern">
 
-        {/* SEARCH */}
+              <img
+                src={search}
+                alt="search"
+                className="search-icon-modern"
+              />
 
-        <div className="search-box-modern">
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+                className="search-select-modern"
+              >
 
-          <img
-            src={search}
-            alt="search"
-            className="search-icon-modern"
-          />
+                <option value="businessName">Business Name</option>
+                <option value="contactNumber">Contact Number</option>
+                <option value="emailId">Email ID</option>
+                <option value="location">Location</option>
+                <option value="assignedTo">Assigned To</option>
+                <option value="source">Source</option>
+                <option value="status">Status</option>
+                <option value="nextFollowup">Next Followup Date</option>
 
-          <select
-            value={searchField}
-            onChange={(e) => setSearchField(e.target.value)}
-            className="search-select-modern"
-          >
+              </select>
 
-            <option value="businessName">Business Name</option>
-            <option value="contactNumber">Contact Number</option>
-            <option value="emailId">Email ID</option>
-            <option value="location">Location</option>
-            <option value="assignedTo">Assigned To</option>
-            <option value="source">Source</option>
-            <option value="status">Status</option>
-            <option value="nextFollowup">Next Followup Date</option>
+              {
+                searchField === 'nextFollowup' ? (
 
-          </select>
+                  <input
+                    type="date"
 
-          <input
-            type="text"
-            className="search-input-modern"
-            placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+                    className="search-input-modern"
 
-        </div>
+                    value={searchQuery}
 
-        {/* ACTION BUTTONS */}
+                    onChange={(e) =>
+                      setSearchQuery(e.target.value)
+                    }
+                  />
 
-        <div className="toolbar-actions-modern">
+                ) : (
 
-          <button
-            className="glass-btn"
-            onClick={exportToCSV}
-          >
-            <FaUpload />
-            Export
-          </button>
-<button
-  type="button"
-  className="glass-btn"
-  onClick={() => document.getElementById('import-file-input').click()}
+                  <input
+                    type="text"
+
+                    className="search-input-modern"
+
+                    placeholder={`Search by ${searchField.replace(/([A-Z])/g, ' $1')}`}
+
+                    value={searchQuery}
+
+                    onChange={(e) =>
+                      setSearchQuery(e.target.value)
+                    }
+                  />
+                )
+              }
+              <button
+  className="clear-filter-btn"
+
+  onClick={clearFilters}
 >
 
-  <FaDownload />
-
-  <span>Import</span>
-
-  <input
-    type="file"
-    id="import-file-input"
-    accept=".csv"
-    onChange={handleImport}
-    hidden
-  />
+  Clear
 
 </button>
-          <button
-            className="primary-btn-modern"
-            onClick={() => navigate('/create-lead')}
-          >
 
-            <FaPlus />
-            Add Lead
+            </div>
 
-          </button>
+            {/* ACTION BUTTONS */}
 
-        </div>
+            <div className="toolbar-actions-modern">
+              <select
+                className="bulk-assign-select"
+                value={bulkAssignedTo}
 
-      </div>
+                onChange={(e) =>
+                  setBulkAssignedTo(
+                    e.target.value
+                  )
+                }
 
-      {/* TABLE SECTION */}
+                className="search-select-modern"
+              >
 
-      <div className="table-card-modern">
+                <option value="">
+                  Assign To
+                </option>
 
-        <div className="table-scroll-container">
+                {users.map((user) => (
 
-          <table className="modern-leads-table">
+                  <option
+                    key={user.id}
 
-            <thead>
+                    value={
+                      user.name ||
+                      user.email
+                    }
+                  >
 
-              <tr>
+                    {user.name ||
+                      user.email}
 
-                <th>Sr. No.</th>
-                <th>Business Name</th>
-                <th>Business Type</th>
-                <th>Contact Number</th>
-                <th>Location</th>
-                <th>Assigned To</th>
-                <th>Source</th>
-                <th>Status</th>
-                <th>Next Followup</th>
-                <th>Actions</th>
+                  </option>
+                ))}
+              </select>
 
-              </tr>
+              <button
+                className="bulk-assign-btn"
 
-            </thead>
+                onClick={handleBulkAssign}
+              >
 
-            <tbody>
+                Bulk Assign
 
-              {filteredLeads.map((lead, index) => (
+              </button>
+              <button
+                className="glass-btn"
+                onClick={exportToCSV}
+              >
+                <FaUpload />
+                Export
+              </button>
+              <button
+                type="button"
+                className="glass-btn"
+                onClick={() => document.getElementById('import-file-input').click()}
+              >
 
-                <tr
-                  key={lead.id}
-                  className="table-row-modern"
-                >
+                <FaDownload />
 
-                  <td>{index + 1}</td>
+                <span>Import</span>
 
-                  <td>
+                <input
+                  type="file"
+                  id="import-file-input"
+                  accept=".csv"
+                  onChange={handleImport}
+                  hidden
+                />
 
-                    <span
-                      className="business-name-modern"
-                      onClick={() => handleBusinessNameClick(lead)}
+              </button>
+              <button
+                className="primary-btn-modern"
+                onClick={() => navigate('/create-lead')}
+              >
+
+                <FaPlus />
+                Add Lead
+
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* TABLE SECTION */}
+
+          <div className="table-card-modern">
+
+            <div className="table-scroll-container">
+
+              <table className="modern-leads-table">
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+
+                      <input
+                        type="checkbox"
+
+                        checked={
+                          selectedLeads.length ===
+                          filteredLeads.length &&
+                          filteredLeads.length > 0
+                        }
+
+                        onChange={handleSelectAll}
+                      />
+
+                    </th>
+
+                    <th>Sr. No.</th>
+                    <th>Business Name</th>
+                    <th>Contact Number</th>
+                    <th>Location</th>
+                    <th>Business Type</th>
+
+                    <th>Status</th>
+                    <th>Next Followup</th>
+                    <th>Source</th>
+                    <th>Assigned To</th>
+
+
+
+                    <th>Actions</th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  {filteredLeads.map((lead, index) => (
+
+                    <tr
+                      key={lead.id}
+
+                      className={`table-row-modern ${selectedLeads.includes(lead.id)
+                          ? 'selected-row'
+                          : ''
+                        }`}
                     >
-                      {lead.businessName}
-                    </span>
+                      <td>
 
-                  </td>
+                        <input
+                          type="checkbox"
 
-                  <td>{lead.businessType}</td>
+                          checked={selectedLeads.includes(
+                            lead.id
+                          )}
 
-                  <td>{lead.contactNumber}</td>
+                          onChange={() =>
+                            handleSelectLead(
+                              lead.id
+                            )
+                          }
+                        />
+
+                      </td>
+
+                      <td>{index + 1}</td>
 
 
-                  <td>{lead.location}</td>
+                      <td>
 
-                  <td>{lead.assignedTo}</td>
+                        <span
+                          className="business-name-modern"
+                          onClick={() => handleBusinessNameClick(lead)}
+                        >
+                          {lead.businessName}
+                        </span>
 
-                  <td>{lead.source}</td>
+                      </td>
 
-                  <td>
 
-                    <span className={`status-pill ${lead.status?.toLowerCase().replace(/\s/g, '-')}`}>
-                      {lead.status}
-                    </span>
+                      <td>{lead.contactNumber}</td>
 
-                  </td>
 
-                  <td>
-                    {formatDate(lead.nextFollowup)}
-                  </td>
+                      <td>{lead.location}</td>
+                      <td>{lead.businessType}</td>
 
-                  <td>
+                      <td>
 
-                    <div className="table-actions-modern">
+                        <span className={`status-pill ${lead.status?.toLowerCase().replace(/\s/g, '-')}`}>
+                          {lead.status}
+                        </span>
 
-                      <button
-                        className="table-icon-btn"
-                        onClick={() => handleEdit(lead.id)}
-                      >
-                        <FaEdit />
-                      </button>
+                      </td>
 
-                      <button
-                        className="table-icon-btn"
-                        onClick={() => handlecopy(lead)}
-                      >
-                        <FaCopy />
-                      </button>
+                      <td>
+                        {formatDate(lead.nextFollowup)}
+                      </td>
 
-                    </div>
+                      <td>{lead.source}</td>
+                      <td>{lead.assignedTo}</td>
 
-                  </td>
 
-                </tr>
 
-              ))}
 
-            </tbody>
+                      <td>
 
-          </table>
+                        <div className="table-actions-modern">
+
+                          <button
+                            className="table-icon-btn"
+                            onClick={() => handleEdit(lead.id)}
+                          >
+                            <FaEdit />
+                          </button>
+
+                          <button
+                            className="table-icon-btn"
+                            onClick={() => handlecopy(lead)}
+                          >
+                            <FaCopy />
+                          </button>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+          <ToastContainer />
 
         </div>
 
       </div>
 
-      <ToastContainer />
+      <RightSidebar
+        isOpen={rightSidebarOpen}
+        onClose={closeRightSidebar}
+        selectedLead={selectedLead}
+      />
 
     </div>
-
-  </div>
-
-  <RightSidebar
-    isOpen={rightSidebarOpen}
-    onClose={closeRightSidebar}
-    selectedLead={selectedLead}
-  />
-
-</div>
   );
 };
 

@@ -70,6 +70,7 @@ import ManageOccasions from './components/UserDashboard/Banners/ManageOccasions'
 import AttendanceOverviewPage from './components/UserDashboard/AttendanceOverview/AttendanceOverviewPage';
 import EmployeeAttendanceDetailsPage from './components/UserDashboard/AttendanceOverview/EmployeeAttendanceDetailsPage';
 import LeaveRequestsPage from './components/UserDashboard/AttendanceOverview/LeaveRequestsPage';
+import CreditHistory from './components/UserDashboard/Availability/CreditHistory';
 const App = () => (
 
   <UserProvider>
@@ -351,6 +352,13 @@ const App = () => (
   <LeaveRequestsPage/>
   </PrivateRoute>
 } />
+<Route
+  path="/credit-history/:id"
+  element={
+      <PrivateRoute>
+  <CreditHistory />
+  </PrivateRoute>}
+/>
         <Route path="/usersidebar/dashboard" element={
           <PrivateRoute>
             <Dashboard />

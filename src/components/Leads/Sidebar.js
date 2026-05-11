@@ -78,7 +78,7 @@ const Sidebar = ({ isOpen }) => {
               location.pathname === '/leads/fresh-leads' ? 'sidebar-active' : ''
             }`}>
 
-              <Link to="/leads/fresh-leads">
+              <Link to="/leads/fresh-lead">
 
                 <FaBolt />
 

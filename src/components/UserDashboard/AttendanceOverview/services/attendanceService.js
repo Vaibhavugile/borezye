@@ -5,10 +5,12 @@ import {
   getDocs,
   doc,
   getDoc,
+  documentId,
 } from "firebase/firestore";
 
 import { db } from "../../../../firebaseConfig";
 
+/// FETCH ATTENDANCE LOGS
 /// FETCH ATTENDANCE LOGS
 export const fetchAttendanceLogs =
 async({
@@ -17,15 +19,33 @@ async({
   year,
 })=>{
 
+  /// START DATE
   const startDate =
-    new Date(year,month,1);
 
-  const endDate =
-    new Date(year,month + 1,1);
+    new Date(
+      year,
+      month,
+      1
+    );
+
+
+
+  /// NEXT MONTH
+  const nextDate =
+
+    new Date(
+      year,
+      month + 1,
+      1
+    );
+
+
 
   const q = query(
 
     collectionGroup(db,"logs"),
+
+
 
     where(
       "branchCode",
@@ -33,21 +53,29 @@ async({
       branchCode
     ),
 
+
+
     where(
-      "checkInTime",
+      "date",
       ">=",
       startDate
     ),
 
+
+
     where(
-      "checkInTime",
+      "date",
       "<",
-      endDate
+      nextDate
     )
   );
 
+
+
   const snap =
     await getDocs(q);
+
+
 
   return snap.docs.map(doc=>({
 
@@ -56,7 +84,6 @@ async({
     ...doc.data(),
   }));
 };
-
 
 /// FETCH EMPLOYEE SALARY DATA
 /// FETCH EMPLOYEE SALARY DATA
