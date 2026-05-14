@@ -3,7 +3,7 @@ import "./landing.css";
 import boy from "../../assets/boy.png";
 import logo from "../../assets/Borebgr.png";
 import icon from "../../assets/icon.png";
-
+import { FaWhatsapp } from "react-icons/fa";
 import emailjs from "emailjs-com";
 import { FaAngleUp, FaAngleDown } from 'react-icons/fa'
 import girrrl from "../../assets/contact_girl.png";
@@ -26,7 +26,7 @@ import dashboardImage from "../../assets/desktopbore.png";
 
 import mobileImage from "../../assets/boremobile.png";
 
-import heroPreview from "../../assets/heropreview.png";
+import heroPreview from "../../assets/heroprebview1.png";
 import "./landingfeatures.css";
 import "./landigecosystem.css";
 import "./landigpricing.css";
@@ -208,7 +208,7 @@ const handleFormSubmit = async (e, source) => {
       className="nav-primary-btn"
       onClick={handleclicksign}
     >
-      Start Free Trial
+      Login
     </button>
 
   </div>
@@ -288,7 +288,7 @@ const handleFormSubmit = async (e, source) => {
 
         <div className="stat-card">
 
-          <h3>120+</h3>
+          <h3>40+</h3>
 
           <span>Businesses Scaling</span>
 
@@ -355,13 +355,7 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        <div className="mini-content">
-
-          <h6>Bookings</h6>
-
-          <p>+32% increase</p>
-
-        </div>
+        
 
       </div>
 
@@ -582,14 +576,14 @@ const handleFormSubmit = async (e, source) => {
     ECOSYSTEM SECTION
 ========================================= */}
 
-<section className="ecosystem-section" id="ecosystem">
+{/* <section className="ecosystem-section" id="ecosystem">
 
-  {/* BACKGROUND */}
+
   <div className="ecosystem-glow"></div>
 
   <div className="ecosystem-container">
 
-    {/* LEFT CONTENT */}
+    
     <div className="ecosystem-left">
 
       <div className="section-badge">
@@ -617,10 +611,8 @@ const handleFormSubmit = async (e, source) => {
 
       </p>
 
-      {/* FEATURE LIST */}
       <div className="ecosystem-features">
 
-        {/* ITEM */}
         <div className="ecosystem-item">
 
           <div className="ecosystem-number">
@@ -641,7 +633,6 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        {/* ITEM */}
         <div className="ecosystem-item">
 
           <div className="ecosystem-number">
@@ -662,7 +653,6 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        {/* ITEM */}
         <div className="ecosystem-item">
 
           <div className="ecosystem-number">
@@ -687,13 +677,10 @@ const handleFormSubmit = async (e, source) => {
 
     </div>
 
-    {/* RIGHT SIDE */}
     <div className="ecosystem-right">
 
-      {/* IMAGE GRID */}
       <div className="ecosystem-grid">
 
-        {/* LARGE IMAGE */}
         <div className="ecosystem-image large-image">
 
           <img
@@ -703,7 +690,6 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        {/* PHONE IMAGE */}
         <div className="ecosystem-image phone-image">
 
           <img
@@ -713,7 +699,6 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        {/* DARK IMAGE */}
         <div className="ecosystem-image dark-image">
 
           <img
@@ -723,7 +708,6 @@ const handleFormSubmit = async (e, source) => {
 
         </div>
 
-        {/* CUSTOMER IMAGE */}
         <div className="ecosystem-image customer-image">
 
           <img
@@ -739,17 +723,16 @@ const handleFormSubmit = async (e, source) => {
 
   </div>
 
-</section>
+</section> */}
 
 
 
       {/* =========================================
     PRICING SECTION
 ========================================= */}
+<section className="pricing-section">
 
-<section className="pricing-section" id="pricing">
-
-  {/* BACKGROUND */}
+  {/* BACKGROUND GLOW */}
   <div className="pricing-glow pricing-glow-1"></div>
   <div className="pricing-glow pricing-glow-2"></div>
 
@@ -758,50 +741,43 @@ const handleFormSubmit = async (e, source) => {
     {/* HEADER */}
     <div className="pricing-header">
 
-      <div className="section-badge">
-
-        <span>✦</span>
-
-        Transparent Pricing
-
-      </div>
-
       <h2>
-
-        Pricing Designed <br />
-
-        for <span>Every Rental Business</span>
-
+        Simple & Flexible
+        <span> Pricing</span>
       </h2>
 
       <p>
-
-        Whether you're starting small or scaling a large
-        rental ecosystem, Borezy provides the perfect
-        combination of admin systems, customer apps,
-        websites, analytics, and automation.
-
+        Start free and scale your rental business with Borezy’s
+        complete booking, inventory, analytics, and automation ecosystem.
       </p>
 
     </div>
 
-    {/* PRICING GRID */}
+    {/* GRID */}
     <div className="pricing-grid">
 
       {/* =====================================
-          STARTER PLAN
+          FREE TRIAL
       ===================================== */}
       <div className="pricing-card starter-plan">
 
         <div className="plan-top">
 
-          <span className="plan-label">
-            Starter
+          <span className="plan-badge free-badge">
+            FREE TRIAL
           </span>
 
-          <h3>₹999</h3>
+          <h4 className="plan-name">
+            Starter
+          </h4>
 
-          <p>/month</p>
+          <h3>
+            ₹0
+          </h3>
+
+          <p>
+            7 Days Free Access
+          </p>
 
         </div>
 
@@ -817,38 +793,44 @@ const handleFormSubmit = async (e, source) => {
 
           <li>✔ Staff Management</li>
 
-          <li>✔ Analytics Dashboard</li>
-
           <li>✔ Basic Reports</li>
+
+          <li>✔ Analytics Dashboard</li>
 
         </ul>
 
         <button>
-          Get Started
+          Start Free Trial
         </button>
 
       </div>
 
       {/* =====================================
-          GROWTH PLAN
+          MONTHLY PLAN
       ===================================== */}
       <div className="pricing-card featured-plan">
 
         <div className="popular-badge">
-
           MOST POPULAR
-
         </div>
 
         <div className="plan-top">
 
-          <span className="plan-label">
-            Growth
+          <span className="plan-badge">
+            MONTHLY
           </span>
 
-          <h3>₹2499</h3>
+          <h4 className="plan-name">
+            Growth
+          </h4>
 
-          <p>/month</p>
+          <h3>
+            ₹2199
+          </h3>
+
+          <p>
+            Per Month Billing
+          </p>
 
         </div>
 
@@ -856,21 +838,17 @@ const handleFormSubmit = async (e, source) => {
 
         <ul>
 
-          <li>✔ Everything in Starter</li>
-
           <li>✔ Customer Mobile App</li>
 
           <li>✔ Provider Mobile App</li>
 
           <li>✔ Rental Website</li>
 
-          <li>✔ Online Booking Portal</li>
-
           <li>✔ Payment Integration</li>
 
-          <li>✔ Invoice Automation</li>
-
           <li>✔ WhatsApp Notifications</li>
+
+          <li>✔ Invoice Automation</li>
 
         </ul>
 
@@ -881,19 +859,27 @@ const handleFormSubmit = async (e, source) => {
       </div>
 
       {/* =====================================
-          ENTERPRISE PLAN
+          3 MONTHS
       ===================================== */}
       <div className="pricing-card enterprise-plan">
 
         <div className="plan-top">
 
-          <span className="plan-label">
-            Enterprise
+          <span className="plan-badge save-badge">
+            SAVE MORE
           </span>
 
-          <h3>Custom</h3>
+          <h4 className="plan-name">
+            3 Months
+          </h4>
 
-          <p>tailored pricing</p>
+          <h3>
+            ₹5999
+          </h3>
+
+          <p>
+            Best for Growing Rentals
+          </p>
 
         </div>
 
@@ -901,35 +887,210 @@ const handleFormSubmit = async (e, source) => {
 
         <ul>
 
-          <li>✔ Full Borezy Ecosystem</li>
+          <li>✔ Everything in Growth</li>
 
-          <li>✔ Custom Branding</li>
+          <li>✔ Online Booking Portal</li>
 
-          <li>✔ Dedicated Support</li>
+          <li>✔ Advanced Reports</li>
 
-          <li>✔ AI Analytics</li>
+          <li>✔ Multi Staff Access</li>
 
-          <li>✔ Advanced Automation</li>
+          <li>✔ Priority Support</li>
 
-          <li>✔ Multiple Branches</li>
-
-          <li>✔ Custom Integrations</li>
-
-          <li>✔ Priority Infrastructure</li>
+          <li>✔ Daily Backup System</li>
 
         </ul>
 
         <button>
-          Contact Sales
+          Choose Plan
+        </button>
+
+      </div>
+
+      {/* =====================================
+          6 MONTHS
+      ===================================== */}
+      <div className="pricing-card enterprise-plan">
+
+        <div className="plan-top">
+
+          <span className="plan-badge value-badge">
+            BEST VALUE
+          </span>
+
+          <h4 className="plan-name">
+            6 Months
+          </h4>
+
+          <h3>
+            ₹9999
+          </h3>
+
+          <p>
+            Scale Faster with Borezy
+          </p>
+
+        </div>
+
+        <div className="plan-divider"></div>
+
+        <ul>
+
+          <li>✔ AI Analytics</li>
+
+          <li>✔ Multi Branch Access</li>
+
+          <li>✔ Advanced Automation</li>
+
+          <li>✔ Premium Infrastructure</li>
+
+          <li>✔ Faster Performance</li>
+
+          <li>✔ Priority Customer Support</li>
+
+        </ul>
+
+        <button>
+          Choose Plan
+        </button>
+
+      </div>
+
+      {/* =====================================
+          12 MONTHS
+      ===================================== */}
+      <div className="pricing-card premium-year-card">
+
+        <div className="plan-top">
+
+          <span className="plan-badge premium-badge">
+            PREMIUM
+          </span>
+
+          <h4 className="plan-name">
+            12 Months
+          </h4>
+
+          <h3>
+            ₹14999
+          </h3>
+
+          <p>
+            Complete Borezy Ecosystem
+          </p>
+
+        </div>
+
+        <div className="plan-divider"></div>
+
+        <ul>
+
+          <li>✔ Full Premium Features</li>
+
+          <li>✔ Android & iOS Apps</li>
+
+          <li>✔ Custom Branding</li>
+
+          <li>✔ Dedicated Manager</li>
+
+          <li>✔ Custom Integrations</li>
+
+          <li>✔ Highest Priority Support</li>
+
+        </ul>
+
+        <button>
+          Go Premium
         </button>
 
       </div>
 
     </div>
+    {/* =====================================
+    EXTRA SERVICES ROW
+===================================== */}
+<div className="extra-services-grid">
+
+  {/* WEBSITE CARD */}
+  <div className="extra-service-card">
+
+    <div className="service-icon">
+      🌐
+    </div>
+
+    <h3>
+      Custom Branded Website
+    </h3>
+
+    <p>
+      Launch a fully customized rental website
+      with your own business branding, colors,
+      domain, booking system, and premium UI.
+    </p>
+
+    <ul>
+
+      <li>✔ Your Brand Identity</li>
+
+      <li>✔ Online Booking System</li>
+
+      <li>✔ SEO Optimized Website</li>
+
+      <li>✔ Mobile Responsive Design</li>
+
+      <li>✔ Premium Modern UI</li>
+
+    </ul>
+
+    <button>
+      Get Website
+    </button>
+
+  </div>
+
+  {/* MOBILE APP CARD */}
+  <div className="extra-service-card">
+
+    <div className="service-icon">
+      📱
+    </div>
+
+    <h3>
+      Android & iOS Apps
+    </h3>
+
+    <p>
+      Publish customer-facing Android and iOS
+      apps on Play Store & App Store with
+      your own company brand name and logo.
+    </p>
+
+    <ul>
+
+      <li>✔ Play Store Publishing</li>
+
+      <li>✔ iOS App Store Publishing</li>
+
+      <li>✔ Your Brand Name & Logo</li>
+
+      <li>✔ Customer Booking App</li>
+
+      <li>✔ Premium Native Experience</li>
+
+    </ul>
+
+    <button>
+      Launch Your App
+    </button>
+
+  </div>
+
+</div>
 
   </div>
 
 </section>
+
 
       {/* =========================================
     TESTIMONIALS SECTION
@@ -953,21 +1114,21 @@ const handleFormSubmit = async (e, source) => {
 
         <span>✦</span>
 
-        Trusted by Rental Businesses
+        Trusted by Indian Rental Businesses
 
       </div>
 
       <h2>
 
-        Loved by <span>Modern Rental Teams</span>
+        Loved by <span>Rental Businesses Across India</span>
 
       </h2>
 
       <p>
 
-        Borezy helps rental businesses streamline
-        operations, automate workflows, and deliver
-        premium customer experiences at scale.
+        Borezy helps Indian rental businesses automate
+        bookings, manage inventory, streamline staff,
+        and grow faster with a modern rental ecosystem.
 
       </p>
 
@@ -987,9 +1148,9 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “Borezy completely transformed our
-            inventory and booking workflow.
-            Everything feels centralized and premium.”
+            “Borezy completely changed how we manage
+            bookings and inventory. Everything is now
+            smooth, fast, and fully organized.”
 
           </p>
 
@@ -1001,9 +1162,9 @@ const handleFormSubmit = async (e, source) => {
 
             <div>
 
-              <h4>Alex Rivera</h4>
+              <h4>Arjun Mehta</h4>
 
-              <span>LUXE EVENT RENTALS</span>
+              <span>MUMBAI Fashion Rentals</span>
 
             </div>
 
@@ -1020,23 +1181,23 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “The customer app and rental website
-            increased our bookings significantly
-            within weeks.”
+            “The customer app and online booking
+            system helped us increase bookings
+            within just a few weeks.”
 
           </p>
 
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              S
+              P
             </div>
 
             <div>
 
-              <h4>Sarah Chen</h4>
+              <h4>Priya Sharma</h4>
 
-              <span>SPOTLIGHT MEDIA</span>
+              <span>DELHI Camera Rentals</span>
 
             </div>
 
@@ -1053,23 +1214,23 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “Managing staff, analytics, and
-            bookings from one platform saved
-            our operations team countless hours.”
+            “Managing staff attendance, rentals,
+            and analytics from one dashboard
+            saves us hours every single day.”
 
           </p>
 
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              M
+              R
             </div>
 
             <div>
 
-              <h4>Marcus Thompson</h4>
+              <h4>Rahul Verma</h4>
 
-              <span>GLOBAL PRODUCTIONS</span>
+              <span>Wedding Rentals</span>
 
             </div>
 
@@ -1086,23 +1247,23 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “The provider app is incredibly smooth.
-            Our staff now handle deliveries and
-            attendance without confusion.”
+            “The provider app is very easy for our
+            delivery team. Tracking and attendance
+            management became effortless.”
 
           </p>
 
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              D
+              N
             </div>
 
             <div>
 
-              <h4>Daniel Foster</h4>
+              <h4>Neha Kapoor</h4>
 
-              <span>EVENT HUB INDIA</span>
+              <span>Pune Dress Rentals</span>
 
             </div>
 
@@ -1119,23 +1280,23 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “From websites to analytics and customer
-            bookings, Borezy feels like a premium
-            enterprise ecosystem.”
+            “From website bookings to analytics and
+            automation, Borezy feels like a premium
+            enterprise platform for rentals.”
 
           </p>
 
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              J
+              V
             </div>
 
             <div>
 
-              <h4>Jessica Lee</h4>
+              <h4>Vikram Singh</h4>
 
-              <span>ROYAL RENTALS</span>
+              <span>Fashion Rentals</span>
 
             </div>
 
@@ -1153,8 +1314,8 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “Borezy completely transformed our
-            inventory and booking workflow.”
+            “Borezy transformed our inventory
+            and booking operations completely.”
 
           </p>
 
@@ -1166,9 +1327,9 @@ const handleFormSubmit = async (e, source) => {
 
             <div>
 
-              <h4>Alex Rivera</h4>
+              <h4>Ankit Patel</h4>
 
-              <span>LUXE EVENT RENTALS</span>
+              <span>AHMEDABAD RENTALS</span>
 
             </div>
 
@@ -1184,8 +1345,9 @@ const handleFormSubmit = async (e, source) => {
 
           <p className="testimonial-text">
 
-            “The customer app and rental website
-            increased our bookings significantly.”
+            “The automation and WhatsApp alerts
+            made our customer communication
+            much more professional.”
 
           </p>
 
@@ -1197,9 +1359,9 @@ const handleFormSubmit = async (e, source) => {
 
             <div>
 
-              <h4>Sarah Chen</h4>
+              <h4>Sneha Reddy</h4>
 
-              <span>SPOTLIGHT MEDIA</span>
+              <span>HYDERABAD Rentals</span>
 
             </div>
 
@@ -1311,7 +1473,21 @@ const handleFormSubmit = async (e, source) => {
       {/* =========================================
     FOOTER SECTION
 ========================================= */}
+{/* =====================================
+    FLOATING WHATSAPP BUTTON
+===================================== */}
 
+{/* =====================================
+    FLOATING WHATSAPP BUTTON
+===================================== */}
+<a
+  href="https://wa.me/917249165707?text=Hello%20Borezy%20Team%20✨%0A%0AI’m%20interested%20in%20starting%20a%20premium%20demo%20for%20the%20Borezy%20Rental%20Management%20Platform.%0A%0AI%20would%20love%20to%20explore%20the%20website,%20mobile%20apps,%20booking%20system,%20automation,%20and%20complete%20rental%20ecosystem.%0A%0APlease%20share%20the%20next%20steps%20for%20getting%20started.%20🚀"
+  className="floating-whatsapp"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <FaWhatsapp />
+</a>
 <footer className="footer-section" id="contact">
 
   {/* GLOW */}
@@ -1346,26 +1522,25 @@ const handleFormSubmit = async (e, source) => {
 
         </p>
 
-        {/* SOCIALS */}
-        <div className="footer-socials">
+        {/* CONTACT INFO */}
+        <div className="footer-contact-info">
 
-          <a href="/">
-            𝕏
+          <a href="tel:+917249165707">
+            📞 +91 72491 65707
           </a>
 
-          <a href="/">
-            in
-          </a>
-
-          <a href="/">
-            ◎
-          </a>
-
-          <a href="/">
-            ⌘
+          <a
+            href="https://syteoslabs.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            🌐 Powered by Syteos Labs LLP
           </a>
 
         </div>
+
+        {/* SOCIALS */}
+        
 
       </div>
 
@@ -1448,31 +1623,28 @@ const handleFormSubmit = async (e, source) => {
     {/* =====================================
         BOTTOM
     ===================================== */}
-    <div className="footer-bottom">
+    {/* =====================================
+    BOTTOM
+===================================== */}
+<div className="footer-bottom">
 
-      <p>
+  <p>
 
-        © 2026 Borezy Technologies. All rights reserved.
+    © 2026 Borezy Technologies.
+    Powered by{" "}
 
-      </p>
+    <a
+      href="https://syteoslabs.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="powered-link"
+    >
+      Syteos Labs LLP
+    </a>
 
-      <div className="footer-bottom-links">
+  </p>
 
-        <a href="/privacy">
-          Privacy
-        </a>
-
-        <a href="/privacy">
-          Terms
-        </a>
-
-        <a href="/support">
-          Support
-        </a>
-
-      </div>
-
-    </div>
+</div>
 
   </div>
 

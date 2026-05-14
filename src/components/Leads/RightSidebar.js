@@ -72,41 +72,102 @@ const [users, setUsers] = useState([]);
 }, []);
 
   const handleSave = async () => {
-    // ADDED LOG FOR DEBUGGING: Log the value of selectedLead right before the check
-    console.log("RightSidebar.js: handleSave - selectedLead at start:", selectedLead);
-    if (!selectedLead || !selectedLead.id) {
-      toast.error('No lead selected for update.');
-      // ADDED LOG FOR DEBUGGING: Log if the error condition is met
-      console.error("RightSidebar.js: handleSave - selectedLead is null or missing ID:", selectedLead);
-      return;
-    }
-    if (newComment.trim() === '') {
-      toast.warn('Comment cannot be empty.'); // Added a warning if comment is empty
-      return;
+
+  console.log(
+    "RightSidebar.js: handleSave - selectedLead at start:",
+    selectedLead
+  );
+
+  // VALIDATION
+
+  if (!selectedLead || !selectedLead.id) {
+
+    toast.error(
+      "No lead selected for update."
+    );
+
+    console.error(
+      "RightSidebar.js: selectedLead missing:",
+      selectedLead
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const leadRef = doc(
+      db,
+      "leads",
+      selectedLead.id
+    );
+
+    // BASE UPDATE PAYLOAD
+
+    const updatePayload = {
+      status: status || "",
+      nextFollowup: nextFollowup || "",
+      assignedTo: assignedTo || "",
+      response: response || "",
+      updatedAt: new Date(),
+    };
+
+    // OPTIONAL COMMENT
+
+    if (newComment.trim() !== "") {
+
+      const currentDateTime =
+        new Date().toLocaleString();
+
+      const commentWithTimestamp =
+        `${currentDateTime}: ${newComment}`;
+
+      updatePayload.comments =
+        arrayUnion(commentWithTimestamp);
+
+      // UPDATE LOCAL STATE
+
+      setComments((prev) => [
+        ...prev,
+        commentWithTimestamp,
+      ]);
+
     }
 
-    try {
-      const leadRef = doc(db, 'leads', selectedLead.id);
-      const currentDateTime = new Date().toLocaleString();
-      const commentWithTimestamp = `${currentDateTime}: ${newComment}`;
+    // FIRESTORE UPDATE
 
-      await updateDoc(leadRef, {
-        status,
-        nextFollowup,
-        assignedTo,
-        comments: arrayUnion(commentWithTimestamp),
-        response,
-      });
+    await updateDoc(
+      leadRef,
+      updatePayload
+    );
 
-      toast.success('Lead updated successfully!');
-      setComments([...comments, commentWithTimestamp]);
-      setNewComment('');
-      onClose();
-    } catch (error) {
-      console.error('Error updating lead: ', error);
-      toast.error('Failed to update lead. Please try again.');
-    }
-  };
+    toast.success(
+      "Lead updated successfully!"
+    );
+
+    // RESET COMMENT FIELD
+
+    setNewComment("");
+
+    // CLOSE SIDEBAR
+
+    onClose();
+
+  } catch (error) {
+
+    console.error(
+      "Error updating lead:",
+      error
+    );
+
+    toast.error(
+      "Failed to update lead. Please try again."
+    );
+
+  }
+
+};
 
 
   useEffect(() => {

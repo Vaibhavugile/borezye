@@ -58,13 +58,13 @@ const UserSidebar = ({ isOpen }) => {
             </Link>
           </li>
        
-          {userData?.role !== 'Subuser' && (
+          {/* {userData?.role !== 'Subuser' && (
           <li className={`sidebar-link ${location.pathname === '/report' ? 'active' : ''}`}>
             <Link to="/report" style={{ display: 'flex', alignItems: 'center' }}>
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Report
             </Link>
           </li>
-          )}
+          )} */}
           <li className={`sidebar-link ${location.pathname === '/usersidebar/Deletedbooking' ? 'active' : ''}`}>
             <Link to="/usersidebar/Deletedbooking" style={{ display: 'flex', alignItems: 'center' }}>
               <FaGift style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Deleted Booking

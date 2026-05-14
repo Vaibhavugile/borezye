@@ -34,6 +34,13 @@ const Leads = () => {
   const [combinedLeads, setCombinedLeads] = useState([]);
   const [importedData, setImportedData] = useState([]); // Initialize as an empty array
   const [selectedLeads, setSelectedLeads] = useState([]);
+  const [isImporting, setIsImporting] = useState(false);
+
+const [importProgress, setImportProgress] = useState(0);
+
+const [duplicateCount, setDuplicateCount] = useState(0);
+
+const [successCount, setSuccessCount] = useState(0);
 
   const [users, setUsers] = useState([]);
 
@@ -210,58 +217,168 @@ const Leads = () => {
     }
   };
 
-  const handleImport = (event) => {
-    const file = event.target.files[0];
-    console.log("Selected File:", file); // Debug file selection
+  const handleImport = async (event) => {
 
-    if (file) {
-      Papa.parse(file, {
-        header: true, // Ensure CSV has headers
-        skipEmptyLines: true, // Skip empty rows
-        complete: async (result) => {
-          console.log("Parsed Result:", result.data); // Debug parsed data
-          const importedLeads = result.data
-            .filter((row) => Object.values(row).some((value) => value !== null && value !== "")) // Remove empty rows
-            .map((row) => {
-              let parsedNextFollowup = null;
-              if (row.nextFollowup && !isNaN(new Date(row.nextFollowup))) {
-                parsedNextFollowup = new Date(row.nextFollowup).toISOString();
-              }
-              const newLead = { // Create a new object to avoid modifying the original row
-                ...row,
-                nextFollowup: parsedNextFollowup,
-              };
-              // IMPORTANT: Delete the 'id' field if it exists in the imported row
-              // Firestore will generate its own unique ID with addDoc
-              if (newLead.id !== undefined) {
-                delete newLead.id;
-              }
-              return newLead;
-            });
+  const file = event.target.files[0];
 
-          console.log("Imported Leads:", importedLeads); // Debug processed leads
-          setImportedData(importedLeads); // Update state
+  if (file) {
 
-          try {
-            // Save data to Firestore
-            const leadsCollection = collection(db, 'leads'); // Replace 'leads' with your collection name
-            for (const lead of importedLeads) {
-              await addDoc(leadsCollection, lead);
+    setIsImporting(true);
+
+    setImportProgress(0);
+
+    setDuplicateCount(0);
+
+    setSuccessCount(0);
+
+    Papa.parse(file, {
+
+      header: true,
+
+      skipEmptyLines: true,
+
+      complete: async (result) => {
+
+        try {
+
+          const existingNumbers = new Set(
+
+            leads
+              .map((lead) =>
+                String(
+                  lead.contactNumber || ''
+                ).trim()
+              )
+              .filter(Boolean)
+          );
+
+          const csvNumbers = new Set();
+
+          const duplicateLeads = [];
+
+          const uniqueLeads = [];
+
+          result.data.forEach((row) => {
+
+            const phone = String(
+              row.contactNumber || ''
+            ).trim();
+
+            if (!phone) return;
+
+            // duplicate in database
+            if (existingNumbers.has(phone)) {
+
+              duplicateLeads.push(row);
+
+              return;
             }
-            console.log("Data saved to Firestore successfully!");
-            toast.success("Leads imported and saved to database successfully!");
-          } catch (error) {
-            console.error("Error saving data to Firestore:", error); // Debug database save errors
-            toast.error("Failed to save data to the database. Please try again.");
+
+            // duplicate inside csv
+            if (csvNumbers.has(phone)) {
+
+              duplicateLeads.push(row);
+
+              return;
+            }
+
+            csvNumbers.add(phone);
+
+            let parsedNextFollowup = null;
+
+            if (
+              row.nextFollowup &&
+              !isNaN(new Date(row.nextFollowup))
+            ) {
+
+              parsedNextFollowup =
+                new Date(
+                  row.nextFollowup
+                ).toISOString();
+            }
+
+            const newLead = {
+              ...row,
+              nextFollowup:
+                parsedNextFollowup,
+            };
+
+            delete newLead.id;
+
+            uniqueLeads.push(newLead);
+          });
+
+          setDuplicateCount(
+            duplicateLeads.length
+          );
+
+          // SAVE WITH LIVE PROGRESS
+          const leadsCollection =
+            collection(db, 'leads');
+
+          let savedCount = 0;
+
+          for (const lead of uniqueLeads) {
+
+            await addDoc(
+              leadsCollection,
+              lead
+            );
+
+            savedCount++;
+
+            setSuccessCount(savedCount);
+
+            setImportProgress(
+
+              Math.round(
+                (savedCount /
+                  uniqueLeads.length) *
+                100
+              )
+            );
           }
-        },
-        error: (error) => {
-          console.error("Error Parsing CSV:", error); // Debug any parsing errors
-          toast.error("Error parsing the CSV file. Please check the file format.");
-        },
-      });
-    }
-  };
+
+          toast.success(
+            `${savedCount} leads imported successfully`
+          );
+
+          if (
+            duplicateLeads.length > 0
+          ) {
+
+            toast.warning(
+              `${duplicateLeads.length} duplicate leads skipped`
+            );
+          }
+
+        } catch (error) {
+
+          console.error(error);
+
+          toast.error(
+            'Import failed'
+          );
+
+        } finally {
+
+          setIsImporting(false);
+        }
+      },
+
+      error: (error) => {
+
+        console.error(error);
+
+        toast.error(
+          'CSV parsing failed'
+        );
+
+        setIsImporting(false);
+      },
+    });
+  }
+};
 
 
 
@@ -319,6 +436,234 @@ const Leads = () => {
       );
     }
   };
+  const handleRemoveDuplicates = async () => {
+
+  try {
+
+    toast.info('Checking duplicates...');
+
+    const snapshot = await getDocs(
+      collection(db, 'leads')
+    );
+
+    const allLeads = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // STATUS PRIORITY
+    const statusPriority = {
+      'fresh lead': 1,
+      'details shared': 2,
+      'demo scheduled': 3,
+      'demo done': 4,
+      'lead won': 5,
+      'lead lost': 0,
+    };
+
+    // GROUP LEADS BY PHONE NUMBER
+    const groupedLeads = {};
+
+    allLeads.forEach((lead) => {
+
+      const phone = String(
+        lead.contactNumber || ''
+      ).trim();
+
+      if (!phone) return;
+
+      if (!groupedLeads[phone]) {
+
+        groupedLeads[phone] = [];
+      }
+
+      groupedLeads[phone].push(lead);
+    });
+
+    const idsToDelete = [];
+
+    Object.values(groupedLeads).forEach((group) => {
+
+      // NO DUPLICATES
+      if (group.length <= 1) return;
+
+      // SORT BY HIGHEST STATUS
+      group.sort((a, b) => {
+
+        const priorityA =
+          statusPriority[
+            (a.status || '').toLowerCase()
+          ] || 0;
+
+        const priorityB =
+          statusPriority[
+            (b.status || '').toLowerCase()
+          ] || 0;
+
+        return priorityB - priorityA;
+      });
+
+      // KEEP FIRST LEAD
+      const originalLead = group[0];
+
+      console.log(
+        'Keeping Original:',
+        originalLead
+      );
+
+      // DELETE REST
+      for (let i = 1; i < group.length; i++) {
+
+        idsToDelete.push(group[i].id);
+      }
+    });
+
+    console.log(
+      'Duplicate IDs:',
+      idsToDelete
+    );
+
+    // DELETE DUPLICATES
+    await Promise.all(
+
+      idsToDelete.map((id) =>
+
+        deleteDoc(doc(db, 'leads', id))
+      )
+    );
+
+    toast.success(
+      `${idsToDelete.length} duplicate leads deleted successfully`
+    );
+
+    // REFRESH LEADS
+    const refreshedSnapshot =
+      await getDocs(
+        collection(db, 'leads')
+      );
+
+    const refreshedLeads =
+      refreshedSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+    setLeads(refreshedLeads);
+
+  } catch (error) {
+
+    console.error(error);
+
+    toast.error(
+      'Duplicate cleanup failed'
+    );
+  }
+};
+const [isUpdatingLost, setIsUpdatingLost] =
+  useState(false);
+
+const [lostProgress, setLostProgress] =
+  useState(0);
+
+const [lostUpdatedCount, setLostUpdatedCount] =
+  useState(0);
+
+const handleNoContactLeads = async () => {
+
+  try {
+
+    setIsUpdatingLost(true);
+
+    setLostProgress(0);
+
+    setLostUpdatedCount(0);
+
+    const noContactLeads =
+      leads.filter((lead) => {
+
+        const contact = String(
+          lead.contactNumber || ''
+        ).trim();
+
+        return !contact;
+      });
+
+    if (noContactLeads.length === 0) {
+
+      toast.info(
+        'No leads without contact number'
+      );
+
+      setIsUpdatingLost(false);
+
+      return;
+    }
+
+    let updatedCount = 0;
+
+    for (const lead of noContactLeads) {
+
+      await updateDoc(
+        doc(db, 'leads', lead.id),
+        {
+          status: 'Lead Lost',
+        }
+      );
+
+      updatedCount++;
+
+      setLostUpdatedCount(
+        updatedCount
+      );
+
+      setLostProgress(
+        Math.round(
+          (updatedCount /
+            noContactLeads.length) *
+          100
+        )
+      );
+    }
+
+    // UPDATE LOCAL STATE
+    const updatedLeads = leads.map(
+      (lead) => {
+
+        const contact = String(
+          lead.contactNumber || ''
+        ).trim();
+
+        if (!contact) {
+
+          return {
+            ...lead,
+            status: 'Lead Lost',
+          };
+        }
+
+        return lead;
+      }
+    );
+
+    setLeads(updatedLeads);
+
+    toast.success(
+      `${updatedCount} leads moved to Lead Lost`
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    toast.error(
+      'Failed to update leads'
+    );
+
+  } finally {
+
+    setIsUpdatingLost(false);
+  }
+};
   const handleBulkAssign =
     async () => {
 
@@ -577,6 +922,12 @@ const Leads = () => {
 
               </button>
               <button
+  className="glass-btn"
+  onClick={handleNoContactLeads}
+>
+  No Contact → Lead Lost
+</button>
+              <button
                 className="glass-btn"
                 onClick={exportToCSV}
               >
@@ -603,6 +954,12 @@ const Leads = () => {
 
               </button>
               <button
+  className="glass-btn"
+  onClick={handleRemoveDuplicates}
+>
+  Remove Duplicates
+</button>
+              <button
                 className="primary-btn-modern"
                 onClick={() => navigate('/create-lead')}
               >
@@ -615,6 +972,75 @@ const Leads = () => {
             </div>
 
           </div>
+          {
+  isUpdatingLost && (
+
+    <div className="import-status-box">
+
+      <h3>
+        Updating Lead Lost...
+      </h3>
+
+      <p>
+        Progress: {lostProgress}%
+      </p>
+
+      <p>
+        Updated Leads:
+        {lostUpdatedCount}
+      </p>
+
+      <div className="progress-bar">
+
+        <div
+          className="progress-fill"
+          style={{
+            width: `${lostProgress}%`
+          }}
+        />
+
+      </div>
+
+    </div>
+  )
+}
+          {
+  isImporting && (
+
+    <div className="import-status-box">
+
+      <h3>
+        Importing Leads...
+      </h3>
+
+      <p>
+        Progress: {importProgress}%
+      </p>
+
+      <p>
+        Successfully Imported:
+        {successCount}
+      </p>
+
+      <p>
+        Duplicate Skipped:
+        {duplicateCount}
+      </p>
+
+      <div className="progress-bar">
+
+        <div
+          className="progress-fill"
+          style={{
+            width: `${importProgress}%`
+          }}
+        />
+
+      </div>
+
+    </div>
+  )
+}
 
           {/* TABLE SECTION */}
 

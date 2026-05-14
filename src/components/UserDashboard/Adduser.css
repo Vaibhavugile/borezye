@@ -1,171 +1,298 @@
 .add-user-container {
-  width: 80%;
-  margin: 0 auto;
-  max-width: 1400px;
-  margin: 100px auto;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  width: 92%;
+  max-width: 1450px;
+
+  margin: 90px auto 40px;
+
+  padding: 40px;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  border-radius: 28px;
+
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  font-family: 'Public Sans', sans-serif;
 }
 
-h1 {
-  font-family: 'Public Sans', sans-serif;
-  font-size: 2rem; /* Changed to rem for better scalability */
+/* HEADER */
+.add-user-container h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 10px;
 }
 
 .subheading {
-  font-family: 'Public Sans', sans-serif;
-  font-size: 1rem; /* Changed to rem for better scalability */
-  color: #666;
-  margin-bottom: 30px;
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 35px;
+  line-height: 1.6;
 }
 
+/* FORM */
 .add-user-form {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 40px;
+  gap: 40px;
+  flex-wrap: wrap;
 }
 
+.form-left,
+.form-right {
+  flex: 1;
+  min-width: 320px;
+}
+
+/* FORM GROUP */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
+/* LABEL */
 .form-group label {
   display: block;
-  font-family: 'Public Sans', sans-serif;
-  font-size: 0.875rem; /* Changed to rem for better scalability */
-  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #374151;
+
+  margin-bottom: 10px;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  font-size: 0.875rem; /* Changed to rem for better scalability */
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-.form-left, .form-right {
-  width: 45%;
-}
-
-.button-group {
-  display: flex;
-  justify-content: flex-end; /* Updated to flex-end for better alignment */
-}
-
-.btn {
-  padding: 12px 24px;
-  font-family: 'Public Sans', sans-serif;
-  font-size: 0.875rem; /* Changed to rem for better scalability */
-  border-radius: 5px;
-  margin: 0 10px;
-  cursor: pointer;
-  border: none;
-}
-
-.btn.cancel {
-  background-color: #d0d0d0;
-  color: #333;
-}
-
-.btn.add-employee {
-  background-color: #164DC3;
-  color: white;
-}
-
+/* INPUTS */
+.form-group input,
+.form-group select,
 .date-picker {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
-}
 
+  padding: 14px 16px;
 
-.permission-container-option {
-  width: 100%;
-  height: auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 14px;
+
+  border: 1px solid #e5e7eb;
+
+  background: rgba(255, 255, 255, 0.9);
+
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+
+  transition: all 0.25s ease;
+
   box-sizing: border-box;
-  margin-bottom: 20px;
-  
 }
 
+/* PLACEHOLDER */
+.form-group input::placeholder {
+  color: #9ca3af;
+}
 
-.checkbox-container {
+/* FOCUS */
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+
+  border-color: #6366f1;
+
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.12);
+
+  background: #fff;
+}
+
+/* READONLY */
+.form-group input[readonly] {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+/* WEEKOFF GRID */
+.weekoff-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 14px;
+
+  margin-top: 14px;
+}
+
+/* WEEKOFF ITEM */
+.weekoff-item {
   display: flex;
   align-items: center;
-  gap: 8px; /* Adjust the gap between checkbox and label */
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  background: rgba(99, 102, 241, 0.06);
+
+  border: 1px solid rgba(99, 102, 241, 0.12);
+
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #374151;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
 }
 
-.checkbox-container input {
-  margin: 0; /* Remove default margin */
+/* HOVER */
+.weekoff-item:hover {
+  transform: translateY(-2px);
+
+  background: rgba(99, 102, 241, 0.1);
+
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
-.checkbox-container label {
-  margin: 0; /* Remove default margin */
+/* CHECKBOX */
+.weekoff-item input {
+  width: 18px;
+  height: 18px;
+
+  accent-color: #6366f1;
+
+  cursor: pointer;
+}
+
+/* BUTTON AREA */
+.button-group {
+  width: 100%;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 16px;
+
+  margin-top: 20px;
+}
+
+/* BUTTON */
+.btn {
+  border: none;
+
+  padding: 14px 28px;
+
+  border-radius: 14px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
   font-family: 'Public Sans', sans-serif;
-  font-size: 0.875rem; /* Changed to rem for better scalability */
 }
 
-@media (max-width: 768px) {
-  .add-user-form {
-    flex-direction: column;
-    align-items: center;
+/* CANCEL */
+.btn.cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn.cancel:hover {
+  background: #e5e7eb;
+
+  transform: translateY(-2px);
+}
+
+/* PRIMARY BUTTON */
+.btn.add-employee {
+  background: linear-gradient(
+    135deg,
+    #6366f1,
+    #8b5cf6
+  );
+
+  color: white;
+
+  box-shadow:
+    0 10px 20px rgba(99, 102, 241, 0.25);
+}
+
+.btn.add-employee:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 14px 24px rgba(99, 102, 241, 0.35);
+}
+
+/* DISABLED */
+button:disabled,
+input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ERROR */
+.error-message {
+  padding: 16px 18px;
+
+  background: rgba(239, 68, 68, 0.08);
+
+  border: 1px solid rgba(239, 68, 68, 0.2);
+
+  color: #dc2626;
+
+  border-radius: 14px;
+
+  margin-bottom: 25px;
+
+  font-weight: 600;
+}
+
+/* MOBILE */
+@media (max-width: 992px) {
+  .add-user-container {
+    padding: 28px;
   }
 
-  .form-left, .form-right {
-    width: 100%;
+  .add-user-form {
+    flex-direction: column;
   }
 
   .button-group {
-    flex-direction: column;
-    width: 100%;
+    justify-content: stretch;
   }
 
   .btn {
-    width: 90%;
-    margin-bottom: 10px;
+    width: 100%;
   }
 }
-.weekoff-grid{
 
-  display:grid;
+/* SMALL MOBILE */
+@media (max-width: 600px) {
+  .add-user-container {
+    width: 95%;
 
-  grid-template-columns:
-      repeat(2,1fr);
+    padding: 22px;
 
-  gap:10px;
+    margin-top: 75px;
+  }
 
-  margin-top:10px;
-}
+  .add-user-container h1 {
+    font-size: 1.8rem;
+  }
 
-.weekoff-item{
+  .weekoff-grid {
+    grid-template-columns: 1fr;
+  }
 
-  display:flex;
-
-  align-items:center;
-
-  gap:8px;
-
-  padding:10px;
-
-  background:#f8f5ef;
-
-  border-radius:12px;
-
-  font-size:14px;
-
-  cursor:pointer;
-}
-
-.weekoff-item input{
-
-  width:16px;
-  height:16px;
+  .form-group input {
+    padding: 13px 14px;
+  }
 }

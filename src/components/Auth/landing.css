@@ -1113,3 +1113,89 @@
   }
 
 }
+
+/* =========================================
+   FLOATING WHATSAPP BUTTON
+========================================= */
+
+.floating-whatsapp{
+  position:fixed;
+
+  right:24px;
+  bottom:24px;
+
+  width:64px;
+  height:64px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:#25D366;
+
+  color:white;
+
+  font-size:36px;
+
+  z-index:9999;
+
+  text-decoration:none;
+
+  box-shadow:
+    0 12px 30px rgba(37,211,102,0.35);
+
+  transition:
+    transform .3s ease,
+    box-shadow .3s ease;
+
+  animation:
+    whatsappPulse 2s infinite;
+}
+
+.floating-whatsapp:hover{
+  transform:
+    scale(1.08);
+
+  box-shadow:
+    0 18px 40px rgba(37,211,102,0.45);
+}
+
+/* =========================================
+   PULSE ANIMATION
+========================================= */
+
+@keyframes whatsappPulse{
+
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.08);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media(max-width:768px){
+
+  .floating-whatsapp{
+    width:58px;
+    height:58px;
+
+    right:18px;
+    bottom:18px;
+
+    font-size:32px;
+  }
+
+}

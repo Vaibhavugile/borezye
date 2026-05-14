@@ -139,7 +139,7 @@ const EditLead = () => {
                 value={formData.businessName}
                 onChange={handleChange}
                 placeholder="Enter business name"
-                required
+                
               />
 
             </div>
@@ -169,7 +169,7 @@ const EditLead = () => {
                 value={formData.emailId}
                 onChange={handleChange}
                 placeholder="Enter email address"
-                required
+                
               />
 
             </div>
@@ -183,7 +183,7 @@ const EditLead = () => {
                 name="nextFollowup"
                 value={formData.nextFollowup}
                 onChange={handleChange}
-                required
+                
               />
 
             </div>
@@ -204,7 +204,7 @@ const EditLead = () => {
                 value={formData.businessType}
                 onChange={handleChange}
                 placeholder="Enter business type"
-                required
+              
               />
 
             </div>
@@ -217,7 +217,7 @@ const EditLead = () => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                required
+               
               >
 
                 <option value="details shared">

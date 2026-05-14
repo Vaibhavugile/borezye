@@ -1,181 +1,401 @@
-/* Additional styling for table and other elements */
+/* MAIN LAYOUT */
+.dashboard-content {
+  padding: 110px 28px 30px;
 
-.table-container {
-  margin-top: 80px;
-  width: 100%;
-  max-height: 500px; /* Adjust as needed for vertical overflow */
-  overflow-y: auto; /* Enable vertical scrolling */
-  position: relative; /* For positioning the scrollbar wrapper */
+  background:
+    linear-gradient(
+      135deg,
+      #f5f7ff,
+      #eef2ff
+    );
+
+  min-height: 100vh;
 }
 
-/* Create a wrapper for horizontal scroll */
-
-/* Table styling */
-.table {
-  text-align: left;
-  width: 100%; /* Ensure table takes full width of its container */
-  border-collapse: collapse;
-  box-sizing: border-box; /* Include padding and border in width calculations */
-  border-bottom: 1px solid #666666;
-}
-
-/* Table headers and cells styling */
-.table th, .table td {
-  padding: 15px;
-  border-bottom: 1px solid #efefef;
+/* PAGE TITLE */
+.page-title {
   font-family: 'Public Sans', sans-serif;
-  font-size: 13px;
+
+  font-size: 2rem;
+  font-weight: 700;
+
+  color: #111827;
+
+  margin-bottom: 8px;
 }
 
-.table th {
-  background: #EFEFEF;
-  font-weight: 600;
-  color: #000000;
+.page-subtitle {
+  font-family: 'Public Sans', sans-serif;
+
+  font-size: 1rem;
+  font-weight: 500;
+
+  color: #6b7280;
+
+  margin-bottom: 28px;
 }
 
-.table td {
-  background: #FFFFFF;
-  font-weight: 400;
-  color: #000000;
-}
-
-/* New styles for status colors */
-.table td.status-active {
-  color: #008101;
-}
-
-.table td.status-deactive {
-  color: #FF0000;
-}
-
-/* Styles for the Create Branch button */
-
-/* Styles for filter buttons */
-.filter-buttons-container {
-  margin: 20px 0;
-}
-
-.filter-buttons-container span {
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.active-filter {
-  font-weight: bold;
-}
-
-
-
-
-
-/* Parent container for search bar, action buttons, and create branch button */
+/* TOOLBAR */
 .toolbar-container {
   display: flex;
+
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-end;
+
+  flex-wrap: wrap;
+
   gap: 20px;
-  position: absolute;
-  top: 120px;
-  right: 20px;
+
+  margin-bottom: 28px;
 }
 
-/* Styles for search bar container */
-.search-bar-container {
+/* SEARCH BOX */
+.search-bar-container7 {
   display: flex;
   align-items: center;
-  position: relative;
-  height: 33px;
-  background-color: white;
-  border: 1px solid #A39D9D;
-  border-radius: 5px;
-  overflow: hidden;
-  width: 260px;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  border-radius: 18px;
+
+  padding: 0 14px;
+
+  height: 58px;
+
+  min-width: 360px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
-/* Styles for the search input */
-.search-bar-container input {
-  padding: 10px;
-  width: 100px;
-  border: none;
-  outline: none;
-  font-family: 'Public Sans', sans-serif;
-  font-weight: 400;
-  font-size: 13px;
-  color: #666666;
-  background-color: transparent;
+/* SEARCH ICON */
+.search-icon7 {
+  width: 18px;
+  height: 18px;
+
+  opacity: 0.6;
+
+  margin-right: 12px;
 }
 
-/* Styles for the search dropdown */
-.search-dropdown {
-  padding: 25px;
-  width: 150px;
+/* SEARCH DROPDOWN */
+.search-dropdown7 {
   border: none;
-  outline: none;
+
+  background: transparent;
+
   font-family: 'Public Sans', sans-serif;
-  font-weight: 400;
-  font-size: 13px;
-  color: #2d2c2c;
-  background-color: transparent;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #374151;
+
+  margin-right: 14px;
+
+  padding-right: 12px;
+
+  border-right: 1px solid #e5e7eb;
+
+  outline: none;
+
   cursor: pointer;
-  appearance: none;
-  border-left: 1px solid #A39D9D;
 }
 
-/* Align the search icon */
-.search-icon {
-  position: absolute;
-  left:0px;
-  top: 50%;
-  transform: translateY(-50%);
+/* SEARCH INPUT */
+.search-bar-container7 input {
+  flex: 1;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  font-family: 'Public Sans', sans-serif;
+
+  font-size: 14px;
+
+  color: #111827;
 }
 
-/* Action buttons */
+/* ACTION BUTTONS */
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.action-button {
+/* COMMON BUTTON STYLE */
+.export-button,
+.import-button,
+.add-product-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 14px 22px;
+
+  border-radius: 16px;
+
+  font-family: 'Public Sans', sans-serif;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
+  border: none;
+}
+
+/* EXPORT */
+.export-button {
+  background: white;
+
+  color: #374151;
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.export-button:hover {
+  transform: translateY(-2px);
+}
+
+/* IMPORT */
+.import-button {
+  background: rgba(99, 102, 241, 0.08);
+
+  color: #4f46e5;
+
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.import-button:hover {
+  transform: translateY(-2px);
+
+  background: rgba(99, 102, 241, 0.12);
+}
+
+/* ADD BUTTON */
+.add-product-button {
+  background:
+    linear-gradient(
+      135deg,
+      #6366f1,
+      #8b5cf6
+    );
+
+  color: white;
+
+  box-shadow:
+    0 10px 24px rgba(99, 102, 241, 0.25);
+}
+
+.add-product-button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 14px 28px rgba(99, 102, 241, 0.35);
+}
+
+/* TABLE CARD */
+.table-container {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border-radius: 26px;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(18px);
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.06);
+
+  padding: 10px;
+}
+
+/* TABLE */
+.table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 900px;
+}
+
+/* HEADER */
+.table thead th {
+  padding: 20px 18px;
+
+  text-align: left;
+
+  font-family: 'Public Sans', sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #6b7280;
+
+  text-transform: uppercase;
+
+  background: transparent;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ROW */
+.table tbody tr {
+  transition: all 0.25s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+/* CELL */
+.table td {
+  padding: 18px;
+
+  font-family: 'Public Sans', sans-serif;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #111827;
+
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* STATUS BADGES */
+.status-active {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 8px 14px;
+
+  border-radius: 30px;
+
+  background: rgba(34, 197, 94, 0.12);
+
+  color: #16a34a;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-deactive {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 8px 14px;
+
+  border-radius: 30px;
+
+  background: rgba(239, 68, 68, 0.12);
+
+  color: #dc2626;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ACTION ICONS */
+.table .action-buttons {
+  gap: 16px;
+}
+
+.table .action-buttons label {
+  width: 38px;
+  height: 38px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
-  height: 33px;
-  width: 133px;
-  background-color: #164dc3;
-  border: none;
-  border-radius: 5px;
-  font-family: 'Public Sans', sans-serif;
-  font-weight: 500;
-  font-size: 13px;
+
+  border-radius: 12px;
+
+  background: rgba(99, 102, 241, 0.06);
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+}
+
+/* ICON HOVER */
+.table .action-buttons label:hover {
+  transform: translateY(-2px);
+
+  background: rgba(99, 102, 241, 0.12);
+}
+
+/* ICONS */
+.table .action-buttons svg {
+  color: #4f46e5 !important;
+
+  font-size: 15px;
+}
+
+/* LOADING */
+.table-container p {
+  padding: 40px;
+
   text-align: center;
-  color: #FFFFFF;
-  cursor: pointer;
-}
 
-.action-button:hover {
-  background: linear-gradient(187.36deg, #0E3799 5.38%, #175CFF 93.96%);
-}
-
-/* Create Branch Button */
-.create-branch-container {
-  height: 33px;
-}
-
-.create-branch-container button {
-  height: 33px;
-  background-color: #28a745;
-  border: none;
-  border-radius: 5px;
   font-family: 'Public Sans', sans-serif;
-  font-weight: 500;
-  font-size: 13px;
-  color: #FFFFFF;
-  cursor: pointer;
-  width: 133px;
+
+  color: #6b7280;
 }
 
-.create-branch-container button:hover {
-  background: linear-gradient(187.36deg, #0E3799 5.38%, #175CFF 93.96%);
+/* RESPONSIVE */
+@media (max-width: 992px) {
+  .toolbar-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar-container7 {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .dashboard-content {
+    padding: 95px 16px 20px;
+  }
+
+  .page-title {
+    font-size: 1.7rem;
+  }
+
+  .export-button,
+  .import-button,
+  .add-product-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
 }

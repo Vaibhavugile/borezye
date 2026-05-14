@@ -1698,9 +1698,9 @@ Credit Note Migration
   Migrate Attendance Dates
 </button>
  */}
-<button onClick={migrateCreditHistory}>
+{/* <button onClick={migrateCreditHistory}>
   Migrate Credit History
-</button>
+</button> */}
 
 
         <div className="kpi-grid">
