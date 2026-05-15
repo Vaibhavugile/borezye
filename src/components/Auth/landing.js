@@ -75,7 +75,7 @@ const handleFormSubmit = async (e, source) => {
   const comment = formData.get('comment') || '';
 
   try {
-    await addDoc(collection(db, 'leads'), {
+    await addDoc(collection(db, 'demo'), {
       businessName,
       contactNumber,
       emailId,
@@ -1127,7 +1127,7 @@ const handleFormSubmit = async (e, source) => {
       <p>
 
         Borezy helps Indian rental businesses automate
-        bookings, manage inventory, streamline staff,
+        bookings, manage inventory, streamline staff
         and grow faster with a modern rental ecosystem.
 
       </p>
@@ -1164,7 +1164,7 @@ const handleFormSubmit = async (e, source) => {
 
               <h4>Arjun Mehta</h4>
 
-              <span>MUMBAI Fashion Rentals</span>
+              <span>MUMBAI Equipment Rentals</span>
 
             </div>
 
@@ -1190,14 +1190,14 @@ const handleFormSubmit = async (e, source) => {
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              P
+              K
             </div>
 
             <div>
 
-              <h4>Priya Sharma</h4>
+              <h4>Kalyani Kulkarni</h4>
 
-              <span>DELHI Camera Rentals</span>
+              <span>Camera Rentals,Delhi</span>
 
             </div>
 
@@ -1223,14 +1223,14 @@ const handleFormSubmit = async (e, source) => {
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              R
+              V
             </div>
 
             <div>
 
-              <h4>Rahul Verma</h4>
+              <h4>Varun Maniyar</h4>
 
-              <span>Wedding Rentals</span>
+              <span>Wedding Rentals,Jaipur</span>
 
             </div>
 
@@ -1261,7 +1261,7 @@ const handleFormSubmit = async (e, source) => {
 
             <div>
 
-              <h4>Neha Kapoor</h4>
+              <h4>Neha Deshmukh</h4>
 
               <span>Pune Dress Rentals</span>
 
@@ -1289,12 +1289,12 @@ const handleFormSubmit = async (e, source) => {
           <div className="testimonial-user">
 
             <div className="user-avatar">
-              V
+              A
             </div>
 
             <div>
 
-              <h4>Vikram Singh</h4>
+              <h4>Akshay Kedar</h4>
 
               <span>Fashion Rentals</span>
 
@@ -1329,7 +1329,7 @@ const handleFormSubmit = async (e, source) => {
 
               <h4>Ankit Patel</h4>
 
-              <span>AHMEDABAD RENTALS</span>
+              <span>Bike And Car Rentals</span>
 
             </div>
 

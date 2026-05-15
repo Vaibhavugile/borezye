@@ -1,3 +1,7 @@
+/* =========================================================
+   LEAVE REQUESTS — PREMIUM SAAS UI
+========================================================= */
+
 .leave-requests-container{
 
   width:100%;
@@ -12,15 +16,19 @@
     );
 
   padding:110px 24px 40px;
+
+  box-sizing:border-box;
 }
 
 
 
-/* HEADER */
+/* =========================================================
+   HEADER
+========================================================= */
 
 .leave-requests-header{
 
-  margin-bottom:28px;
+  margin-bottom:30px;
 }
 
 
@@ -47,11 +55,15 @@
   color:#64748b;
 
   font-size:14px;
+
+  font-weight:500;
 }
 
 
 
-/* GRID */
+/* =========================================================
+   GRID
+========================================================= */
 
 .leave-requests-grid{
 
@@ -60,43 +72,51 @@
   grid-template-columns:
     repeat(
       auto-fill,
-      minmax(360px,1fr)
+      minmax(420px,1fr)
     );
 
-  gap:24px;
+  gap:22px;
+
+  align-items:start;
 }
 
 
 
-/* CARD */
+/* =========================================================
+   CARD
+========================================================= */
 
 .leave-request-card{
 
-  background:
-    rgba(255,255,255,.88);
+  background:#ffffff;
 
-  backdrop-filter:blur(14px);
+  border-radius:26px;
 
-  border-radius:30px;
-
-  padding:24px;
+  padding:22px;
 
   position:relative;
 
   overflow:hidden;
 
-  border:1px solid rgba(255,255,255,.7);
+  border:1px solid #e2e8f0;
 
   transition:.28s ease;
 
   box-shadow:
+    0 10px 30px rgba(15,23,42,.05);
 
-    0 10px 34px rgba(15,23,42,.05);
+  display:flex;
+
+  flex-direction:column;
+
+  gap:18px;
+
+  min-height:320px;
 }
 
 
 
-/* GLOW */
+/* TOP GLOW */
 
 .leave-request-card::before{
 
@@ -104,20 +124,19 @@
 
   position:absolute;
 
-  top:-50px;
+  top:-40px;
 
-  right:-50px;
+  right:-40px;
 
-  width:140px;
+  width:120px;
 
-  height:140px;
+  height:120px;
 
   border-radius:50%;
 
   background:
-
     radial-gradient(
-      rgba(212,175,55,.16),
+      rgba(37,99,235,.08),
       transparent
     );
 }
@@ -131,30 +150,31 @@
   transform:translateY(-5px);
 
   box-shadow:
-
-    0 18px 40px rgba(15,23,42,.08);
+    0 18px 40px rgba(15,23,42,.10);
 }
 
 
 
-/* TOP */
+/* =========================================================
+   TOP SECTION
+========================================================= */
 
 .leave-request-top{
 
   display:flex;
 
-  align-items:center;
+  align-items:flex-start;
 
   justify-content:space-between;
 
   gap:14px;
-
-  margin-bottom:22px;
 }
 
 
 
-/* USER */
+/* =========================================================
+   USER SECTION
+========================================================= */
 
 .leave-request-user{
 
@@ -163,21 +183,25 @@
   align-items:center;
 
   gap:14px;
+
+  flex:1;
 }
 
 
 
-/* AVATAR */
+/* =========================================================
+   AVATAR
+========================================================= */
 
 .leave-request-avatar{
 
-  width:62px;
+  width:56px;
 
-  height:62px;
+  height:56px;
 
-  border-radius:20px;
+  border-radius:18px;
 
-  background:#f8fafc;
+  background:#eff6ff;
 
   display:flex;
 
@@ -185,28 +209,29 @@
 
   justify-content:center;
 
-  font-size:22px;
+  font-size:20px;
 
   font-weight:800;
 
-  color:#0f172a;
+  color:#2563eb;
 
-  border:3px solid white;
+  border:2px solid #ffffff;
 
   box-shadow:
-
-    0 10px 20px rgba(0,0,0,.05);
+    0 8px 18px rgba(37,99,235,.10);
 }
 
 
 
-/* NAME */
+/* =========================================================
+   USER NAME
+========================================================= */
 
 .leave-request-user h3{
 
   margin:0;
 
-  font-size:20px;
+  font-size:19px;
 
   font-weight:800;
 
@@ -219,16 +244,20 @@
 
 .leave-request-user p{
 
-  margin-top:6px;
+  margin-top:5px;
 
   font-size:13px;
 
   color:#64748b;
+
+  font-weight:500;
 }
 
 
 
-/* STATUS CHIP */
+/* =========================================================
+   STATUS CHIP
+========================================================= */
 
 .leave-status{
 
@@ -236,11 +265,15 @@
 
   border-radius:999px;
 
-  font-size:12px;
+  font-size:11px;
 
   font-weight:800;
 
-  text-transform:capitalize;
+  text-transform:uppercase;
+
+  letter-spacing:.5px;
+
+  white-space:nowrap;
 }
 
 
@@ -274,20 +307,24 @@
 
 
 
-/* BODY */
+/* =========================================================
+   BODY
+========================================================= */
 
 .leave-request-body{
 
-  display:flex;
+  display:grid;
 
-  flex-direction:column;
+  grid-template-columns:1fr 1fr;
 
-  gap:16px;
+  gap:14px;
 }
 
 
 
-/* ITEM */
+/* =========================================================
+   ITEM
+========================================================= */
 
 .leave-item{
 
@@ -295,7 +332,18 @@
 
   border-radius:18px;
 
-  padding:16px;
+  padding:15px;
+
+  border:1px solid #eef2f7;
+}
+
+
+
+/* LAST ITEM FULL WIDTH */
+
+.leave-item:last-child{
+
+  grid-column:1 / -1;
 }
 
 
@@ -312,7 +360,7 @@
 
   text-transform:uppercase;
 
-  letter-spacing:.5px;
+  letter-spacing:.6px;
 
   color:#64748b;
 
@@ -325,31 +373,39 @@
 
 .leave-item strong{
 
-  font-size:15px;
+  font-size:14px;
 
   font-weight:700;
 
   color:#0f172a;
 
-  line-height:1.5;
+  line-height:1.6;
+
+  display:block;
+
+  word-break:break-word;
 }
 
 
 
-/* BUTTONS */
+/* =========================================================
+   ACTIONS
+========================================================= */
 
 .leave-actions{
 
   display:flex;
 
-  gap:12px;
+  gap:10px;
 
-  margin-top:24px;
+  margin-top:auto;
 }
 
 
 
-/* BUTTON */
+/* =========================================================
+   BUTTONS
+========================================================= */
 
 .leave-actions button{
 
@@ -386,8 +442,7 @@
   color:white;
 
   box-shadow:
-
-    0 10px 24px rgba(34,197,94,.18);
+    0 10px 22px rgba(34,197,94,.18);
 }
 
 
@@ -406,13 +461,12 @@
   color:white;
 
   box-shadow:
-
-    0 10px 24px rgba(239,68,68,.18);
+    0 10px 22px rgba(239,68,68,.18);
 }
 
 
 
-/* HOVER */
+/* BUTTON HOVER */
 
 .leave-actions button:hover{
 
@@ -423,13 +477,15 @@
 
 
 
-/* EMPTY */
+/* =========================================================
+   EMPTY STATE
+========================================================= */
 
 .leave-empty{
 
   background:white;
 
-  padding:60px;
+  padding:70px;
 
   border-radius:28px;
 
@@ -442,17 +498,18 @@
   font-weight:600;
 
   box-shadow:
-
     0 10px 30px rgba(15,23,42,.04);
 }
 
 
 
-/* LOADING */
+/* =========================================================
+   LOADING
+========================================================= */
 
 .leave-loading{
 
-  padding:70px;
+  padding:80px;
 
   text-align:center;
 
@@ -465,7 +522,9 @@
 
 
 
-/* MOBILE */
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media(max-width:768px){
 
@@ -483,6 +542,20 @@
 
 
 
+  .leave-request-body{
+
+    grid-template-columns:1fr;
+  }
+
+
+
+  .leave-item:last-child{
+
+    grid-column:auto;
+  }
+
+
+
   .leave-request-top{
 
     flex-direction:column;
@@ -496,4 +569,19 @@
 
     flex-direction:column;
   }
+
+
+
+  .leave-request-card{
+
+    min-height:auto;
+  }
+
+
+
+  .leave-requests-header h2{
+
+    font-size:28px;
+  }
+
 }

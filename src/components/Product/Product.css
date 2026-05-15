@@ -439,6 +439,10 @@ width:45px;
 height:45px;
 object-fit:cover;
 border-radius:8px;
+background:#f3f4f6;
+
+/* PERFORMANCE */
+display:block;
 }
 
 .prd-table-code{

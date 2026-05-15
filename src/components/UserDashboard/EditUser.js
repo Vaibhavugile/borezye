@@ -359,7 +359,25 @@ await updateDoc(globalRef, {
             onChange={() => setIsActive((prev) => !prev)} // Toggle active status
           />
 
-          <button onClick={handleSave}>Save</button>
+        <div className="edit-user-buttons">
+
+  <button
+    className="save-btn"
+    onClick={handleSave}
+  >
+    Save
+  </button>
+
+  <button
+    className="cancel-btn"
+    onClick={() =>
+      navigate('/usersidebar/users')
+    }
+  >
+    Cancel
+  </button>
+
+</div>
         </div>
       )}
       <ToastContainer/>

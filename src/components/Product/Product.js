@@ -871,6 +871,7 @@ const sortedProducts = [...products].sort((a, b) => {
 
 <tr>
 <th>#</th>
+<th>Image</th>
 <th>Product</th>
 <th>Code</th>
 <th>Brand</th>
@@ -900,6 +901,14 @@ return (
 <tr key={product.id}>
 
 <td>{index + 1}</td>
+<td>
+  <img
+    src={product.imageUrls?.[0] || product.imageUrl || "/placeholder.png"}
+    alt={product.productName}
+    className="prd-table-image"
+    loading="lazy"
+  />
+</td>
 
 
 

@@ -17,7 +17,7 @@ import { useUser } from '../../Auth/UserContext';
 
 import UserHeader from '../../UserDashboard/UserHeader';
 import UserSidebar from '../../UserDashboard/UserSidebar';
-
+import { useNavigate } from 'react-router-dom';
 import './CreditHistory.css';
 
 const CreditHistory = () => {
@@ -27,7 +27,7 @@ const CreditHistory = () => {
   const { userData } = useUser();
 
   const [history, setHistory] = useState([]);
-
+const navigate = useNavigate();
   const [customer, setCustomer] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -298,15 +298,19 @@ const CreditHistory = () => {
 
                         <td>
 
-                          {item.receiptNo ? (
+  {item.receiptNo ? (
 
-                            <span className="receipt-tag">
-                              {item.receiptNo}
-                            </span>
+    <span
+      className="receipt-tag"
+      onClick={() => navigate(`/booking-details/${item.receiptNo}`)}
+      style={{ cursor: "pointer" }}
+    >
+      {item.receiptNo}
+    </span>
 
-                          ) : '-'}
+  ) : '-'}
 
-                        </td>
+</td>
 
                         {/* NOTE */}
 

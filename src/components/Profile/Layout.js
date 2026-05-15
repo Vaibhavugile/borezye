@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink ,useNavigate} from 'react-router-dom';
 import { useUser } from '../Auth/UserContext'; // Import the context
-import logo from '../../assets/profile-logo.png';
+import logo from '../../assets/Borebgr.png';
 import './Profile.css';
 import backIcon from '../../assets/arrowiosback_111116.png'
 const NavigationItem = ({ to, label }) => (
@@ -23,10 +23,11 @@ const Layout = () => {
       <header className="header">
       <div >
         <img
-          src={backIcon}
-          alt="button10"
-          onClick={() => navigate(isSuperAdmin ?"/leads":"/usersidebar/dashboard")} // Navigate to the profile page
-        />
+  className="back-button"
+  src={backIcon}
+  alt="button10"
+  onClick={() => navigate(isSuperAdmin ?"/leads":"/usersidebar/dashboard")}
+/>
       </div>
 
         <div className="logo">
@@ -53,12 +54,7 @@ const Layout = () => {
           label="Manage Templates" // Label for the new link
         />
       )}
-            {isBranchManager ? (
-              <NavigationItem to="/change-password" label="Change Password" /> // Link to Change Password
-            ) : (
-              <NavigationItem to="/change-password" label="Change Password" /> // Link to Settings
-      
-            )}
+          
             
           </ul>
         </nav>

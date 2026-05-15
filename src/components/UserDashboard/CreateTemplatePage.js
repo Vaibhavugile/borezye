@@ -5,11 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from '../Auth/UserContext'; // Assuming you're using a UserContext for branchCode
 import { toast, ToastContainer } from 'react-toastify'; // Import react-toastify
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS for react-toastify
-
+import "./CreateTemplate.css";
 const CreateTemplate = () => {
   const [templateName, setTemplateName] = useState("");
   const [templateBody, setTemplateBody] = useState("");
   const [message, setMessage] = useState("");
+  
+const [order, setOrder] = useState(1);
+
+
   const navigate = useNavigate();
   // Placeholder options for booking data
   const placeholders = [
@@ -66,16 +70,39 @@ const CreateTemplate = () => {
   
     try {
       // ⬇️ Save the template under the correct branch path
-      await addDoc(collection(db, `products/${branchCode}/templates`), {
-        name: templateName,
-        body: templateBody,
-        createdAt: new Date(),
-        branchCode: branchCode,
-      });
+     
+await addDoc(
+  collection(
+    db,
+    `products/${branchCode}/templates`
+  ),
+  {
+    name: templateName,
+
+    body: templateBody,
+
+    branchCode: branchCode,
+
+    
+order: order,
+
+
+
+    createdAt: new Date(),
+
+    updatedAt: new Date(),
+  }
+);
+
+
   
       toast.success("Template created successfully!");
       setTemplateName("");
       setTemplateBody("");
+      
+setOrder(1);
+
+
   
       setTimeout(() => navigate("/overview"), 1500); // Redirect after short delay
     } catch (error) {
@@ -90,98 +117,203 @@ const CreateTemplate = () => {
     setTemplateBody((prev) => `${prev} ${placeholder}`);
   };
 
-  return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-      <h2>Create Template</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleCreateTemplate}>
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="templateName" style={{ display: "block" }}>
+ return (
+
+  <div className="create-template-page">
+
+    <div className="create-template-card">
+
+
+
+      {/* TITLE */}
+
+      <h2 className="create-template-title">
+
+        Create Template
+
+      </h2>
+
+
+
+      {/* MESSAGE */}
+
+      {message && (
+
+        <div className="template-message">
+
+          {message}
+
+        </div>
+      )}
+
+
+
+      {/* FORM */}
+
+      <form
+        onSubmit={handleCreateTemplate}
+        className="create-template-form"
+      >
+
+
+
+        {/* TEMPLATE NAME */}
+
+        <div className="create-template-field">
+
+          <label htmlFor="templateName">
+
             Template Name
+
           </label>
+
           <input
             id="templateName"
             type="text"
             value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
+            onChange={(e) =>
+              setTemplateName(
+                e.target.value
+              )
+            }
             placeholder="Enter template name"
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-            }}
+            className="create-template-input"
           />
+
         </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="templateBody" style={{ display: "block" }}>
+
+
+
+        {/* TEMPLATE BODY */}
+
+        <div className="create-template-field">
+
+          <label htmlFor="templateBody">
+
             Template Body
+
           </label>
+
           <textarea
             id="templateBody"
             value={templateBody}
-            onChange={(e) => setTemplateBody(e.target.value)}
+            onChange={(e) =>
+              setTemplateBody(
+                e.target.value
+              )
+            }
             placeholder="Enter template body"
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              minHeight: "100px",
-            }}
-          ></textarea>
-          <div style={{ marginTop: "10px" }}>
-            <label>Insert Placeholders:</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "5px" }}>
-              {placeholders.map((placeholder) => (
+            className="create-template-textarea"
+          />
+
+        </div>
+        
+{/* TEMPLATE ORDER */}
+
+<div className="create-template-field">
+
+  <label htmlFor="templateOrder">
+
+    Template Order
+
+  </label>
+
+  <input
+    id="templateOrder"
+    type="number"
+    value={order}
+    onChange={(e) =>
+      setOrder(
+        Number(e.target.value)
+      )
+    }
+    placeholder="Enter template order"
+    className="create-template-input"
+  />
+
+</div>
+
+
+
+
+
+        {/* PLACEHOLDERS */}
+
+        <div className="placeholder-section">
+
+          <h3 className="placeholder-title">
+
+            Insert Placeholders
+
+          </h3>
+
+
+
+          <div className="placeholder-grid">
+
+            {placeholders.map(
+              (placeholder) => (
+
                 <button
                   key={placeholder.value}
                   type="button"
-                  onClick={() => insertPlaceholder(placeholder.value)}
-                  style={{
-                    padding: "5px 10px",
-                    borderRadius: "4px",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
+                  onClick={() =>
+                    insertPlaceholder(
+                      placeholder.value
+                    )
+                  }
+                  className="placeholder-btn"
                 >
+
                   {placeholder.label}
+
                 </button>
-              ))}
-            </div>
+              )
+            )}
+
           </div>
+
         </div>
-        <button
-          type="submit"
-          style={{
-            backgroundColor: "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "10px 15px",
-            cursor: "pointer",
-          }}
-        >
-          Create Template
-        </button>
-        <button onClick={() => navigate('/overview')}
-         type="button" 
-         style={{
-            backgroundColor: "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "10px 15px",
-            marginLeft:"10px",
-            cursor: "pointer",
-          }}>Cancel</button>
+
+
+
+        {/* ACTIONS */}
+
+        <div className="create-template-actions">
+
+          <button
+            type="submit"
+            className="create-btn"
+          >
+
+            Create Template
+
+          </button>
+
+
+
+          <button
+            onClick={() =>
+              navigate("/overview")
+            }
+            type="button"
+            className="cancel-btn"
+          >
+
+            Cancel
+
+          </button>
+
+        </div>
 
       </form>
-      <ToastContainer/>
+
+      <ToastContainer />
+
     </div>
-  );
+
+  </div>
+);
 };
 
 export default CreateTemplate;

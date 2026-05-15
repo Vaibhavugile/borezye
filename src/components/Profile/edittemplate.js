@@ -5,13 +5,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useUser } from '../Auth/UserContext';
-
+import "./EditTemplate.css";
 const EditTemplate = () => {
   const [templateName, setTemplateName] = useState("");
   const [templateBody, setTemplateBody] = useState("");
   const navigate = useNavigate();
   const { id } = useParams(); // Template ID from route params
   const { userData } = useUser(); // Access userData from the context
+const [order, setOrder] = useState(1);
+
 
 
   const placeholders = [
@@ -57,10 +59,21 @@ const EditTemplate = () => {
         const docRef = doc(db, `products/${userData.branchCode}/templates`, id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const { name, body } = docSnap.data();
-          setTemplateName(name);
-          setTemplateBody(body);
-        } else {
+        
+const {
+  name,
+  body,
+  order,
+} = docSnap.data();
+
+setTemplateName(name);
+
+setTemplateBody(body);
+
+setOrder(order || 1);
+        }
+
+ else {
           toast.error("Template not found!");
           navigate("/overview");
         }
@@ -84,11 +97,18 @@ const EditTemplate = () => {
   
     try {
       const docRef = doc(db, `products/${userData.branchCode}/templates`, id);
-      await updateDoc(docRef, {
-        name: templateName,
-        body: templateBody,
-        updatedAt: new Date(),
-      });
+await updateDoc(docRef, {
+
+  name: templateName,
+
+  body: templateBody,
+
+  order: order,
+
+  updatedAt: new Date(),
+});
+
+
       toast.success("Template updated successfully!");
       setTimeout(() => navigate("/overview"), 1500);
     } catch (error) {
@@ -103,106 +123,184 @@ const EditTemplate = () => {
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-      <h2>Edit Template</h2>
-      <form onSubmit={handleUpdateTemplate}>
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="templateName" style={{ display: "block" }}>
+
+  <div className="edit-template-page">
+
+    <div className="edit-template-card">
+
+      {/* TITLE */}
+
+      <h2 className="edit-template-title">
+        Edit Template
+      </h2>
+
+
+
+      {/* FORM */}
+
+      <form
+        onSubmit={handleUpdateTemplate}
+        className="edit-template-form"
+      >
+
+
+
+        {/* TEMPLATE NAME */}
+
+        <div className="edit-template-field">
+
+          <label htmlFor="templateName">
+
             Template Name
+
           </label>
+
           <input
             id="templateName"
             type="text"
             value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
+            onChange={(e) =>
+              setTemplateName(
+                e.target.value
+              )
+            }
             placeholder="Enter template name"
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-            }}
+            className="edit-template-input"
           />
+
         </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label htmlFor="templateBody" style={{ display: "block" }}>
+
+
+
+        {/* TEMPLATE BODY */}
+
+        <div className="edit-template-field">
+
+          <label htmlFor="templateBody">
+
             Template Body
+
           </label>
+
           <textarea
             id="templateBody"
             value={templateBody}
-            onChange={(e) => setTemplateBody(e.target.value)}
+            onChange={(e) =>
+              setTemplateBody(
+                e.target.value
+              )
+            }
             placeholder="Enter template body"
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
-              border: "1px solid #ccc",
-              minHeight: "100px",
-            }}
-          ></textarea>
-          <div style={{ marginTop: "10px" }}>
-            <label>Insert Placeholders:</label>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-                marginTop: "5px",
-              }}
-            >
-              {placeholders.map((placeholder) => (
+            className="edit-template-textarea"
+          />
+
+        </div>
+{/* TEMPLATE ORDER */}
+
+<div className="edit-template-field">
+
+  <label htmlFor="templateOrder">
+
+    Template Order
+
+  </label>
+
+  <input
+    id="templateOrder"
+    type="number"
+    value={order}
+    onChange={(e) =>
+      setOrder(
+        Number(e.target.value)
+      )
+    }
+    placeholder="Enter template order"
+    className="edit-template-input"
+  />
+
+</div>
+
+
+
+
+
+        {/* PLACEHOLDERS */}
+
+        <div className="placeholder-section">
+
+          <h3 className="placeholder-title">
+
+            Insert Placeholders
+
+          </h3>
+
+
+
+          <div className="placeholder-grid">
+
+            {placeholders.map(
+              (placeholder) => (
+
                 <button
                   key={placeholder.value}
                   type="button"
-                  onClick={() => insertPlaceholder(placeholder.value)}
-                  style={{
-                    padding: "5px 10px",
-                    borderRadius: "4px",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
+                  onClick={() =>
+                    insertPlaceholder(
+                      placeholder.value
+                    )
+                  }
+                  className="placeholder-btn"
                 >
+
                   {placeholder.label}
+
                 </button>
-              ))}
-            </div>
+              )
+            )}
+
           </div>
+
         </div>
-        <button
-          type="submit"
-          style={{
-            backgroundColor: "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "10px 15px",
-            cursor: "pointer",
-          }}
-        >
-          Update Template
-        </button>
-        <button
-          onClick={() => navigate("/overview")}
-          type="button"
-          style={{
-            backgroundColor: "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "10px 15px",
-            marginLeft: "10px",
-            cursor: "pointer",
-          }}
-        >
-          Cancel
-        </button>
+
+
+
+        {/* ACTIONS */}
+
+        <div className="edit-template-actions">
+
+          <button
+            type="submit"
+            className="update-btn"
+          >
+
+            Update Template
+
+          </button>
+
+
+
+          <button
+            onClick={() =>
+              navigate("/overview")
+            }
+            type="button"
+            className="cancel-btn"
+          >
+
+            Cancel
+
+          </button>
+
+        </div>
+
       </form>
+
       <ToastContainer />
+
     </div>
-  );
+
+  </div>
+);
 };
 
 export default EditTemplate;

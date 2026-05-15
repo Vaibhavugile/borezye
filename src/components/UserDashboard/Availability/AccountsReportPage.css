@@ -1,244 +1,452 @@
-/* PAGE */
+/* =========================================================
+   ACCOUNT REPORT — PREMIUM SAAS UI
+========================================================= */
 
 .account-report-page{
-padding:30px;
-background:#f5f7fb;
-min-height:100vh;
-font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-}
+width:100%;
+max-width:100%;
+padding:32px;
 
-/* TITLE */
+background:#f3f6fb;
+min-height:100vh;
+
+font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+color:#0f172a;
+
+box-sizing:border-box;
+}
+/* =========================================================
+   PAGE TITLE
+========================================================= */
 
 .report-page-title{
-font-size:28px;
+font-size:32px;
 font-weight:700;
-margin-bottom:25px;
-color:#1e293b;
+margin-bottom:28px;
+color:#0f172a;
+letter-spacing:-0.5px;
 }
 
-/* FILTER BAR */
+/* =========================================================
+   FILTER BAR
+========================================================= */
 
 .report-filters{
 display:flex;
-gap:10px;
+gap:12px;
 align-items:center;
 margin-bottom:30px;
 flex-wrap:wrap;
+
+background:#ffffff;
+padding:18px;
+border-radius:18px;
+
+box-shadow:0 10px 25px rgba(15,23,42,0.05);
+border:1px solid #edf2f7;
 }
 
 .report-filters select,
 .report-filters input{
-padding:8px 12px;
-border:1px solid #d1d5db;
-border-radius:8px;
+padding:10px 14px;
+border:1px solid #dbe2ea;
+border-radius:10px;
 font-size:14px;
 background:white;
+color:#0f172a;
+min-width:180px;
+transition:0.2s;
 }
+
+.report-filters select:focus,
+.report-filters input:focus{
+outline:none;
+border-color:#2563eb;
+box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+}
+
+/* BUTTON */
 
 .report-filters button{
 background:#2563eb;
 color:white;
 border:none;
-padding:8px 16px;
-border-radius:8px;
-font-weight:500;
+padding:10px 18px;
+border-radius:10px;
+font-size:14px;
+font-weight:600;
 cursor:pointer;
-transition:0.2s;
+transition:all 0.25s ease;
 }
 
 .report-filters button:hover{
 background:#1d4ed8;
+transform:translateY(-1px);
+box-shadow:0 10px 20px rgba(37,99,235,0.18);
 }
 
-/* SECTION TITLES */
+/* =========================================================
+   SECTION TITLE
+========================================================= */
 
 .report-section-title{
-font-size:20px;
-font-weight:600;
-margin:25px 0 15px;
-color:#334155;
-}
-
-/* GRID */
-
-.report-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:15px;
-margin-bottom:25px;
-}
-
-/* CARDS */
-
-.report-card{
-background:white;
-padding:18px;
-border-radius:12px;
-box-shadow:0 3px 10px rgba(0,0,0,0.06);
-transition:0.2s;
-cursor:pointer;
-}
-
-.report-card:hover{
-transform:translateY(-3px);
-box-shadow:0 6px 16px rgba(0,0,0,0.12);
-}
-
-.report-card h4{
-font-size:14px;
-color:#64748b;
-margin-bottom:8px;
-font-weight:500;
-}
-
-.report-card p{
-font-size:20px;
+font-size:22px;
 font-weight:700;
+margin:28px 0 18px;
 color:#1e293b;
 }
 
-/* CARD COLORS */
+/* =========================================================
+   REPORT GRID
+========================================================= */
+
+.report-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+gap:20px;
+margin-bottom:32px;
+}
+
+/* =========================================================
+   REPORT CARD
+========================================================= */
+
+.report-card{
+background:#ffffff;
+padding:22px;
+border-radius:20px;
+
+border:1px solid #edf2f7;
+
+box-shadow:
+0 8px 24px rgba(15,23,42,0.05);
+
+transition:all 0.25s ease;
+
+cursor:pointer;
+
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+
+min-height:140px;
+}
+
+.report-card:hover{
+transform:translateY(-4px);
+
+box-shadow:
+0 18px 40px rgba(15,23,42,0.10);
+}
+
+/* CARD TITLE */
+
+.report-card h4{
+font-size:15px;
+font-weight:600;
+color:#64748b;
+margin:0;
+}
+
+/* CARD VALUE */
+
+.report-card p{
+font-size:34px;
+font-weight:700;
+margin:0;
+letter-spacing:-1px;
+line-height:1.1;
+}
+
+/* =========================================================
+   CARD COLORS
+========================================================= */
 
 .report-card.collected{
-border-left:4px solid #16a34a;
+border-left:5px solid #10b981;
+}
+
+.report-card.collected p{
+color:#059669;
 }
 
 .report-card.balance{
-border-left:4px solid #f59e0b;
+border-left:5px solid #f59e0b;
+}
+
+.report-card.balance p{
+color:#d97706;
 }
 
 .report-card.returned{
-border-left:4px solid #8b5cf6;
+border-left:5px solid #8b5cf6;
+}
+
+.report-card.returned p{
+color:#7c3aed;
 }
 
 .report-card.highlight{
-border-left:4px solid #2563eb;
+border-left:5px solid #2563eb;
+}
+
+.report-card.highlight p{
+color:#2563eb;
 }
 
 .report-card.pending-refund{
-border-left:4px solid #ef4444;
+border-left:5px solid #ef4444;
 }
 
-/* TABLE SECTION */
+.report-card.pending-refund p{
+color:#dc2626;
+}
+
+/* =========================================================
+   TABLE SECTION
+========================================================= */
 
 .report-table-section{
-margin-top:35px;
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 3px 12px rgba(0,0,0,0.07);
+margin-top:40px;
+
+background:#ffffff;
+
+padding:24px;
+
+border-radius:20px;
+
+border:1px solid #edf2f7;
+
+box-shadow:
+0 10px 30px rgba(15,23,42,0.05);
+
+overflow:hidden;
 }
 
-/* TABLE */
+/* =========================================================
+   TABLE
+========================================================= */
 
 .report-table{
 width:100%;
 border-collapse:collapse;
-margin-top:15px;
+margin-top:18px;
 font-size:14px;
 }
 
+/* TABLE HEAD */
+
 .report-table thead{
-background:#f1f5f9;
+background:#f8fafc;
 }
 
 .report-table th{
 text-align:left;
-padding:10px;
-font-weight:600;
+padding:14px 16px;
+
+font-weight:700;
+
 color:#475569;
+
 border-bottom:1px solid #e5e7eb;
+
+font-size:13px;
+text-transform:uppercase;
+letter-spacing:0.3px;
 }
 
+/* TABLE BODY */
+
 .report-table td{
-padding:10px;
+padding:14px 16px;
 border-bottom:1px solid #f1f5f9;
 color:#334155;
+font-weight:500;
+}
+
+.report-table tbody tr{
+transition:0.2s;
 }
 
 .report-table tbody tr:hover{
-background:#f8fafc;
+background:#f8fbff;
 }
 
-/* LOADING */
+/* =========================================================
+   LOADING
+========================================================= */
 
 .report-loading{
 display:flex;
 justify-content:center;
 align-items:center;
-height:200px;
+height:220px;
 font-size:18px;
+font-weight:600;
 color:#64748b;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   CASHFLOW SECTION
+========================================================= */
+
+.cashflow-container{
+margin-top:40px;
+
+background:#ffffff;
+
+padding:24px;
+
+border-radius:20px;
+
+border:1px solid #edf2f7;
+
+box-shadow:
+0 10px 30px rgba(15,23,42,0.05);
+}
+
+/* HEADER */
+
+.cashflow-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+gap:14px;
+flex-wrap:wrap;
+}
+
+.cashflow-header input{
+padding:10px 14px;
+border:1px solid #dbe2ea;
+border-radius:10px;
+font-size:14px;
+}
+
+/* =========================================================
+   CASHFLOW TABLE
+========================================================= */
+
+.cashflow-table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+overflow:hidden;
+}
+
+/* HEAD */
+
+.cashflow-table th{
+background:#f8fafc;
+
+padding:14px;
+
+border-bottom:1px solid #e5e7eb;
+
+text-align:center;
+
+font-size:13px;
+font-weight:700;
+
+color:#475569;
+
+text-transform:uppercase;
+}
+
+/* BODY */
+
+.cashflow-table td{
+padding:14px;
+border-bottom:1px solid #f1f5f9;
+text-align:center;
+font-weight:500;
+}
+
+.cashflow-table tr{
+transition:0.2s;
+}
+
+.cashflow-table tr:hover{
+background:#f9fbff;
+}
+
+/* =========================================================
+   SPECIAL COLORS
+========================================================= */
+
+.rent-head{
+color:#16a34a;
+font-weight:700;
+}
+
+.deposit-head{
+color:#2563eb;
+font-weight:700;
+}
+
+.negative{
+color:#dc2626;
+font-weight:700;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media(max-width:768px){
 
+.account-report-page{
+padding:18px;
+}
+
+.report-page-title{
+font-size:26px;
+}
+
 .report-grid{
-grid-template-columns:1fr 1fr;
+grid-template-columns:1fr;
+gap:16px;
+}
+
+.report-card{
+min-height:auto;
+padding:18px;
+}
+
+.report-card p{
+font-size:28px;
 }
 
 .report-table{
 font-size:12px;
 }
 
-}
-.cashflow-container{
-margin-top:40px;
-background:#fff;
-padding:20px;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.06);
-}
-
-.cashflow-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.cashflow-header input{
-padding:6px 10px;
-border:1px solid #ddd;
-border-radius:6px;
+.report-table th,
+.report-table td{
+padding:10px;
 }
 
 .cashflow-table{
-width:100%;
-border-collapse:collapse;
-font-size:14px;
+font-size:12px;
 }
 
-.cashflow-table th{
-background:#f4f6fa;
-padding:10px;
-border-bottom:1px solid #ddd;
-text-align:center;
-}
-
+.cashflow-table th,
 .cashflow-table td{
 padding:10px;
-border-bottom:1px solid #eee;
-text-align:center;
 }
 
-.cashflow-table tr:hover{
-background:#fafafa;
+.report-filters{
+padding:14px;
 }
 
-.rent-head{
-color:#16a34a;
-font-weight:600;
+.report-filters select,
+.report-filters input{
+width:100%;
+min-width:unset;
 }
 
-.deposit-head{
-color:#2563eb;
-font-weight:600;
+.report-filters button{
+width:100%;
 }
 
-.negative{
-color:#dc2626;
-font-weight:600;
 }

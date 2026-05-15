@@ -16,6 +16,9 @@ import { db } from "../../../firebaseConfig";
 
 import { useUser } from "../../Auth/UserContext";
 
+import UserHeader from "../../UserDashboard/UserHeader";
+import UserSidebar from "../../UserDashboard/UserSidebar";
+
 import "./LeaveRequestsPage.css";
 
 
@@ -32,6 +35,18 @@ const LeaveRequestsPage = ()=>{
 
   const [loading,setLoading] =
     useState(true);
+
+  const [isSidebarOpen,setIsSidebarOpen] =
+    useState(false);
+
+
+
+  const toggleSidebar = ()=>{
+
+    setIsSidebarOpen(
+      !isSidebarOpen
+    );
+  };
 
 
 
@@ -168,9 +183,9 @@ String(
 
             branchCode:
               request.branchCode,
-                /// UNIVERSAL DATE
-    date:
-      Timestamp.fromDate(d),
+
+            date:
+              Timestamp.fromDate(d),
 
             leaveRequestId:
               request.id,
@@ -260,251 +275,279 @@ String(
 
   return(
 
-    <div className="leave-requests-container">
+    <div
+      className={`leave-layout ${
+        isSidebarOpen
+          ? "sidebar-open"
+          : ""
+      }`}
+    >
 
 
 
-      {/* HEADER */}
+      {/* SIDEBAR */}
 
-      <div className="leave-requests-header">
-
-        <h2>
-          Leave Requests
-        </h2>
-
-        <p>
-          Manage employee leave approvals
-        </p>
-
-      </div>
+      <UserSidebar
+        isOpen={isSidebarOpen}
+        onToggle={toggleSidebar}
+      />
 
 
 
-      {/* LOADING */}
+      {/* MAIN */}
 
-      {loading ? (
-
-        <div className="leave-loading">
-
-          Loading requests...
-
-        </div>
-
-      ) : requests.length === 0 ? (
-
-        <div className="leave-empty">
-
-          No leave requests found
-
-        </div>
-
-      ) : (
-
-        <div className="leave-requests-grid">
-
-          {requests.map(request=>{
-
-            const from =
-              request.fromDate
-                ?.toDate();
-
-            const to =
-              request.toDate
-                ?.toDate();
+      <div className="leave-main-content">
 
 
 
-            return(
+        {/* HEADER */}
 
-              <div
-
-                key={request.id}
-
-                className="leave-request-card"
-              >
+        <UserHeader
+          onMenuClick={toggleSidebar}
+          isSidebarOpen={isSidebarOpen}
+        />
 
 
 
-                {/* TOP */}
+        {/* PAGE */}
 
-                <div className="leave-request-top">
-
-
-
-                  <div className="leave-request-user">
-
-                    <div className="leave-request-avatar">
-
-                      {
-
-                        request.userName
-                          ?.charAt(0)
-                      }
-
-                    </div>
+        <div className="leave-requests-container">
 
 
 
-                    <div>
+          {/* PAGE HEADER */}
 
-                      <h3>
+          <div className="leave-requests-header">
 
-                        {
-                          request.userName
-                        }
+            <h2>
+              Leave Requests
+            </h2>
 
-                      </h3>
+            <p>
+              Manage employee leave approvals
+            </p>
 
-                      <p>
-
-                        ID :
-                        {
-                          request.userId
-                        }
-
-                      </p>
-
-                    </div>
-
-                  </div>
+          </div>
 
 
+
+          {/* LOADING */}
+
+          {loading ? (
+
+            <div className="leave-loading">
+
+              Loading requests...
+
+            </div>
+
+          ) : requests.length === 0 ? (
+
+            <div className="leave-empty">
+
+              No leave requests found
+
+            </div>
+
+          ) : (
+
+            <div className="leave-requests-grid">
+
+              {requests.map(request=>{
+
+                const from =
+                  request.fromDate
+                    ?.toDate();
+
+                const to =
+                  request.toDate
+                    ?.toDate();
+
+
+
+                return(
 
                   <div
-
-                    className={`leave-status ${
-                      request.status
-                    }`}
+                    key={request.id}
+                    className="leave-request-card"
                   >
 
-                    {
-                      request.status
-                    }
+
+
+                    {/* TOP */}
+
+                    <div className="leave-request-top">
+
+
+
+                      <div className="leave-request-user">
+
+                        <div className="leave-request-avatar">
+
+                          {
+                            request.userName
+                              ?.charAt(0)
+                          }
+
+                        </div>
+
+
+
+                        <div>
+
+                          <h3>
+
+                            {
+                              request.userName
+                            }
+
+                          </h3>
+
+                          <p>
+
+                            ID :
+                            {
+                              request.userId
+                            }
+
+                          </p>
+
+                        </div>
+
+                      </div>
+
+
+
+                      <div
+                        className={`leave-status ${
+                          request.status
+                        }`}
+                      >
+
+                        {
+                          request.status
+                        }
+
+                      </div>
+
+                    </div>
+
+
+
+                    {/* BODY */}
+
+                    <div className="leave-request-body">
+
+
+
+                      <div className="leave-item">
+
+                        <span>
+                          From Date
+                        </span>
+
+                        <strong>
+
+                          {
+                            from?.toLocaleDateString()
+                          }
+
+                        </strong>
+
+                      </div>
+
+
+
+                      <div className="leave-item">
+
+                        <span>
+                          To Date
+                        </span>
+
+                        <strong>
+
+                          {
+                            to?.toLocaleDateString()
+                          }
+
+                        </strong>
+
+                      </div>
+
+
+
+                      <div className="leave-item">
+
+                        <span>
+                          Reason
+                        </span>
+
+                        <strong>
+
+                          {
+                            request.reason
+                          }
+
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+
+                    {/* ACTIONS */}
+
+                    {request.status ===
+                    "pending" && (
+
+                      <div className="leave-actions">
+
+
+
+                        <button
+                          className="leave-approve"
+                          onClick={()=>
+
+                            approveLeave(
+                              request
+                            )
+                          }
+                        >
+
+                          Approve
+
+                        </button>
+
+
+
+                        <button
+                          className="leave-reject"
+                          onClick={()=>
+
+                            rejectLeave(
+                              request.id
+                            )
+                          }
+                        >
+
+                          Reject
+
+                        </button>
+
+                      </div>
+                    )}
 
                   </div>
+                );
+              })}
 
-                </div>
-
-
-
-                {/* BODY */}
-
-                <div className="leave-request-body">
-
-
-
-                  <div className="leave-item">
-
-                    <span>
-                      From Date
-                    </span>
-
-                    <strong>
-
-                      {
-
-                        from
-                          ?.toLocaleDateString()
-                      }
-
-                    </strong>
-
-                  </div>
-
-
-
-                  <div className="leave-item">
-
-                    <span>
-                      To Date
-                    </span>
-
-                    <strong>
-
-                      {
-
-                        to
-                          ?.toLocaleDateString()
-                      }
-
-                    </strong>
-
-                  </div>
-
-
-
-                  <div className="leave-item">
-
-                    <span>
-                      Reason
-                    </span>
-
-                    <strong>
-
-                      {
-                        request.reason
-                      }
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-
-                {/* ACTIONS */}
-
-                {request.status ===
-                "pending" && (
-
-                  <div className="leave-actions">
-
-
-
-                    <button
-
-                      className="leave-approve"
-
-                      onClick={()=>
-
-                        approveLeave(
-                          request
-                        )
-                      }
-                    >
-
-                      Approve
-
-                    </button>
-
-
-
-                    <button
-
-                      className="leave-reject"
-
-                      onClick={()=>
-
-                        rejectLeave(
-                          request.id
-                        )
-                      }
-                    >
-
-                      Reject
-
-                    </button>
-
-                  </div>
-                )}
-
-              </div>
-            );
-          })}
+            </div>
+          )}
 
         </div>
-      )}
+
+      </div>
 
     </div>
   );
