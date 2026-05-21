@@ -81,6 +81,11 @@ const UserSidebar = ({ isOpen }) => {
               <FaGift style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Account Report
             </Link>
           </li>
+           <li className={`sidebar-link ${location.pathname === '/usersidebar/expense-report' ? 'active' : ''}`}>
+            <Link to="/usersidebar/expense-report" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaGift style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Expense Report
+            </Link>
+          </li>
           {userData?.role !== 'Subuser' && (
           <li className={`sidebar-link ${location.pathname === '/attendanceoverview' ? 'active' : ''}`}>
             <Link to="/attendanceoverview" style={{ display: 'flex', alignItems: 'center' }}>
@@ -92,6 +97,13 @@ const UserSidebar = ({ isOpen }) => {
           <li className={`sidebar-link ${location.pathname === '/leaverequest' ? 'active' : ''}`}>
             <Link to="/leaverequest" style={{ display: 'flex', alignItems: 'center' }}>
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Leave Requests
+            </Link>
+          </li>
+          )}
+             {userData?.role !== 'Subuser' && (
+          <li className={`sidebar-link ${location.pathname === '/usersidebar/settings' ? 'active' : ''}`}>
+            <Link to="/usersidebar/settings" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Branch Settings
             </Link>
           </li>
           )}

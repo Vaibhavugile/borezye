@@ -71,6 +71,8 @@ import AttendanceOverviewPage from './components/UserDashboard/AttendanceOvervie
 import EmployeeAttendanceDetailsPage from './components/UserDashboard/AttendanceOverview/EmployeeAttendanceDetailsPage';
 import LeaveRequestsPage from './components/UserDashboard/AttendanceOverview/LeaveRequestsPage';
 import CreditHistory from './components/UserDashboard/Availability/CreditHistory';
+import ExpenseReport from './components/UserDashboard/Availability/ExpenseReport';
+import BranchSettings from './components/UserDashboard/Availability/BranchSettings';
 const App = () => (
 
   <UserProvider>
@@ -124,6 +126,7 @@ const App = () => (
             <AdminDashboard />
           </PrivateRoute>
         } />
+
         <Route path="/branches/expiring-soon" element={
           <PrivateRoute>
             <AdminDashboard />
@@ -274,6 +277,12 @@ const App = () => (
             <EditProduct />
           </PrivateRoute>
         } />
+        <Route
+  path="/usersidebar/expense-report"
+  element={
+    <ExpenseReport/>
+  }
+/>
 
         <Route path="/usersidebar/billing" element={
           <PrivateRoute>
@@ -283,6 +292,11 @@ const App = () => (
         <Route path="/usersidebar/accountreport" element={
           <PrivateRoute>
             <AccountPage />
+          </PrivateRoute>
+        } />
+         <Route path="/usersidebar/settings" element={
+          <PrivateRoute>
+            <BranchSettings />
           </PrivateRoute>
         } />
         <Route path="/usersidebar/clients" element={
