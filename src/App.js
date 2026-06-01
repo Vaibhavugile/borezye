@@ -73,6 +73,7 @@ import LeaveRequestsPage from './components/UserDashboard/AttendanceOverview/Lea
 import CreditHistory from './components/UserDashboard/Availability/CreditHistory';
 import ExpenseReport from './components/UserDashboard/Availability/ExpenseReport';
 import BranchSettings from './components/UserDashboard/Availability/BranchSettings';
+import CallsPage from './components/UserDashboard/Availability/CallsPage';
 const App = () => (
 
   <UserProvider>
@@ -307,6 +308,11 @@ const App = () => (
         <Route path="/usersidebar/Deletedbooking" element={
           <PrivateRoute>
             <DeletedHistoryPage />
+          </PrivateRoute>
+        } />
+         <Route path="/usersidebar/calls" element={
+          <PrivateRoute>
+            <CallsPage />
           </PrivateRoute>
         } />
         <Route path="/usersidebar/creditnote" element={

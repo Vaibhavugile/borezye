@@ -14,7 +14,7 @@ export const UserProvider = ({ children }) => {
 
   const [autoLogoutEnabled, setAutoLogoutEnabled] = useState(false);
   const [autoLogoutMinutes, setAutoLogoutMinutes] = useState(2);
-
+const [crmApiKey, setCrmApiKey] = useState("");
   useEffect(() => {
     if (userData) {
       localStorage.setItem('userData', JSON.stringify(userData));
@@ -35,7 +35,17 @@ export const UserProvider = ({ children }) => {
           const data = snap.data();
           setAutoLogoutEnabled(!!data.autoLogoutEnabled);
           setAutoLogoutMinutes(data.autoLogoutMinutes || 2);
+              const apiKey =
+  data.crmApiKey || "";
+
+setCrmApiKey(apiKey);
+
+localStorage.setItem(
+  "crmApiKey",
+  apiKey
+);
         }
+    
       } catch (error) {
         console.error("Error fetching auto logout settings", error);
       }
@@ -51,6 +61,7 @@ export const UserProvider = ({ children }) => {
         setUserData,
         autoLogoutEnabled,
         autoLogoutMinutes,
+        crmApiKey,
       }}
     >
       {children}
