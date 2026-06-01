@@ -14,6 +14,23 @@ import crmApi from "../../../services/crmApi";
 import CallDetailsDrawer
   from "./CallDetailsDrawer";
 
+import {
+  FaPhoneAlt,
+  FaWhatsapp,
+  FaEye
+} from "react-icons/fa";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy
+} from "firebase/firestore";
+
+import { db }
+  from "../../../firebaseConfig";
+
+import { useUser }
+  from "../../Auth/UserContext";
 import "./CallsPage.css";
 
 function CallsPage() {
@@ -46,6 +63,16 @@ function CallsPage() {
 
   const [daysFilter, setDaysFilter] =
     useState("2");
+    const [page, setPage] =
+  useState(1);
+
+const [totalPages,
+  setTotalPages] =
+  useState(1);
+
+const [stats,
+  setStats] =
+  useState(null);
 
   const [
     selectedPhone,
@@ -56,6 +83,22 @@ function CallsPage() {
     drawerOpen,
     setDrawerOpen
   ] = useState(false);
+  const { userData } =
+  useUser();
+
+const [templates,
+  setTemplates] =
+  useState([]);
+
+const [
+  showTemplateModal,
+  setShowTemplateModal
+] = useState(false);
+
+const [
+  selectedCall,
+  setSelectedCall
+] = useState(null);
   const [
   isSidebarOpen,
   setIsSidebarOpen
@@ -85,9 +128,8 @@ const toggleSidebar =
       // URL
       // =========================
 
-      let url =
-        `/recent-calls?days=${daysFilter}`;
-
+   let url =
+  `/recent-calls?days=${daysFilter}&page=${page}&limit=20&status=${statusFilter}`;
       // =========================
       // SEARCH
       // =========================
@@ -107,6 +149,32 @@ const toggleSidebar =
 
       const res =
         await crmApi.get(url);
+        setTotalPages(
+  res.data.totalPages || 1
+  
+);
+console.log(
+  "API RESPONSE",
+  res.data
+);
+
+setStats({
+
+  total:
+    res.data.count || 0,
+
+  answered:
+    res.data.answeredCount || 0,
+
+  missed:
+    res.data.missedCount || 0,
+
+  rejected:
+    res.data.rejectedCount || 0,
+
+  connected:
+    res.data.connectedCount || 0
+});
 
       const newCalls =
         res.data.calls || [];
@@ -148,11 +216,48 @@ const toggleSidebar =
   // AUTO LOAD
   // =========================
 
+useEffect(() => {
+
+  loadCalls();
+
+}, [
+  daysFilter,
+  page,
+  statusFilter
+]);
+useEffect(() => {
+
+  if (
+    userData?.branchCode
+  ) {
+
+    loadTemplates();
+  }
+
+}, [
+  userData?.branchCode
+]);
+
   useEffect(() => {
 
-    loadCalls();
+  if (page !== 1) {
+    return;
+  }
 
-  }, [daysFilter]);
+  const timer =
+    setInterval(() => {
+
+      loadCalls();
+
+    }, 30000);
+
+  return () =>
+    clearInterval(timer);
+
+}, [
+  page,
+  daysFilter
+]);
 
   // =========================
   // CALL OUTCOME
@@ -237,7 +342,52 @@ const toggleSidebar =
   // =========================
   // FILTERED CALLS
   // =========================
+async function loadTemplates() {
 
+  try {
+
+    if (
+      !userData?.branchCode
+    ) {
+      return;
+    }
+
+    const q = query(
+
+      collection(
+        db,
+        "products",
+        userData.branchCode,
+        "templates"
+      ),
+
+      orderBy(
+        "order",
+        "asc"
+      )
+    );
+
+    const snap =
+      await getDocs(q);
+
+    const data =
+      snap.docs.map(
+        doc => ({
+          id: doc.id,
+          ...doc.data()
+        })
+      );
+
+    setTemplates(data);
+
+  } catch (error) {
+
+    console.error(
+      "Template Load Error",
+      error
+    );
+  }
+}
   const filteredCalls =
     useMemo(() => {
 
@@ -248,26 +398,7 @@ const toggleSidebar =
       // STATUS FILTER
       // =========================
 
-      if (
-        statusFilter !== "all"
-      ) {
-
-        data = data.filter(
-          (call) => {
-
-            const outcome =
-              getCallOutcome(
-                call.direction,
-                call.durationInSeconds
-              );
-
-            return (
-              outcome.toLowerCase() ===
-              statusFilter
-            );
-          }
-        );
-      }
+     
 
       // =========================
       // SORTING
@@ -338,44 +469,19 @@ const toggleSidebar =
   // =========================
 
   const totalCalls =
-    calls.length;
+  stats?.total || 0;
 
-  const answeredCalls =
-    calls.filter(
-      c =>
-        getCallOutcome(
-          c.direction,
-          c.durationInSeconds
-        ) === "Answered"
-    ).length;
+const answeredCalls =
+  stats?.answered || 0;
 
-  const missedCalls =
-    calls.filter(
-      c =>
-        getCallOutcome(
-          c.direction,
-          c.durationInSeconds
-        ) === "Missed"
-    ).length;
+const missedCalls =
+  stats?.missed || 0;
 
-  const rejectedCalls =
-    calls.filter(
-      c =>
-        getCallOutcome(
-          c.direction,
-          c.durationInSeconds
-        ) === "Rejected"
-    ).length;
+const rejectedCalls =
+  stats?.rejected || 0;
 
-  const connectedCalls =
-    calls.filter(
-      c =>
-        getCallOutcome(
-          c.direction,
-          c.durationInSeconds
-        ) === "Connected"
-    ).length;
-
+const connectedCalls =
+  stats?.connected || 0;
   // =========================
   // UI
   // =========================
@@ -420,69 +526,154 @@ return (
 
       {/* STATS */}
 
-      <div className="stats-grid">
+     <div className="stats-grid">
 
-        <div className="stat-card">
+  {/* TOTAL */}
 
-          <div className="stat-value">
-            {totalCalls}
-          </div>
+  <div
+    className={`stat-card ${
+      statusFilter === "all"
+        ? "active-stat"
+        : ""
+    }`}
+    onClick={() => {
 
-          <div className="stat-label">
-            Total Calls
-          </div>
+      setStatusFilter(
+        "all"
+      );
 
-        </div>
+      setPage(1);
 
-        <div className="stat-card">
+    }}
+  >
 
-          <div className="stat-value">
-            {answeredCalls}
-          </div>
+    <div className="stat-value">
+      {totalCalls}
+    </div>
 
-          <div className="stat-label">
-            Answered
-          </div>
+    <div className="stat-label">
+      Total Calls
+    </div>
 
-        </div>
+  </div>
 
-        <div className="stat-card">
+  {/* ANSWERED */}
 
-          <div className="stat-value">
-            {missedCalls}
-          </div>
+  <div
+    className={`stat-card ${
+      statusFilter === "answered"
+        ? "active-stat"
+        : ""
+    }`}
+    onClick={() => {
 
-          <div className="stat-label">
-            Missed
-          </div>
+      setStatusFilter(
+        "answered"
+      );
 
-        </div>
+      setPage(1);
 
-        <div className="stat-card">
+    }}
+  >
 
-          <div className="stat-value">
-            {rejectedCalls}
-          </div>
+    <div className="stat-value">
+      {answeredCalls}
+    </div>
 
-          <div className="stat-label">
-            Rejected
-          </div>
+    <div className="stat-label">
+      Answered
+    </div>
 
-        </div>
+  </div>
 
-        <div className="stat-card">
+  {/* MISSED */}
 
-          <div className="stat-value">
-            {connectedCalls}
-          </div>
+  <div
+    className={`stat-card ${
+      statusFilter === "missed"
+        ? "active-stat"
+        : ""
+    }`}
+    onClick={() => {
 
-          <div className="stat-label">
-            Connected
-          </div>
+      setStatusFilter(
+        "missed"
+      );
 
-        </div>
+      setPage(1);
 
-      </div>
+    }}
+  >
+
+    <div className="stat-value">
+      {missedCalls}
+    </div>
+
+    <div className="stat-label">
+      Missed
+    </div>
+
+  </div>
+
+  {/* REJECTED */}
+
+  <div
+    className={`stat-card ${
+      statusFilter === "rejected"
+        ? "active-stat"
+        : ""
+    }`}
+    onClick={() => {
+
+      setStatusFilter(
+        "rejected"
+      );
+
+      setPage(1);
+
+    }}
+  >
+
+    <div className="stat-value">
+      {rejectedCalls}
+    </div>
+
+    <div className="stat-label">
+      Rejected
+    </div>
+
+  </div>
+
+  {/* CONNECTED */}
+
+  <div
+    className={`stat-card ${
+      statusFilter === "connected"
+        ? "active-stat"
+        : ""
+    }`}
+    onClick={() => {
+
+      setStatusFilter(
+        "connected"
+      );
+
+      setPage(1);
+
+    }}
+  >
+
+    <div className="stat-value">
+      {connectedCalls}
+    </div>
+
+    <div className="stat-label">
+      Connected
+    </div>
+
+  </div>
+
+</div>
 
       {/* FILTER BAR */}
 
@@ -532,11 +723,15 @@ return (
               daysFilter
             }
 
-            onChange={(e) =>
-              setDaysFilter(
-                e.target.value
-              )
-            }
+           onChange={(e) => {
+
+  setDaysFilter(
+    e.target.value
+  );
+
+  setPage(1);
+
+}}
           >
 
             <option value="1">
@@ -559,18 +754,22 @@ return (
 
           {/* STATUS */}
 
-          <select
+        <select
 
-            value={
-              statusFilter
-            }
+  value={
+    statusFilter
+  }
 
-            onChange={(e) =>
-              setStatusFilter(
-                e.target.value
-              )
-            }
-          >
+  onChange={(e) => {
+
+    setStatusFilter(
+      e.target.value
+    );
+
+    setPage(1);
+
+  }}
+>
 
             <option value="all">
               All
@@ -670,14 +869,7 @@ return (
 
             className="call-row"
 
-            onClick={() => {
-
-              setSelectedPhone(
-                call.phoneNumber
-              );
-
-              setDrawerOpen(true);
-            }}
+           
           >
 
             {/* CUSTOMER */}
@@ -779,6 +971,10 @@ return (
   </div>
 
 </div>
+{/* ACTIONS */}
+{/* ACTIONS */}
+
+
 
             {/* STATUS */}
 
@@ -830,12 +1026,101 @@ return (
               </div>
 
             </div>
+<div className="call-actions">
 
+  <button
+    type="button"
+    className="call-action-btn view-btn"
+    onClick={() => {
+
+      setSelectedPhone(
+        call.phoneNumber
+      );
+
+      setDrawerOpen(true);
+    }}
+  >
+    <FaEye />
+  </button>
+
+  <button
+    type="button"
+    className="call-action-btn call-btn"
+    onClick={() => {
+
+      const rawPhone =
+        String(call.phoneNumber || "")
+          .replace(/\D/g, "");
+
+      let phone = rawPhone;
+
+      if (
+        phone.startsWith("0") &&
+        phone.length === 11
+      ) {
+        phone = phone.substring(1);
+      }
+
+      if (
+        phone.length === 10
+      ) {
+        phone = `91${phone}`;
+      }
+
+      window.open(
+        `tel:+${phone}`,
+        "_self"
+      );
+    }}
+  >
+    <FaPhoneAlt />
+  </button>
+
+ <button
+  type="button"
+  className="call-action-btn whatsapp-btn"
+  onClick={() => {
+
+    setSelectedCall(call);
+
+    setShowTemplateModal(true);
+
+  }}
+>
+  <FaWhatsapp />
+</button>
+
+</div>
           </div>
+          
         ))}
 
       </div>
+<div className="pagination">
 
+  <button
+    disabled={page === 1}
+    onClick={() =>
+      setPage(page - 1)
+    }
+  >
+    Previous
+  </button>
+
+  <span>
+    Page {page} of {totalPages}
+  </span>
+
+  <button
+    disabled={page >= totalPages}
+    onClick={() =>
+      setPage(page + 1)
+    }
+  >
+    Next
+  </button>
+
+</div>
       {/* DRAWER */}
 
       <CallDetailsDrawer
@@ -852,6 +1137,104 @@ return (
           setDrawerOpen(false)
         }
       />
+      {showTemplateModal && (
+
+  <div className="template-overlay">
+
+    <div className="template-modal">
+
+      <div className="template-modal-header">
+
+        <h3>
+          Select Template
+        </h3>
+
+        <button
+          className="template-close-btn"
+          onClick={() =>
+            setShowTemplateModal(false)
+          }
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div className="template-list">
+
+        {templates.length === 0 ? (
+
+          <div className="template-empty">
+            No templates found
+          </div>
+
+        ) : (
+
+          templates.map(template => (
+
+            <button
+              key={template.id}
+              className="template-item"
+          onClick={() => {
+
+  const rawPhone =
+    String(
+      selectedCall?.phoneNumber || ""
+    ).replace(
+      /\D/g,
+      ""
+    );
+
+  let phone =
+    rawPhone;
+
+  if (
+    phone.startsWith("0") &&
+    phone.length === 11
+  ) {
+    phone =
+      phone.substring(1);
+  }
+
+  if (
+    phone.length === 10
+  ) {
+    phone =
+      `91${phone}`;
+  }
+
+  const message =
+    template.body || "";
+
+  window.open(
+    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+    "_blank"
+  );
+
+  setShowTemplateModal(
+    false
+  );
+
+}}
+            >
+
+              <div className="template-name">
+                {template.name}
+              </div>
+
+            </button>
+
+          ))
+
+        )}
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
 
           </div>
 
