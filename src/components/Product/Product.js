@@ -938,11 +938,11 @@ return (
 <FaCopy />
 </button>
 
-{userData?.role !== "Subuser" && (
+
 <button onClick={() => handleEdit(product.id)}>
 <FaEdit />
 </button>
-)}
+
 
 {userData?.role !== "Subuser" && (
 <button onClick={() => handleDelete(product.id)}>

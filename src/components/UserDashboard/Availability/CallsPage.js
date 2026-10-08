@@ -129,7 +129,8 @@ const toggleSidebar =
       // =========================
 
    let url =
-  `/recent-calls?days=${daysFilter}&page=${page}&limit=20&status=${statusFilter}`;
+  `/recent-calls
+  ?days=${daysFilter}&page=${page}&limit=20&status=${statusFilter}`;
       // =========================
       // SEARCH
       // =========================
@@ -1006,7 +1007,46 @@ return (
               </div>
 
             </div>
+<div className="call-column">
 
+  <div className="call-column-label">
+    WhatsApp
+  </div>
+
+  <div
+    className="call-status"
+    style={{
+      background:
+        call.isWhatsappSent
+          ? "#10b981"
+          : "#6b7280"
+    }}
+  >
+
+    {call.isWhatsappSent
+      ? "Sent"
+      : "Pending"}
+
+  </div>
+
+  {call.whatsappSentAt && (
+
+    <div
+      style={{
+        fontSize: "11px",
+        marginTop: "4px"
+      }}
+    >
+
+      {new Date(
+        call.whatsappSentAt
+      ).toLocaleString()}
+
+    </div>
+
+  )}
+
+</div>
             {/* CREATED */}
 
             <div className="call-column">

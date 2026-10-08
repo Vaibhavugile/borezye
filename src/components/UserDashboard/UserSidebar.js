@@ -108,13 +108,13 @@ const UserSidebar = ({ isOpen }) => {
           </li>
           )}
           
-              {userData?.role !== 'Subuser' && (
+              
           <li className={`sidebar-link ${location.pathname === '/usersidebar/calls' ? 'active' : ''}`}>
             <Link to="/usersidebar/calls" style={{ display: 'flex', alignItems: 'center' }}>
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Call History
             </Link>
           </li>
-          )}
+          
           
           <li className={`sidebar-link ${location.pathname==='/logout'}`}>
             < Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>
