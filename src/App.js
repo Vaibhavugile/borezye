@@ -33,6 +33,8 @@ import FreshLeads from './components/Leads/Leads';
 import AddUser from './components/UserDashboard/Adduser';
 import AddProduct from './components/Product/AddProduct';
 import ProductDashboard from './components/Product/Product';
+import ProductPartnerPage from './components/Product/ProductPartnerPage';
+import PartnersPage from "./components/Product/PartnersPage";
 import CheckAvailability from './components/UserDashboard/Availability/Availability';
 import Booking from './components/UserDashboard/Availability/Booking';
 import EditUser from './components/UserDashboard/EditUser';
@@ -74,6 +76,7 @@ import CreditHistory from './components/UserDashboard/Availability/CreditHistory
 import ExpenseReport from './components/UserDashboard/Availability/ExpenseReport';
 import BranchSettings from './components/UserDashboard/Availability/BranchSettings';
 import CallsPage from './components/UserDashboard/Availability/CallsPage';
+
 const App = () => (
 
   <UserProvider>
@@ -320,6 +323,7 @@ const App = () => (
             <CreditNoteDashboard />
           </PrivateRoute>
         } />
+
          <Route path="/add-credit-note" element={
           <PrivateRoute>
             <GenerateCreditNote />
@@ -367,6 +371,14 @@ const App = () => (
     <EmployeeAttendanceDetailsPage />
   }
 />
+<Route
+  path="/product-partner"
+  element={<ProductPartnerPage />}
+/>
+ <Route
+          path="/partners"
+          element={<PartnersPage />}
+        />
 <Route path="/leaverequest" element={
   <PrivateRoute>
   <LeaveRequestsPage/>

@@ -6,7 +6,7 @@ import { useUser } from '../../Auth/UserContext';
 import UserHeader from '../../UserDashboard/UserHeader';
 import UserSidebar from '../../UserDashboard/UserSidebar';
 import { useNavigate } from 'react-router-dom';
-
+import { migrateProductNumbers } from "../../../migration/migrateProductNumbers";
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [todaysBookings, setTodaysBookings] = useState(0);
@@ -24,7 +24,8 @@ const [overlappedBookings, setOverlappedBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [filterTitle, setFilterTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const { userData } = useUser();
   const navigate = useNavigate();
 
@@ -144,6 +145,27 @@ if (
       grouped[b.receiptNumber].bookings.push(b);
     });
     return Object.values(grouped);
+  };
+
+  const handleMigration = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to migrate product numeric fields for branch 7007?"
+    );
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      await migrateProductNumbers();
+      setMessage("✅ Migration completed successfully!");
+    } catch (error) {
+      console.error("Migration failed:", error);
+      setMessage(`❌ Migration failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ================= FAST FETCH ================= */
@@ -1655,6 +1677,21 @@ Migrate CustomerBy & ReceiptBy
 {/* <button onClick={migrateBookings}>
 Run Booking Migration
 </button> */}
+    <button
+        onClick={handleMigration}
+        disabled={loading}
+        style={{
+          padding: "12px 24px",
+          backgroundColor: loading ? "#999" : "#2563eb",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          cursor: loading ? "not-allowed" : "pointer",
+          fontSize: "16px",
+        }}
+      >
+        {loading ? "Migrating Products..." : "Migrate Product Numbers"}
+      </button>
 {/* <button
   className="btn-secondary"
   onClick={fixSuccessfulReceipts}

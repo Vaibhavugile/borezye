@@ -1,3 +1,4 @@
+
 import {
   collection,
   getDocs,
@@ -6,8 +7,7 @@ import {
 
 import { db } from "../firebaseConfig";
 
-// 👇 CHANGE ONLY THIS
-const BRANCH_CODE = "007";
+const BRANCH_CODE = "7007";
 
 const NUMERIC_FIELDS = [
   "deposit",
@@ -18,8 +18,8 @@ const NUMERIC_FIELDS = [
 ];
 
 export async function migrateProductNumbers() {
-  console.log("🚀 Starting migration...");
-  console.log(`🏢 Branch: ${BRANCH_CODE}`);
+  console.log("Starting integer migration...");
+  console.log(`Branch: ${BRANCH_CODE}`);
 
   const productsRef = collection(
     db,
@@ -30,102 +30,82 @@ export async function migrateProductNumbers() {
 
   const snapshot = await getDocs(productsRef);
 
-  console.log(
-    `📦 Found ${snapshot.size} products`
-  );
-
-  if (snapshot.empty) {
-    console.log(
-      `⚠️ No products found for branch ${BRANCH_CODE}`
-    );
-    return;
-  }
-
   let batch = writeBatch(db);
   let batchCount = 0;
-
   let updatedProducts = 0;
   let skippedProducts = 0;
+  let skippedFields = 0;
 
   for (const docSnap of snapshot.docs) {
     const data = docSnap.data();
-
     const updates = {};
 
     for (const field of NUMERIC_FIELDS) {
-      if (!(field in data)) {
-        continue;
-      }
+      if (!(field in data)) continue;
 
       const value = data[field];
+      let numericValue;
 
-      // Already number
       if (typeof value === "number") {
+        numericValue = value;
+      } else if (
+        typeof value === "string" &&
+        value.trim() !== ""
+      ) {
+        numericValue = Number(value.trim());
+      } else {
+        skippedFields++;
+        console.warn(
+          `Skipped ${docSnap.id}.${field}:`,
+          value
+        );
         continue;
       }
 
-      // String → number
-      if (typeof value === "string") {
-        const trimmed = value.trim();
-
-        if (trimmed === "") {
-          console.log(
-            `⚠️ Empty ${field} → ${docSnap.id}`
-          );
-          continue;
-        }
-
-        const numberValue = Number(trimmed);
-
-        if (!Number.isNaN(numberValue)) {
-          updates[field] = numberValue;
-
-          console.log(
-            `🔄 ${docSnap.id} | ${field}:`,
-            `"${value}" → ${numberValue}`
-          );
-        } else {
-          console.log(
-            `❌ Cannot convert ${docSnap.id} | ${field}:`,
-            value
-          );
-        }
+      // Only migrate finite whole numbers.
+      if (
+        !Number.isFinite(numericValue) ||
+        !Number.isSafeInteger(numericValue)
+      ) {
+        skippedFields++;
+        console.warn(
+          `Skipped non-integer ${docSnap.id}.${field}:`,
+          value
+        );
+        continue;
       }
+
+      // Assign a whole-number JS value so Firestore can
+      // encode it as an integer during the write.
+      updates[field] = Math.trunc(numericValue);
     }
 
-    if (Object.keys(updates).length > 0) {
-      batch.update(docSnap.ref, updates);
-
-      updatedProducts++;
-      batchCount++;
-
-      // Firestore batch safety
-      if (batchCount >= 450) {
-        await batch.commit();
-
-        console.log("💾 Batch committed");
-
-        batch = writeBatch(db);
-        batchCount = 0;
-      }
-    } else {
+    if (Object.keys(updates).length === 0) {
       skippedProducts++;
+      continue;
+    }
+
+    batch.update(docSnap.ref, updates);
+    batchCount++;
+    updatedProducts++;
+
+    if (batchCount >= 450) {
+      await batch.commit();
+      console.log("Batch committed");
+
+      batch = writeBatch(db);
+      batchCount = 0;
     }
   }
 
-  // Commit remaining updates
   if (batchCount > 0) {
     await batch.commit();
-
-    console.log("💾 Final batch committed");
   }
 
-  console.log("\n===============================");
-  console.log("🎉 MIGRATION COMPLETED");
-  console.log("===============================");
-  console.log(`🏢 Branch: ${BRANCH_CODE}`);
-  console.log(`📦 Products: ${snapshot.size}`);
-  console.log(`✅ Updated: ${updatedProducts}`);
-  console.log(`⏭️ Skipped: ${skippedProducts}`);
-  console.log("===============================");
+  console.log("Migration completed");
+  console.log(`Branch: ${BRANCH_CODE}`);
+  console.log(`Products scanned: ${snapshot.size}`);
+  console.log(`Products updated: ${updatedProducts}`);
+  console.log(`Products skipped: ${skippedProducts}`);
+  console.log(`Fields skipped: ${skippedFields}`);
 }

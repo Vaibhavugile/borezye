@@ -12,7 +12,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { FaFileArchive } from 'react-icons/fa';
+import { FaFileArchive, FaHandshake } from 'react-icons/fa';
 import { uploadBytes, getDownloadURL } from "firebase/storage";
 
 // NEW: Firebase Storage SDK (to avoid CORS with download URLs)
@@ -151,6 +151,11 @@ useEffect(() => {
 
   const handleEdit = (id) => {
     navigate(`/editproduct/${id}`);
+  };
+
+  // Open the dedicated customer credit-note / partnership page for this dress.
+  const handlePartner = (product) => {
+    navigate('/product-partner', { state: { product } });
   };
 
   const handleAddProduct = () => {
@@ -949,7 +954,15 @@ return (
 <FaTrash />
 </button>
 )}
-<button onClick={() => openCollectionModal(product)}>
+<button
+  onClick={() => handlePartner(product)}
+  title="Customer credit note or partnership"
+  aria-label={`Partner or credit note for ${product.productName || product.productCode}`}
+>
+  <FaHandshake />
+</button>
+
+<button onClick={() => openCollectionModal(product)} title="Manage collections">
   🗂
 </button>
 </td>
