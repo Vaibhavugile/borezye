@@ -17,6 +17,14 @@ const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', cur
 const normalize = (value) => String(value || '').trim().toLowerCase();
 const partnerIdOf = (p) => p?.partnerId || p?.partner?.id || p?.partner?.customerId || '';
 const statusOf = (p) => normalize(p?.partnershipStatus || p?.partnerStatus || (partnerIdOf(p) ? 'active' : 'pending'));
+const explicitPartnershipTypeOf = (p) => {
+  const type = normalize(p?.partnershipType || p?.partnerType || p?.partnershipModel || '');
+  if (['credit_note', 'credit-note', 'credit note', 'creditnote'].includes(type)) return 'credit_note';
+  if (['revenue_share', 'revenue-share', 'revenue share', 'commission'].includes(type)) return 'revenue_share';
+  return '';
+};
+const activeTypeLabel = (type) => type === 'credit_note' ? 'Credit Note' : type === 'revenue_share' ? 'Revenue Share' : 'Legacy / unspecified';
+
 const dateLabel = (value) => {
   if (!value) return '—';
   try {
@@ -93,7 +101,29 @@ export default function PartnersPage() {
 
       // First collect established revenue-share partnerships from product records.
       const productRows = productsSnap.docs.map((snap) => ({ id: snap.id, ...snap.data() }));
+      // Read the audit trail for each product so this report can show both the
+      // active arrangement and the historical changes saved by ProductPartnerPage.
+      const activityRows = await Promise.all(productRows.map(async (product) => {
+        try {
+          const activitySnap = await getDocs(collection(db, `products/${branchCode}/products/${product.id}/partnershipActivity`));
+          const entries = activitySnap.docs.map((activityDoc) => ({ id: activityDoc.id, ...activityDoc.data() }));
+          entries.sort((a, b) => {
+            const toMillis = (v) => v?.toMillis ? v.toMillis() : new Date(v || 0).getTime();
+            return toMillis(b.createdAt) - toMillis(a.createdAt);
+          });
+          return [String(product.id), entries];
+        } catch (error) {
+          console.error(`Unable to load partnership activity for product ${product.id}:`, error);
+          return [String(product.id), []];
+        }
+      }));
+      const activityByProduct = new Map(activityRows);
+      productRows.forEach((product) => { product.activityLog = activityByProduct.get(String(product.id)) || []; });
+
       productRows.forEach((product) => {
+        // partnershipType is authoritative when present: stale legacy partner fields
+        // must not make a credit-note product appear as active revenue share.
+        if (explicitPartnershipTypeOf(product) === 'credit_note') return;
         const pid = String(partnerIdOf(product) || '');
         const embedded = product.partner || {};
         const customer = customerById.get(pid) || null;
@@ -102,7 +132,7 @@ export default function PartnersPage() {
         if (!pid && !product.partnerName && !product.partnerMobile && !product.partner) return;
         const partner = ensurePartner({ customerId: pid, customer, name: name || 'Unnamed partner', mobile, email: product.partnerEmail || customer?.email || '' });
         if (!partner.products.some((item) => String(item.id) === String(product.id))) {
-          partner.products.push({ ...product, partnerStatus: statusOf(product), isCreditNotePartner: false });
+          partner.products.push({ ...product, activityLog: product.activityLog || [], activePartnershipType: explicitPartnershipTypeOf(product) || (product.partnerCommissionPercentage != null ? 'revenue_share' : ''), partnerStatus: statusOf(product), isCreditNotePartner: false });
         }
         const status = statusOf(product);
         if (['pending', 'requested', 'awaiting_approval'].includes(status)) partner.status = 'pending';
@@ -123,6 +153,9 @@ export default function PartnersPage() {
       }));
 
       histories.forEach(({ product, entries }) => {
+        // Preserve old credit history in Firestore, but only report it as the active
+        // arrangement if the product isn't explicitly marked revenue_share.
+        if (explicitPartnershipTypeOf(product) === 'revenue_share') return;
         const qualifying = entries.filter((entry) => {
           const isAddition = entry.entryType === 'credit_addition' || entry.type === 'ADD';
           const linkedProductId = String(entry.relatedProductId || entry.productId || '');
@@ -167,6 +200,8 @@ export default function PartnersPage() {
               isCreditNotePartner: true,
               creditAmount: amount,
               creditNoteEntries: qualifying.length,
+              activityLog: product.activityLog || [],
+              activePartnershipType: explicitPartnershipTypeOf(product) || 'credit_note',
             });
           }
         });
@@ -187,8 +222,11 @@ export default function PartnersPage() {
         });
         items.forEach((item, index) => {
           const productId = String(item.productId || item.id || item.productCode || `partner-product-${index}`);
+          const sourceProduct = productRows.find((candidate) => String(candidate.id) === productId);
+          if (sourceProduct && explicitPartnershipTypeOf(sourceProduct) === 'credit_note') return;
           if (partner.products.some((existing) => String(existing.id) === productId)) return;
           partner.products.push({
+            ...(sourceProduct || {}),
             ...item,
             id: productId,
             productCode: item.productCode || item.code || '',
@@ -196,6 +234,8 @@ export default function PartnersPage() {
             partnerCommissionPercentage: Number(item.commissionPercentage ?? item.partnerCommissionPercentage ?? 0),
             partnerStatus: normalize(item.partnershipStatus || item.status || status || 'active'),
             isCreditNotePartner: false,
+            activityLog: sourceProduct?.activityLog || [],
+            activePartnershipType: explicitPartnershipTypeOf(sourceProduct || item) || 'revenue_share',
           });
         });
         if (['pending', 'requested', 'awaiting_approval', 'submitted'].includes(status)) partner.status = 'pending';
@@ -315,7 +355,26 @@ export default function PartnersPage() {
           if (!snap.exists()) return;
           const productRef = productRefs[index]; const latest = snap.data(); const currentPartnerId = partnerIdOf(latest);
           if (currentPartnerId && String(currentPartnerId) !== String(partner.customerId)) throw new Error(`Product ${latest.productCode || latest.code || snap.id} is assigned to another customer.`);
-          tx.update(productRef, { partnerId: partner.customerId, partnershipStatus: 'active', partnerApprovedAt: serverTimestamp(), partnerUpdatedAt: serverTimestamp() });
+          tx.update(productRef, { partnerId: partner.customerId, partnershipStatus: 'active', partnerApprovedAt: serverTimestamp(), partnerUpdatedAt: serverTimestamp(), partnershipType: explicitPartnershipTypeOf(latest) || (latest.partnerCommissionPercentage != null ? 'revenue_share' : 'revenue_share') });
+          const activityRef = doc(collection(db, `products/${branchCode}/products/${productRefs[index].id}/partnershipActivity`));
+          tx.set(activityRef, {
+            action: 'partner_approved',
+            branchCode,
+            productId: String(productRefs[index].id),
+            productCode: String(latest.productCode || latest.code || productRefs[index].id),
+            productName: String(latest.productName || latest.name || latest.title || 'Dress'),
+            customerId: String(partner.customerId),
+            customerName: String(partner.name || ''),
+            customerMobile: String(partner.mobile || ''),
+            previousType: explicitPartnershipTypeOf(latest) || 'legacy',
+            newType: explicitPartnershipTypeOf(latest) || (latest.partnerCommissionPercentage != null ? 'revenue_share' : 'revenue_share'),
+            previousValue: { partnershipStatus: statusOf(latest) },
+            newValue: { partnershipStatus: 'active' },
+            reason: 'Partner approved from Partners page',
+            performedBy: userData?.email || userData?.name || 'unknown',
+            performedByUserId: String(userData?.uid || userData?.id || ''),
+            createdAt: serverTimestamp(),
+          });
         });
       });
       toast.success('Partner approved successfully.');
@@ -370,9 +429,21 @@ export default function PartnersPage() {
           </div>
           <div className="partners-toolbar"><div className="partners-search"><FaSearch /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search partner, phone, email or dress code..." /></div><span>{visiblePartners.length} result{visiblePartners.length === 1 ? '' : 's'}</span></div>
           {loading ? <div className="partners-state">Loading partners…</div> : visiblePartners.length === 0 ? <div className="partners-empty"><span><FaHandshake /></span><h3>No partners found</h3><p>{partnerTab === 'pending' ? 'There are no partner records waiting for approval.' : 'Try another search or select a different status.'}</p></div> : <div className="partners-list">
-            {visiblePartners.map((partner) => <article className="partner-card" key={partner.id}><div className="partner-avatar">{String(partner.name || 'P').trim().charAt(0).toUpperCase()}</div><div className="partner-card-body"><div className="partner-card-top"><div><h3>{partner.name}</h3><p>{partner.mobile || 'No mobile number'}{partner.email ? ` · ${partner.email}` : ''}</p></div><span className={`partner-status status-${partner.status}`}>{partner.status === 'active' ? 'Connected' : partner.status === 'pending' ? 'Pending approval' : partner.status}</span></div><div className="partner-card-meta"><span><FaBoxOpen /> {partner.products.length} connected dress{partner.products.length === 1 ? '' : 'es'}</span>{partner.products.length > 0 && partner.products.some((p) => !p.isCreditNotePartner) && <span>Commission: {(partner.products.filter((p) => !p.isCreditNotePartner).reduce((sum, p) => sum + (Number(p.partnerCommissionPercentage) || 0), 0) / partner.products.filter((p) => !p.isCreditNotePartner).length).toFixed(1)}% avg.</span>}{partner.products.some((p) => p.isCreditNotePartner && Number(p.creditAmount) > 0) && <span>Credit given for dress: {money(partner.products.filter((p) => p.isCreditNotePartner).reduce((sum, p) => sum + (Number(p.creditAmount) || 0), 0))}</span>}</div>{partner.products.length > 0 && <div className="partner-products">{partner.products.map((product) => <div className="partner-product-row" key={product.id}><div><strong>{product.productName || product.name || product.title || product.brandName || 'Dress'}</strong><small>Code: {product.productCode || product.code || product.id}</small></div><span>{product.isCreditNotePartner ? `Credit ${money(product.creditAmount)}` : `${Number(product.partnerCommissionPercentage) || 0}%`}</span><em className={`partner-product-status status-${product.partnerStatus}`}>{product.partnerStatus === 'active' ? 'Connected' : product.partnerStatus}</em></div>)}</div>}</div>{partner.status === 'pending' && <button className="partner-approve" onClick={() => approvePartner(partner)} disabled={savingKey === partner.id}>{savingKey === partner.id ? 'Approving…' : <><FaCheckCircle /> Approve</>}</button>}</article>)}
+            {visiblePartners.map((partner) => <article className="partner-card" key={partner.id}><div className="partner-avatar">{String(partner.name || 'P').trim().charAt(0).toUpperCase()}</div><div className="partner-card-body"><div className="partner-card-top"><div><h3>{partner.name}</h3><p>{partner.mobile || 'No mobile number'}{partner.email ? ` · ${partner.email}` : ''}</p></div><span className={`partner-status status-${partner.status}`}>{partner.status === 'active' ? 'Connected' : partner.status === 'pending' ? 'Pending approval' : partner.status}</span></div><div className="partner-card-meta"><span><FaBoxOpen /> {partner.products.length} connected dress{partner.products.length === 1 ? '' : 'es'}</span>{partner.products.length > 0 && partner.products.some((p) => !p.isCreditNotePartner) && <span>Commission: {(partner.products.filter((p) => !p.isCreditNotePartner).reduce((sum, p) => sum + (Number(p.partnerCommissionPercentage) || 0), 0) / partner.products.filter((p) => !p.isCreditNotePartner).length).toFixed(1)}% avg.</span>}{partner.products.some((p) => p.isCreditNotePartner && Number(p.creditAmount) > 0) && <span>Credit given for dress: {money(partner.products.filter((p) => p.isCreditNotePartner).reduce((sum, p) => sum + (Number(p.creditAmount) || 0), 0))}</span>}</div>{partner.products.length > 0 && <div className="partner-products">{partner.products.map((product) => <div className="partner-product-wrap" key={product.id}>
+                  <div className="partner-product-row"><div><strong>{product.productName || product.name || product.title || product.brandName || 'Dress'}</strong><small>Code: {product.productCode || product.code || product.id}</small><small className="partner-active-model">Active model: {activeTypeLabel(product.activePartnershipType || (product.isCreditNotePartner ? 'credit_note' : 'revenue_share'))}</small></div><span>{product.isCreditNotePartner ? `Credit ${money(product.creditAmount)}` : `${Number(product.partnerCommissionPercentage) || 0}% commission`}</span><em className={`partner-product-status status-${product.partnerStatus}`}>{product.partnerStatus === 'active' ? 'Connected' : product.partnerStatus}</em></div>
+                  <details className="partner-activity-details">
+                    <summary>Activity log ({(product.activityLog || []).length})</summary>
+                    {(product.activityLog || []).length ? <div className="partner-activity-list">{product.activityLog.map((activity) => <div className="partner-activity-entry" key={activity.id}>
+                      <div className="partner-activity-top"><strong>{String(activity.action || 'Partnership updated').replaceAll('_', ' ')}</strong><time>{dateLabel(activity.createdAt)}</time></div>
+                      <div className="partner-activity-meta"><span>{activeTypeLabel(activity.previousType || '')} → {activeTypeLabel(activity.newType || product.activePartnershipType || (product.isCreditNotePartner ? 'credit_note' : 'revenue_share'))}</span>{activity.performedBy && <span>By: {activity.performedBy}</span>}</div>
+                      {activity.previousValue && <small>Previous: {JSON.stringify(activity.previousValue)}</small>}
+                      {activity.newValue && <small>New: {JSON.stringify(activity.newValue)}</small>}
+                      {activity.reason && <small>Reason: {activity.reason}</small>}
+                    </div>)}</div> : <p className="partner-activity-empty">No activity entries are saved for this product yet.</p>}
+                  </details>
+                </div>)}</div>}</div><div className="partner-card-actions"><button className="partner-billing-link" onClick={() => { const params = new URLSearchParams(); params.set('partnerId', String(partner.customerId || partner.id || '')); if (partner.mobile) params.set('partnerMobile', String(partner.mobile)); window.location.assign(`/partner-billing?${params.toString()}`); }}><FaRegCreditCard /> Billing & payments</button>{partner.status === 'pending' && <button className="partner-approve" onClick={() => approvePartner(partner)} disabled={savingKey === partner.id}>{savingKey === partner.id ? 'Approving…' : <><FaCheckCircle /> Approve</>}</button>}</div></article>)}
           </div>}
-          <p className="partners-footnote">Partnerships are loaded from product/customer records. Credit-note partners are included only when the dress-specific credit history explicitly links the credit to that dress and customer. Dress submissions are managed separately in the first tab.</p>
+          <p className="partners-footnote">Active model is controlled by the product's explicit partnershipType when present. Activity logs are read from each product's partnershipActivity subcollection; older changes made before logging was added will not appear. Credit-note partners are included only when dress-specific credit history links the credit to that dress and customer.</p>
         </>}
       </main>
     </div>

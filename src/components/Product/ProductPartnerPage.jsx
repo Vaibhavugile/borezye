@@ -47,6 +47,8 @@ const ProductPartnerPage = () => {
   const [dressCreditLoading, setDressCreditLoading] = useState(false);
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
+  const [partnershipActivity, setPartnershipActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   // Always reload the product from Firestore so the page reflects the latest
   // partnership assignment rather than relying only on stale navigation state.
@@ -77,6 +79,50 @@ const ProductPartnerPage = () => {
     loadProduct();
     return () => { cancelled = true; };
   }, [initialProduct?.id, userData?.branchCode]);
+
+  // Load the product-specific audit trail. Activity is stored beside this product,
+  // so this view shows only changes made to the selected dress.
+  useEffect(() => {
+    let cancelled = false;
+    const loadPartnershipActivity = async () => {
+      if (!userData?.branchCode || !product?.id) {
+        setPartnershipActivity([]);
+        return;
+      }
+      setActivityLoading(true);
+      try {
+        const activityRef = collection(
+          db,
+          `products/${userData.branchCode}/products/${product.id}/partnershipActivity`
+        );
+        const snapshot = await getDocs(activityRef);
+        const entries = snapshot.docs.map((activityDoc) => ({
+          id: activityDoc.id,
+          ...activityDoc.data(),
+        }));
+        entries.sort((a, b) => {
+          const getMillis = (value) => {
+            if (value?.toDate) return value.toDate().getTime();
+            if (value instanceof Date) return value.getTime();
+            const parsed = value ? new Date(value).getTime() : 0;
+            return Number.isFinite(parsed) ? parsed : 0;
+          };
+          return getMillis(b.createdAt) - getMillis(a.createdAt);
+        });
+        if (!cancelled) setPartnershipActivity(entries);
+      } catch (error) {
+        console.error('Unable to load partnership activity:', error);
+        if (!cancelled) {
+          setPartnershipActivity([]);
+          toast.error('Could not load partnership activity. Check Firestore access.');
+        }
+      } finally {
+        if (!cancelled) setActivityLoading(false);
+      }
+    };
+    loadPartnershipActivity();
+    return () => { cancelled = true; };
+  }, [userData?.branchCode, product?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +164,15 @@ const ProductPartnerPage = () => {
   const existingPartnerMobile = product?.partnerMobile || product?.partner?.mobile || product?.partner?.phone || '';
   const hasExistingPartner = Boolean(existingPartnerId || existingPartnerName || existingPartnerMobile);
 
+  // Exactly one active partnership mode per product. Legacy products are inferred
+  // from their saved fields until they are explicitly switched and saved.
+  const activePartnershipType = product?.partnershipType ||
+    (product?.partnerCommissionPercentage != null || product?.partnershipStatus === 'active'
+      ? 'revenue_share'
+      : (product?.lastCreditNoteCustomerId || product?.creditNoteCustomerId || product?.creditNoteCount
+        ? 'credit_note'
+        : 'none'));
+
   // A credit note also links a dress to a customer. If no partner is assigned,
   // the first customer who receives credit becomes the locked customer for this
   // dress; later credit additions/revenue actions must use that same customer.
@@ -125,6 +180,11 @@ const ProductPartnerPage = () => {
   const linkedCustomerName = existingPartnerName || product?.lastCreditNoteCustomerName || product?.creditNoteCustomerName || '';
   const linkedCustomerMobile = existingPartnerMobile || product?.lastCreditNoteMobile || product?.creditNoteCustomerMobile || '';
   const hasExistingCustomerLink = Boolean(linkedCustomerId || linkedCustomerName || linkedCustomerMobile);
+
+  useEffect(() => {
+    if (activePartnershipType === 'credit_note') setActionType('creditNote');
+    else if (activePartnershipType === 'revenue_share') setActionType('partnership');
+  }, [activePartnershipType, product?.id]);
 
   // Total only the credit additions recorded against this specific dress.
   // This is intentionally separate from the customer's branch-wide credit balance.
@@ -237,18 +297,13 @@ const ProductPartnerPage = () => {
       const latestProductSnap = await getDoc(productRef);
       if (!latestProductSnap.exists()) throw new Error('This dress no longer exists.');
       const latestProduct = latestProductSnap.data();
-      const latestPartnerId = latestProduct.partnerId || latestProduct.partner?.id || latestProduct.partner?.customerId || '';
-      const latestPartnerMobile = latestProduct.partnerMobile || latestProduct.partner?.mobile || latestProduct.partner?.phone || '';
-      const latestLinkedId = latestPartnerId || latestProduct.lastCreditNoteCustomerId || latestProduct.creditNoteCustomerId || '';
-      const latestLinkedMobile = latestPartnerMobile || latestProduct.lastCreditNoteMobile || latestProduct.creditNoteCustomerMobile || '';
-      const latestLinkedName = latestProduct.partnerName || latestProduct.partner?.name || latestProduct.lastCreditNoteCustomerName || latestProduct.creditNoteCustomerName || '';
-      if (latestLinkedId || latestLinkedMobile || latestLinkedName) {
-        const sameCustomer = (latestLinkedId && String(selectedCustomer.id) === String(latestLinkedId)) ||
-          (latestLinkedMobile && normalizePhone(selectedCustomer.phone) === normalizePhone(latestLinkedMobile));
-        if (!sameCustomer) {
-          throw new Error('This dress is already linked to another customer through a partnership or credit note. Only the existing customer can be used.');
-        }
-      }
+      // Keep the pre-save type available outside the Firestore transaction callback
+      // for the success message (the transaction's previousType is block-scoped).
+      const toastPreviousType = latestProduct.partnershipType ||
+        (latestProduct.partnerCommissionPercentage != null || latestProduct.partnershipStatus === 'active'
+          ? 'revenue_share'
+          : (latestProduct.lastCreditNoteCustomerId || latestProduct.creditNoteCustomerId || latestProduct.creditNoteCount
+            ? 'credit_note' : 'none'));
       const customerName = selectedCustomer.name || 'Customer';
       const customerPhone = String(selectedCustomer.phone);
       const actor = userData?.email || userData?.name || 'unknown';
@@ -267,6 +322,12 @@ const ProductPartnerPage = () => {
           const freshProductSnap = await transaction.get(productRef);
           if (!freshProductSnap.exists()) throw new Error('This dress no longer exists.');
           const freshProduct = freshProductSnap.data();
+          const previousType = freshProduct.partnershipType ||
+            (freshProduct.partnerCommissionPercentage != null || freshProduct.partnershipStatus === 'active'
+              ? 'revenue_share'
+              : (freshProduct.lastCreditNoteCustomerId || freshProduct.creditNoteCustomerId || freshProduct.creditNoteCount
+                ? 'credit_note' : 'none'));
+          const previousCommission = freshProduct.partnerCommissionPercentage ?? null;
           const freshPartnerId = freshProduct.partnerId || freshProduct.partner?.id || freshProduct.partner?.customerId || '';
           const freshPartnerMobile = freshProduct.partnerMobile || freshProduct.partner?.mobile || freshProduct.partner?.phone || '';
           const freshLinkedId = freshPartnerId || freshProduct.lastCreditNoteCustomerId || freshProduct.creditNoteCustomerId || '';
@@ -282,6 +343,7 @@ const ProductPartnerPage = () => {
 
           const customerSnap = await transaction.get(customerRef);
           const customerData = customerSnap.exists() ? customerSnap.data() : {};
+          const activityRef = doc(collection(db, `products/${branchCode}/products/${product.id}/partnershipActivity`));
           const oldPartnerProducts = Array.isArray(customerData.partnerProducts) ? customerData.partnerProducts : [];
           const partnerProducts = oldPartnerProducts.filter((entry) => String(entry?.productId || '') !== String(product.id));
           const now = new Date();
@@ -292,6 +354,7 @@ const ProductPartnerPage = () => {
             productName,
             branchCode: String(branchCode),
             commissionPercentage,
+            partnershipType: 'revenue_share',
             partnershipStatus: 'active',
             assignedAt: createdAt,
             updatedAt: now,
@@ -308,6 +371,7 @@ const ProductPartnerPage = () => {
             partnerEmail: selectedCustomer.email || '',
             partnerCommissionPercentage: commissionPercentage,
             partnerProductCode: productCode,
+            partnershipType: 'revenue_share',
             partnershipStatus: 'active',
             partnershipCreatedAt: createdAt,
             partnershipUpdatedAt: serverTimestamp(),
@@ -327,6 +391,27 @@ const ProductPartnerPage = () => {
             partnerProducts,
             partnerUpdatedAt: serverTimestamp(),
           }, { merge: true });
+
+          transaction.set(activityRef, {
+            action: previousType === 'revenue_share'
+              ? (Number(previousCommission) === commissionPercentage ? 'revenue_share_saved' : 'commission_updated')
+              : (previousType === 'none' ? 'partnership_created' : 'partnership_type_switched'),
+            branchCode: String(branchCode),
+            productId: String(product.id),
+            productCode,
+            productName,
+            customerId: String(selectedCustomer.id),
+            customerName,
+            customerMobile: customerPhone,
+            previousType,
+            newType: 'revenue_share',
+            previousValue: previousType === 'revenue_share' ? { commissionPercentage: previousCommission } : null,
+            newValue: { commissionPercentage },
+            reason: comment.trim(),
+            performedBy: actor,
+            performedByUserId: String(userData?.uid || userData?.id || ''),
+            createdAt: serverTimestamp(),
+          });
         });
         toast.success('Partnership and customer partner list saved.');
       } else {
@@ -354,6 +439,13 @@ const ProductPartnerPage = () => {
           const customerSnap = await transaction.get(customerRef);
           const freshProduct = freshProductSnap.data();
           const customerData = customerSnap.exists() ? customerSnap.data() : {};
+          const previousType = freshProduct.partnershipType ||
+            (freshProduct.partnerCommissionPercentage != null || freshProduct.partnershipStatus === 'active'
+              ? 'revenue_share'
+              : (freshProduct.lastCreditNoteCustomerId || freshProduct.creditNoteCustomerId || freshProduct.creditNoteCount
+                ? 'credit_note' : 'none'));
+          const previousCommission = freshProduct.partnerCommissionPercentage ?? null;
+          const activityRef = doc(collection(db, `products/${branchCode}/products/${product.id}/partnershipActivity`));
           const freshPartnerId = freshProduct.partnerId || freshProduct.partner?.id || freshProduct.partner?.customerId || '';
           const freshPartnerMobile = freshProduct.partnerMobile || freshProduct.partner?.mobile || freshProduct.partner?.phone || '';
           const freshLinkedId = freshPartnerId || freshProduct.lastCreditNoteCustomerId || freshProduct.creditNoteCustomerId || '';
@@ -437,10 +529,23 @@ const ProductPartnerPage = () => {
           });
 
           // Keep quick summaries on the customer and product documents.
+          // Remove this product from the customer's active revenue-share index.
+          // Historical partnership activity and the saved commission field remain intact.
+          const remainingPartnerProducts = (Array.isArray(customerData.partnerProducts) ? customerData.partnerProducts : [])
+            .filter((entry) => String(entry?.productId || '') !== String(product.id));
+          const remainingPartnerProductIds = (Array.isArray(customerData.partnerProductIds) ? customerData.partnerProductIds.map(String) : [])
+            .filter((id) => id !== String(product.id));
+          const remainingPartnerProductCodes = (Array.isArray(customerData.partnerProductCodes) ? customerData.partnerProductCodes.map(String) : [])
+            .filter((code) => code !== String(productCode));
+
           transaction.set(customerRef, {
             name: customerData.name || customerData.Name || customerName,
             phone: String(customerData.phone || customerData.mobileNumber || customerPhone),
             email: customerData.email || selectedCustomer.email || '',
+            isPartner: remainingPartnerProducts.length > 0,
+            partnerProducts: remainingPartnerProducts,
+            partnerProductIds: remainingPartnerProductIds,
+            partnerProductCodes: remainingPartnerProductCodes,
             creditBalance: newBalance,
             hasCreditNote: true,
             lastCreditNoteId: aggregateRef.id,
@@ -452,6 +557,12 @@ const ProductPartnerPage = () => {
           }, { merge: true });
 
           transaction.update(productRef, {
+            partnershipType: 'credit_note',
+            partnershipStatus: 'active',
+            partnerId: selectedCustomer.id,
+            partnerName: customerName,
+            partnerMobile: customerPhone,
+            partnerEmail: selectedCustomer.email || '',
             creditNoteCount: asAmount(freshProduct.creditNoteCount) + 1,
             lastCreditNoteId: aggregateRef.id,
             lastCreditNoteCustomerId: selectedCustomer.id,
@@ -465,8 +576,34 @@ const ProductPartnerPage = () => {
             lastCreditNoteAt: now,
             lastCreditNoteUpdatedBy: actor,
           });
+
+          transaction.set(activityRef, {
+            action: previousType === 'credit_note'
+              ? 'credit_added'
+              : (previousType === 'none' ? 'credit_partnership_created' : 'partnership_type_switched'),
+            branchCode: String(branchCode),
+            productId: String(product.id),
+            productCode,
+            productName,
+            customerId: String(selectedCustomer.id),
+            customerName,
+            customerMobile: customerPhone,
+            previousType,
+            newType: 'credit_note',
+            previousValue: previousType === 'revenue_share'
+              ? { commissionPercentage: previousCommission }
+              : (previousType === 'credit_note' ? { creditBalance: previousBalance } : null),
+            newValue: { creditAdded: amountToAdd, creditBalance: newBalance },
+            reason: noteText,
+            performedBy: actor,
+            performedByUserId: String(userData?.uid || userData?.id || ''),
+            aggregateCreditNoteId: aggregateRef.id,
+            createdAt: serverTimestamp(),
+          });
         });
-        toast.success('Credit added. Customer, dress, balance and credit history saved together.');
+        toast.success(toastPreviousType === 'revenue_share'
+          ? 'Switched to credit-note partnership. Previous revenue-share records were preserved and credit was added.'
+          : 'Credit added. Customer, dress, balance and credit history saved together.');
       }
 
       window.setTimeout(() => navigate(-1), 900);
@@ -491,7 +628,7 @@ const ProductPartnerPage = () => {
             <div className="pp-hero-copy">
               <span className="pp-eyebrow">PRODUCT RELATIONSHIP</span>
               <h1>Customer &amp; dress setup</h1>
-              <p>Choose one customer and decide whether to issue a credit note or set up a partnership for this dress.</p>
+              <p>Choose one partner and select exactly one active arrangement: revenue share or credit balance. Switching keeps previous records.</p>
             </div>
             <div className="pp-hero-icon"><FaHandshake /></div>
           </section>
@@ -522,6 +659,41 @@ const ProductPartnerPage = () => {
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="pp-active-partnership" aria-label="Current active partnership">
+            <div className="pp-active-partnership__heading">
+              <div>
+                <span className="pp-eyebrow">CURRENT STATUS</span>
+                <h2>Active partnership</h2>
+                <p>This shows the currently active arrangement, not older history.</p>
+              </div>
+              <span className={`pp-status-pill ${activePartnershipType === 'revenue_share' || activePartnershipType === 'credit_note' ? 'is-active' : 'is-inactive'}`}>
+                {activePartnershipType === 'revenue_share' || activePartnershipType === 'credit_note' ? 'Active' : 'Not assigned'}
+              </span>
+            </div>
+            {activePartnershipType === 'revenue_share' ? (
+              <div className="pp-active-partnership__details">
+                <span className="pp-active-icon pp-active-icon--revenue"><FaHandshake /></span>
+                <div className="pp-active-partnership__copy">
+                  <strong>Revenue Share</strong>
+                  <span>Partner: {linkedCustomerName || linkedCustomerMobile || 'Not specified'}</span>
+                  <span>Commission: {product.partnerCommissionPercentage != null ? `${asAmount(product.partnerCommissionPercentage)}%` : 'Not set'}</span>
+                </div>
+              </div>
+            ) : activePartnershipType === 'credit_note' ? (
+              <div className="pp-active-partnership__details">
+                <span className="pp-active-icon pp-active-icon--credit"><FaWallet /></span>
+                <div className="pp-active-partnership__copy">
+                  <strong>Credit Note Partnership</strong>
+                  <span>Partner: {linkedCustomerName || linkedCustomerMobile || 'Not specified'}</span>
+                  <span>Credit added for this dress: {dressCreditLoading ? 'Loading…' : `₹${dressCreditTotal.toLocaleString('en-IN')}`}</span>
+                  {product.lastCreditNoteAmount != null && <span>Last credit addition: ₹{asAmount(product.lastCreditNoteAmount).toLocaleString('en-IN')}</span>}
+                </div>
+              </div>
+            ) : (
+              <p className="pp-empty-state">No active partnership is recorded for this dress yet.</p>
+            )}
           </section>
 
           <form className="pp-workspace" onSubmit={handleSave}>
@@ -565,17 +737,17 @@ const ProductPartnerPage = () => {
             <section className="pp-panel pp-action-panel">
               <div className="pp-panel-heading">
                 <div className="pp-step">02</div>
-                <div><h2>Choose an action</h2><p>{hasExistingCustomerLink ? 'The linked customer is locked. You can update the commission or add more credit for this same customer.' : 'Select how this customer is linked to the dress.'}</p></div>
+                <div><h2>Choose an action</h2><p>{hasExistingCustomerLink ? 'The linked partner is locked. You can change the active arrangement; past activity and credit transactions are preserved.' : 'Select how this customer is linked to the dress.'}</p></div>
               </div>
               <div className="pp-choice-grid">
                 <button type="button" className={`pp-choice-card ${actionType === 'partnership' ? 'is-active' : ''}`} onClick={() => setActionType('partnership')}>
                   <span className="pp-choice-icon pp-choice-icon--partner"><FaHandshake /></span>
-                  <strong>Partnership</strong><small>Assign one partner and set their commission.</small>
+                  <strong>Partnership</strong><small>Make this product a percentage-based revenue-share partnership.</small>
                   <span className="pp-choice-radio" />
                 </button>
                 <button type="button" className={`pp-choice-card ${actionType === 'creditNote' ? 'is-active' : ''}`} onClick={() => setActionType('creditNote')}>
                   <span className="pp-choice-icon pp-choice-icon--credit"><FaWallet /></span>
-                  <strong>Credit Note</strong><small>Add credit to the customer’s branch credit balance.</small>
+                  <strong>Credit Note</strong><small>Make this product a credit-balance partnership and add credit to the partner’s balance.</small>
                   <span className="pp-choice-radio" />
                 </button>
               </div>
@@ -584,7 +756,7 @@ const ProductPartnerPage = () => {
                 <div className="pp-detail-box">
                   <label className="pp-field-label" htmlFor="pp-commission">Partner commission</label>
                   <div className="pp-input-with-suffix"><input id="pp-commission" type="number" min="0" max="100" step="0.01" value={commission} onChange={(event) => setCommission(event.target.value)} required /><span>%</span></div>
-                  <p className="pp-helper-note">One partner is allowed per dress. The commission is saved on the product and mirrored to the customer’s partnerProducts list; payouts are not calculated here yet.</p>
+                  <p className="pp-helper-note">This makes Revenue Share the only active partnership type for this product. Changes are recorded in partnership activity history; actual payouts are not calculated here yet.</p>
                 </div>
               ) : (
                 <div className="pp-detail-box">
@@ -592,7 +764,7 @@ const ProductPartnerPage = () => {
                   <input className="pp-text-input" id="pp-credit-amount" type="number" min="0.01" step="0.01" value={creditAmount} onChange={(event) => setCreditAmount(event.target.value)} placeholder="Enter amount to add" required />
                   <label className="pp-field-label pp-label-spaced" htmlFor="pp-credit-comment">Comment (optional)</label>
                   <textarea className="pp-text-input pp-textarea" id="pp-credit-comment" value={comment} onChange={(event) => setComment(event.target.value)} placeholder={`Why is credit being added for ${product.productName || 'this dress'}?`} rows="3" />
-                  <p className="pp-helper-note">Existing credit notes are matched by mobile number. New credits are added to the current balance and recorded in history.</p>
+                  <p className="pp-helper-note">This makes Credit Note the only active partnership type for this product. New credit is added to the existing balance; old revenue-share settings and all transaction history are preserved.</p>
                 </div>
               )}
 
@@ -604,6 +776,71 @@ const ProductPartnerPage = () => {
               </div>
             </section>
           </form>
+
+          <section className="pp-activity-panel" aria-label="Partnership activity log">
+            <div className="pp-activity-heading">
+              <div>
+                <span className="pp-eyebrow">AUDIT TRAIL</span>
+                <h2>Partnership activity log</h2>
+                <p>Every recorded partnership switch, commission update, or credit addition for this dress.</p>
+              </div>
+              <span className="pp-activity-count">{partnershipActivity.length} {partnershipActivity.length === 1 ? 'entry' : 'entries'}</span>
+            </div>
+            {activityLoading ? (
+              <div className="pp-activity-empty">Loading activity history…</div>
+            ) : partnershipActivity.length === 0 ? (
+              <div className="pp-activity-empty">No activity log entries found for this dress yet. New changes made through this page will be recorded here.</div>
+            ) : (
+              <div className="pp-activity-list">
+                {partnershipActivity.map((entry) => {
+                  const dateValue = entry.createdAt?.toDate
+                    ? entry.createdAt.toDate()
+                    : (entry.createdAt ? new Date(entry.createdAt) : null);
+                  const validDate = dateValue && !Number.isNaN(dateValue.getTime());
+                  const actionLabels = {
+                    partnership_created: 'Partnership created',
+                    commission_updated: 'Commission updated',
+                    revenue_share_saved: 'Revenue-share partnership saved',
+                    credit_partnership_created: 'Credit-note partnership created',
+                    credit_added: 'Credit added',
+                    partnership_type_switched: 'Partnership type switched',
+                  };
+                  const typeLabel = (type) => type === 'revenue_share'
+                    ? 'Revenue Share'
+                    : type === 'credit_note' ? 'Credit Note' : (type || 'None');
+                  const valueLabel = (value) => {
+                    if (!value) return '—';
+                    const parts = [];
+                    if (value.commissionPercentage != null) parts.push(`${value.commissionPercentage}% commission`);
+                    if (value.creditAdded != null) parts.push(`₹${asAmount(value.creditAdded).toLocaleString('en-IN')} added`);
+                    if (value.creditBalance != null) parts.push(`₹${asAmount(value.creditBalance).toLocaleString('en-IN')} credit balance`);
+                    return parts.join(' · ') || '—';
+                  };
+                  return (
+                    <article className="pp-activity-item" key={entry.id}>
+                      <div className="pp-activity-item__marker"><FaCheckCircle /></div>
+                      <div className="pp-activity-item__body">
+                        <div className="pp-activity-item__topline">
+                          <strong>{actionLabels[entry.action] || String(entry.action || 'Partnership activity').replaceAll('_', ' ')}</strong>
+                          <time>{validDate ? dateValue.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Date unavailable'}</time>
+                        </div>
+                        <div className="pp-activity-item__meta">
+                          <span>{typeLabel(entry.previousType)} <span aria-hidden="true">→</span> <strong>{typeLabel(entry.newType)}</strong></span>
+                          <span>By: {entry.performedBy || 'Unknown user'}</span>
+                        </div>
+                        <div className="pp-activity-values">
+                          <span><small>Previous</small>{valueLabel(entry.previousValue)}</span>
+                          <span><small>New</small>{valueLabel(entry.newValue)}</span>
+                        </div>
+                        {entry.reason && <p className="pp-activity-reason"><strong>Reason / note:</strong> {entry.reason}</p>}
+                        {entry.aggregateCreditNoteId && <p className="pp-activity-id">Credit note ID: {entry.aggregateCreditNoteId}</p>}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </main>
     </div>

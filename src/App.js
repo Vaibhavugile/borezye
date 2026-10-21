@@ -35,6 +35,8 @@ import AddProduct from './components/Product/AddProduct';
 import ProductDashboard from './components/Product/Product';
 import ProductPartnerPage from './components/Product/ProductPartnerPage';
 import PartnersPage from "./components/Product/PartnersPage";
+import PartnerBillingPage from './components/Product/PartnerBillingPage';
+import NotificationCenter from './components/Product/NotificationCenter';
 import CheckAvailability from './components/UserDashboard/Availability/Availability';
 import Booking from './components/UserDashboard/Availability/Booking';
 import EditUser from './components/UserDashboard/EditUser';
@@ -379,6 +381,14 @@ const App = () => (
           path="/partners"
           element={<PartnersPage />}
         />
+         <Route
+          path="/notifications"
+          element={<NotificationCenter />}
+        />
+        <Route
+  path="/partner-billing"
+  element={<PartnerBillingPage />}
+/>
 <Route path="/leaverequest" element={
   <PrivateRoute>
   <LeaveRequestsPage/>
