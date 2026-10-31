@@ -114,7 +114,16 @@ const UserSidebar = ({ isOpen }) => {
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Call History
             </Link>
           </li>
-          
+           <li className={`sidebar-link ${location.pathname === '/partners' ? 'active' : ''}`}>
+            <Link to="/partners" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Partners
+            </Link>
+          </li>
+           <li className={`sidebar-link ${location.pathname === '/notifications' ? 'active' : ''}`}>
+            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Notifications
+            </Link>
+          </li>
           
           <li className={`sidebar-link ${location.pathname==='/logout'}`}>
             < Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>
