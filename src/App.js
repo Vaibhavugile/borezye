@@ -78,6 +78,7 @@ import CreditHistory from './components/UserDashboard/Availability/CreditHistory
 import ExpenseReport from './components/UserDashboard/Availability/ExpenseReport';
 import BranchSettings from './components/UserDashboard/Availability/BranchSettings';
 import CallsPage from './components/UserDashboard/Availability/CallsPage';
+import CustomBookingNotifications from './components/Product/CustomBookingNotifications';
 
 const App = () => (
 
@@ -323,6 +324,11 @@ const App = () => (
         <Route path="/usersidebar/creditnote" element={
           <PrivateRoute>
             <CreditNoteDashboard />
+          </PrivateRoute>
+        } />
+         <Route path="/usersidebar/pnotification" element={
+          <PrivateRoute>
+            <CustomBookingNotifications />
           </PrivateRoute>
         } />
 
