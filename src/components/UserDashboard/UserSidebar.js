@@ -124,7 +124,11 @@ const UserSidebar = ({ isOpen }) => {
               <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} />Notifications
             </Link>
           </li>
-          
+          <li className={`sidebar-link ${location.pathname === '/usersidebar/pnotification' ? 'active' : ''}`}>
+            <Link to="/usersidebar/pnotification" style={{ display: 'flex', alignItems: 'center' }}>
+              <FaRegFileAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Stage custom Notifications
+            </Link>
+          </li>
           <li className={`sidebar-link ${location.pathname==='/logout'}`}>
             < Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>
             <FaSignOutAlt style={{ fontSize: '15px', color: '#757575', marginRight: '20px' }} /> Logout

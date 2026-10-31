@@ -4,6 +4,8 @@ import {
   getDoc,
   getDocs,
   collection,
+  query,
+  where,
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -90,6 +92,42 @@ const EVENT_PLACEHOLDERS = [
   ["{IdentityNumber}", "Identity proof number"],
 ];
 
+const PAYMENT_PLACEHOLDERS = [
+  ["{branchCode}", "Branch code"],
+  ["{receiptNumber}", "Receipt number"],
+  ["{amountPaid}", "Amount received in this payment"],
+  ["{totalAmount}", "Total receipt amount"],
+  ["{balance}", "Remaining balance"],
+  ["{clientName}", "Customer name"],
+  ["{contact}", "Customer mobile number"],
+  ["{receiptBy}", "Receipt handled by"],
+  ["{customerBy}", "Customer handled by"],
+  ["{paymentStatus}", "Payment status"],
+  ["{createdAt}", "Payment created date and time"],
+  ["{rentCollected}", "Rent collected"],
+  ["{rentPending}", "Rent pending"],
+  ["{depositCollected}", "Deposit collected"],
+  ["{depositPending}", "Deposit pending"],
+  ["{depositReturned}", "Deposit returned"],
+  ["{depositWithYou}", "Deposit currently with you"],
+  ["{finalRent}", "Final rent"],
+  ["{finalDeposit}", "Final deposit"],
+  ["{grandTotalRent}", "Gross rent"],
+  ["{grandTotalDeposit}", "Gross deposit"],
+  ["{discountOnRent}", "Discount on rent"],
+  ["{discountOnDeposit}", "Discount on deposit"],
+  ["{appliedCredit}", "Applied customer credit"],
+  ["{bookingStage}", "Booking stage"],
+  ["{pickupDate}", "Pickup date"],
+  ["{returnDate}", "Return date"],
+  ["{firstPaymentMode}", "First payment mode"],
+  ["{firstPaymentDetails}", "First payment details"],
+  ["{secondPaymentMode}", "Second payment mode"],
+  ["{secondPaymentDetails}", "Second payment details"],
+  ["{specialNote}", "Payment special note"],
+  ["{productsSummary}", "Product summary"],
+];
+
 function StageIcon({ type }) {
   return type === "pickup" ? (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -127,6 +165,21 @@ export default function CustomBookingNotifications() {
   const [toast, setToast] = useState({ text: "", type: "success" });
   const [manualRunning, setManualRunning] = useState(false);
   const [manualReport, setManualReport] = useState(null);
+
+  // Branch-specific payment receipt notification settings.
+  const [paymentOwners, setPaymentOwners] = useState([]);
+  const [selectedPaymentOwnerUids, setSelectedPaymentOwnerUids] = useState([]);
+  const [paymentOwnerSearch, setPaymentOwnerSearch] = useState("");
+  const [paymentNotification, setPaymentNotification] = useState({
+    enabled: false,
+    title: "New payment received",
+    message: "A payment of ₹{amountPaid} has been received for receipt {receiptNumber} at branch {branchCode}.",
+    imageUrl: "",
+    clickUrl: "",
+  });
+  const [loadingPaymentOwners, setLoadingPaymentOwners] = useState(false);
+  const [savingPaymentOwners, setSavingPaymentOwners] = useState(false);
+  const [testingPaymentOwners, setTestingPaymentOwners] = useState(false);
 
   const activeConfig = settings[activeStage];
   const stageInfo = STAGES.find((stage) => stage.key === activeStage);
@@ -211,6 +264,133 @@ export default function CustomBookingNotifications() {
     loadEventSettings();
     return () => { alive = false; };
   }, [branchCode, notify]);
+
+  useEffect(() => {
+    let alive = true;
+    async function loadPaymentOwnerSettings() {
+      if (!branchCode) {
+        setLoadingPaymentOwners(false);
+        return;
+      }
+      setLoadingPaymentOwners(true);
+      try {
+        // Customer path: customers/{branchCode}/users/{mobileNumber}
+        // Only customers with an FCM token are selectable recipients.
+        const customersSnap = await getDocs(collection(db, "customers", branchCode, "users"));
+        const branchUsers = customersSnap.docs
+          .map((item) => ({ uid: item.id, data: item.data() || {} }))
+          .filter((item) => String(item.data.fcmToken || "").trim().length > 0)
+          .map(({ uid, data }) => ({
+            uid,
+            name: data.name || data.fullName || data.displayName || uid,
+            phone: data.phone || data.phoneNumber || data.mobileNumber || uid,
+            email: data.email || data.emailAddress || "",
+            role: data.role || data.userRole || (data.isPartner ? "Partner" : "Customer"),
+            fcmToken: String(data.fcmToken || "").trim(),
+          }))
+          .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+        const settingsSnap = await getDoc(
+          doc(db, "paymentOwnerNotificationSettings", branchCode)
+        );
+        if (!alive) return;
+        setPaymentOwners(branchUsers);
+        if (settingsSnap.exists()) {
+          const saved = settingsSnap.data() || {};
+          setSelectedPaymentOwnerUids(Array.isArray(saved.ownerUids) ? saved.ownerUids : []);
+          setPaymentNotification((current) => ({
+            ...current,
+            enabled: saved.enabled === true,
+            title: saved.title || current.title,
+            message: saved.message || current.message,
+            imageUrl: saved.imageUrl || "",
+            clickUrl: saved.clickUrl || "",
+          }));
+        } else {
+          setSelectedPaymentOwnerUids([]);
+        }
+      } catch (error) {
+        console.error("Could not load payment owner notification settings:", error);
+        if (alive) notify(error?.message || "Could not load payment owner settings.", "error");
+      } finally {
+        if (alive) setLoadingPaymentOwners(false);
+      }
+    }
+    loadPaymentOwnerSettings();
+    return () => { alive = false; };
+  }, [branchCode, notify]);
+
+  const updatePaymentNotification = (patch) => {
+    setPaymentNotification((current) => ({ ...current, ...patch }));
+  };
+
+  const filteredPaymentOwners = paymentOwners.filter((owner) => {
+    const q = paymentOwnerSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [owner.name, owner.phone, owner.email, owner.role, owner.uid]
+      .some((value) => String(value || "").toLowerCase().includes(q));
+  });
+
+  const savePaymentOwnerSettings = async () => {
+    if (!branchCode) return notify("Branch code is missing from your user profile.", "error");
+    const validUids = new Set(paymentOwners.map((owner) => owner.uid));
+    const safeUids = selectedPaymentOwnerUids.filter((uid) => validUids.has(uid));
+    if (paymentNotification.enabled && safeUids.length === 0) {
+      return notify("Select at least one owner or disable automatic payment notifications.", "error");
+    }
+    if (safeUids.length !== selectedPaymentOwnerUids.length) {
+      return notify("A selected customer is no longer available in this branch. Reload and select again.", "error");
+    }
+    setSavingPaymentOwners(true);
+    try {
+      await setDoc(
+        doc(db, "paymentOwnerNotificationSettings", branchCode),
+        {
+          branchCode,
+          enabled: paymentNotification.enabled,
+          ownerUids: safeUids,
+          ownerCustomerIds: safeUids,
+          title: paymentNotification.title.trim() || "New payment received",
+          message: paymentNotification.message.trim(),
+          imageUrl: paymentNotification.imageUrl.trim(),
+          clickUrl: paymentNotification.clickUrl.trim(),
+          updatedAt: serverTimestamp(),
+          updatedBy: userData?.uid || userData?.id || "admin",
+        },
+        { merge: true }
+      );
+      notify(`Payment owner notifications saved for branch ${branchCode}.`);
+    } catch (error) {
+      console.error("Could not save payment owner notification settings:", error);
+      notify(error?.message || "Could not save payment owner settings. Check Firestore rules.", "error");
+    } finally {
+      setSavingPaymentOwners(false);
+    }
+  };
+
+  const testPaymentOwnerNotification = async () => {
+    if (!branchCode) return notify("Branch code is missing.", "error");
+    if (!selectedPaymentOwnerUids.length) return notify("Select at least one owner first.", "error");
+    setTestingPaymentOwners(true);
+    try {
+      const callable = httpsCallable(getFunctions(app, "asia-south1"), "sendBranchPaymentOwnerTest");
+      const response = await callable({
+        branchCode,
+        ownerUids: selectedPaymentOwnerUids,
+        title: paymentNotification.title,
+        message: paymentNotification.message,
+        imageUrl: paymentNotification.imageUrl,
+        clickUrl: paymentNotification.clickUrl,
+      });
+      const result = response.data || {};
+      notify(`Test notification: ${result.sent || 0} sent, ${result.failed || 0} failed.`);
+    } catch (error) {
+      console.error("Payment owner test notification failed:", error);
+      notify(error?.message || "Could not send test notification. Save settings first.", "error");
+    } finally {
+      setTestingPaymentOwners(false);
+    }
+  };
 
   const updateEventActive = (patch) => {
     setEventSettings((current) => ({
@@ -425,7 +605,7 @@ export default function CustomBookingNotifications() {
           <div>
             <div className="cbn-eyebrow">CUSTOMER ENGAGEMENT</div>
             <h1>Custom booking <span>notifications</span></h1>
-            <p>Manage scheduled pickup/return reminders and automatic messages sent when a booking changes stage.</p>
+            <p>Manage scheduled booking reminders, stage-change messages, and branch-specific payment receipt alerts.</p>
           </div>
           <div className="cbn-schedule-chip">
             <span className="cbn-clock">◷</span>
@@ -439,6 +619,9 @@ export default function CustomBookingNotifications() {
           </button>
           <button type="button" className={activeSection === "stageEvents" ? "active" : ""} onClick={() => setActiveSection("stageEvents")}>
             <span>⇄</span><strong>Stage-change notifications</strong><small>Booking · Pickup · Return · Completed · Cancelled · Postponed</small>
+          </button>
+          <button type="button" className={activeSection === "paymentOwners" ? "active" : ""} onClick={() => setActiveSection("paymentOwners")}>
+            <span>₹</span><strong>Branch payment alerts</strong><small>New receipt · Selected branch owners</small>
           </button>
         </nav>
 
@@ -676,7 +859,7 @@ export default function CustomBookingNotifications() {
             <p className="cbn-preview-foot">This is a visual preview. Actual image availability depends on the product image URL stored with each booking.</p>
           </aside>
         </section>
-        ) : (
+        ) : activeSection === "stageEvents" ? (
           <section className="cbn-layout cbn-event-layout">
             <div className="cbn-editor">
               <div className="cbn-event-tabs" role="tablist" aria-label="Booking stage">
@@ -800,6 +983,112 @@ export default function CustomBookingNotifications() {
                 <div><span>Status</span><strong className={activeEventConfig.enabled ? "cbn-status-on" : "cbn-status-off"}>{activeEventConfig.enabled ? "Enabled" : "Disabled"}</strong></div>
               </div>
               <p className="cbn-preview-foot">Preview values show the placeholders as typed. Actual values are populated by the Cloud Function.</p>
+            </aside>
+          </section>
+        ) : (
+          <section className="cbn-payment-layout">
+            <div className="cbn-editor">
+              <div className="cbn-form">
+                <div className="cbn-form-head">
+                  <div>
+                    <span className="cbn-step-label">BRANCH-SPECIFIC AUTOMATION</span>
+                    <h2>New payment receipt notification</h2>
+                    <p>When a new payment document is created, notify only the selected owners belonging to this branch.</p>
+                  </div>
+                  <label className="cbn-switch">
+                    <input type="checkbox" checked={paymentNotification.enabled} onChange={(event) => updatePaymentNotification({ enabled: event.target.checked })} />
+                    <span /><b>{paymentNotification.enabled ? "Enabled" : "Disabled"}</b>
+                  </label>
+                </div>
+
+                <div className="cbn-payment-branch-banner">
+                  <span>THIS PAGE'S BRANCH</span><strong>{branchCode || "Branch not assigned"}</strong>
+                  <small>Owner selection and delivery are isolated to this branch.</small>
+                </div>
+
+                <div className="cbn-payment-owner-heading">
+                  <div><h3>Select branch owners</h3><p>Only customers stored under this branch with a registered FCM token can be selected.</p></div>
+                  <b>{selectedPaymentOwnerUids.length} selected</b>
+                </div>
+                <input className="cbn-payment-search" value={paymentOwnerSearch} onChange={(event) => setPaymentOwnerSearch(event.target.value)} placeholder="Search by owner name, mobile, email or role…" />
+                <div className="cbn-payment-owner-actions">
+                  <button type="button" onClick={() => setSelectedPaymentOwnerUids((current) => [...new Set([...current, ...filteredPaymentOwners.map((owner) => owner.uid)])])}>Select visible</button>
+                  <button type="button" onClick={() => setSelectedPaymentOwnerUids([])}>Clear selection</button>
+                </div>
+                <div className="cbn-payment-owner-list">
+                  {loadingPaymentOwners ? <div className="cbn-loading">Loading branch users…</div> :
+                    filteredPaymentOwners.length ? filteredPaymentOwners.map((owner) => (
+                      <label className="cbn-payment-owner" key={owner.uid}>
+                        <input type="checkbox" checked={selectedPaymentOwnerUids.includes(owner.uid)} onChange={() => setSelectedPaymentOwnerUids((current) => current.includes(owner.uid) ? current.filter((uid) => uid !== owner.uid) : [...current, owner.uid])} />
+                        <span className="cbn-payment-avatar">{String(owner.name || "U").slice(0, 1).toUpperCase()}</span>
+                        <span className="cbn-payment-owner-details"><strong>{owner.name}</strong><small>{[owner.phone, owner.email, owner.role].filter(Boolean).join(" · ") || owner.uid}</small></span>
+                        <em>Branch {branchCode}</em>
+                      </label>
+                    )) : <div className="cbn-loading">No customers with an FCM token found for branch {branchCode || "—"}.</div>}
+                </div>
+
+                <label className="cbn-field">
+                  <span>Notification title <small>{paymentNotification.title.length}/100</small></span>
+                  <input maxLength={100} value={paymentNotification.title} onChange={(event) => updatePaymentNotification({ title: event.target.value })} placeholder="New payment received" />
+                </label>
+                <label className="cbn-field">
+                  <span>Notification message <small>{paymentNotification.message.length}/450</small></span>
+                  <textarea rows={5} maxLength={450} value={paymentNotification.message} onChange={(event) => updatePaymentNotification({ message: event.target.value })} placeholder="Write your custom payment notification…" />
+                  <em>Click any placeholder below to copy it. The Cloud Function fills it from the new payment document.</em>
+                </label>
+
+                <div className="cbn-placeholder-panel">
+                  <div className="cbn-section-head"><div><h3>All payment placeholders</h3><p>These names match the payment fields and the notification Cloud Function.</p></div><span>{PAYMENT_PLACEHOLDERS.length} FIELDS</span></div>
+                  <div className="cbn-placeholder-grid cbn-payment-placeholder-grid">
+                    {PAYMENT_PLACEHOLDERS.map(([token, description]) => (
+                      <button type="button" key={token} title={`Copy ${token}`} onClick={() => { navigator.clipboard?.writeText(token); notify(`${token} copied.`); }}>
+                        <code>{token}</code><small>{description}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="cbn-two-fields">
+                  <label className="cbn-field">Notification image URL (optional)<input value={paymentNotification.imageUrl} onChange={(event) => updatePaymentNotification({ imageUrl: event.target.value })} placeholder="https://…" /></label>
+                  <label className="cbn-field">Click destination URL (optional)<input value={paymentNotification.clickUrl} onChange={(event) => updatePaymentNotification({ clickUrl: event.target.value })} placeholder="https://…" /></label>
+                </div>
+
+                <div className="cbn-note">
+                  <strong>Branch security and trigger behavior</strong>
+                  <p>The trigger listens only to <code>products/{branchCode || "{branchCode}"}/payments/{`{paymentId}`}</code>. It verifies the payment document's branchCode and checks every selected owner's users/{`{uid}`}.branchCode before sending. Updating an existing payment document does not send another notification.</p>
+                  <p>Ensure your Cloud Function <code>notifySelectedBranchOwnersOnPaymentCreated</code> and callable <code>sendBranchPaymentOwnerTest</code> are deployed.</p>
+                </div>
+
+                <div className="cbn-actions">
+                  <button type="button" className="cbn-reset" onClick={testPaymentOwnerNotification} disabled={testingPaymentOwners || loadingPaymentOwners || !selectedPaymentOwnerUids.length}>{testingPaymentOwners ? "Sending test…" : "Send test to selected owners"}</button>
+                  <button type="button" className="cbn-save" onClick={savePaymentOwnerSettings} disabled={savingPaymentOwners || loadingPaymentOwners || !branchCode}>{savingPaymentOwners ? "Saving…" : "Save payment notification settings"}</button>
+                </div>
+              </div>
+            </div>
+
+            <aside className="cbn-preview">
+              <div className="cbn-preview-head"><div><span className="cbn-step-label">LIVE PREVIEW</span><h2>Branch owner notification</h2></div><span className="cbn-live-label"><i /> PREVIEW</span></div>
+              <div className="cbn-phone-wrap">
+                <div className="cbn-phone">
+                  <div className="cbn-phone-notch" /><div className="cbn-phone-status"><span>9:41</span><span>● ● ▰</span></div>
+                  <div className="cbn-phone-screen">
+                    <div className="cbn-lock-time">9:41</div><div className="cbn-lock-date">Saturday, 31 October</div>
+                    <div className="cbn-notification">
+                      <div className="cbn-notification-app"><span className="cbn-mini-logo">D</span><b>DOR</b><small>now</small></div>
+                      {paymentNotification.imageUrl && <img className="cbn-preview-image" src={paymentNotification.imageUrl} alt="Payment notification preview" />}
+                      <strong>{paymentNotification.title || "New payment received"}</strong>
+                      <p>{paymentNotification.message}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="cbn-preview-details">
+                <div><span>Branch</span><strong>{branchCode || "Not assigned"}</strong></div>
+                <div><span>Selected owners</span><strong>{selectedPaymentOwnerUids.length}</strong></div>
+                <div><span>Trigger</span><strong>New payment document</strong></div>
+                <div><span>Status</span><strong className={paymentNotification.enabled ? "cbn-status-on" : "cbn-status-off"}>{paymentNotification.enabled ? "Enabled" : "Disabled"}</strong></div>
+              </div>
+              <p className="cbn-preview-foot">Preview displays placeholder names. The deployed Cloud Function replaces them with values from each payment document.</p>
             </aside>
           </section>
         )}

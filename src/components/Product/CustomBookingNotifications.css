@@ -168,3 +168,37 @@
   .cbn-placeholder-panel { padding:11px; }
   .cbn-placeholder-grid { grid-template-columns:1fr; }
 }
+
+/* Branch payment owner notifications */
+.cbn-payment-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr);gap:22px;align-items:start}
+.cbn-payment-layout .cbn-editor{min-width:0}
+.cbn-payment-branch-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;margin:0 0 22px;border:1px solid #e4e1fb;border-radius:12px;background:linear-gradient(110deg,#f5f3ff,#fbfaff)}
+.cbn-payment-branch-banner span{font-size:10px;letter-spacing:1px;font-weight:800;color:#77718e}
+.cbn-payment-branch-banner strong{font:800 18px Manrope, sans-serif;color:#5146a5}
+.cbn-payment-branch-banner small{flex-basis:100%;font-size:11px;color:#858398}
+.cbn-payment-owner-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:5px 0 12px}
+.cbn-payment-owner-heading h3{margin:0 0 5px;font:800 16px Manrope,sans-serif}
+.cbn-payment-owner-heading p{margin:0;color:#85889a;font-size:11px;line-height:1.5}
+.cbn-payment-owner-heading>b{white-space:nowrap;padding:7px 10px;border-radius:20px;background:#f0edff;color:#6255b6;font-size:10px}
+.cbn-payment-search{width:100%;padding:12px 13px;border:1px solid #e1e2eb;border-radius:9px;font:12px inherit;outline:none;margin:0 0 8px}
+.cbn-payment-search:focus{border-color:#9285df;box-shadow:0 0 0 3px #8271d81a}
+.cbn-payment-owner-actions{display:flex;gap:8px;margin-bottom:10px}
+.cbn-payment-owner-actions button{border:1px solid #e1e2eb;border-radius:8px;background:#fafaff;padding:8px 11px;color:#55586a;font-size:10px;font-weight:700;cursor:pointer}
+.cbn-payment-owner-list{max-height:300px;overflow:auto;border:1px solid #ececf2;border-radius:10px;padding:3px 12px;margin-bottom:20px}
+.cbn-payment-owner{display:flex;align-items:center;gap:10px;padding:11px 1px;border-bottom:1px solid #f0f0f4;cursor:pointer}
+.cbn-payment-owner:last-child{border-bottom:0}
+.cbn-payment-owner>input{width:16px;height:16px;accent-color:#7565cf;flex:none}
+.cbn-payment-avatar{width:34px;height:34px;display:grid;place-items:center;flex:none;border-radius:10px;background:#f0edff;color:#685bc0;font:800 13px Manrope,sans-serif}
+.cbn-payment-owner-details{flex:1;min-width:0}
+.cbn-payment-owner-details strong,.cbn-payment-owner-details small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbn-payment-owner-details strong{font-size:12px;color:#33364a}
+.cbn-payment-owner-details small{margin-top:4px;font-size:10px;color:#9698a5}
+.cbn-payment-owner>em{font-style:normal;font-size:9px;color:#16865f;background:#eaf8f2;padding:5px 7px;border-radius:15px;white-space:nowrap}
+.cbn-payment-placeholder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cbn-payment-placeholder-grid button{min-width:0}
+.cbn-payment-placeholder-grid code{overflow-wrap:anywhere}
+.cbn-two-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cbn-two-fields .cbn-field input{display:block;width:100%;margin-top:7px;padding:11px 12px;border:1px solid #e1e2eb;border-radius:8px;font:12px inherit}
+.cbn-payment-layout .cbn-note code{overflow-wrap:anywhere}
+@media(max-width:950px){.cbn-payment-layout{grid-template-columns:1fr}}
+@media(max-width:620px){.cbn-payment-placeholder-grid,.cbn-two-fields{grid-template-columns:1fr}.cbn-payment-owner>em{display:none}.cbn-payment-owner-heading{flex-wrap:wrap}}
