@@ -7,6 +7,7 @@ import {
   query,
   where,
   setDoc,
+  writeBatch,
   serverTimestamp,
 } from "firebase/firestore";
 import {
@@ -172,6 +173,7 @@ export default function CustomBookingNotifications() {
   const [paymentOwnerSearch, setPaymentOwnerSearch] = useState("");
   const [paymentNotification, setPaymentNotification] = useState({
     enabled: false,
+    whatsappEnabled: false,
     title: "New payment received",
     message: "A payment of ₹{amountPaid} has been received for receipt {receiptNumber} at branch {branchCode}.",
     imageUrl: "",
@@ -180,6 +182,7 @@ export default function CustomBookingNotifications() {
   const [loadingPaymentOwners, setLoadingPaymentOwners] = useState(false);
   const [savingPaymentOwners, setSavingPaymentOwners] = useState(false);
   const [testingPaymentOwners, setTestingPaymentOwners] = useState(false);
+  const [updatingOwnerIds, setUpdatingOwnerIds] = useState([]);
 
   const activeConfig = settings[activeStage];
   const stageInfo = STAGES.find((stage) => stage.key === activeStage);
@@ -279,7 +282,11 @@ export default function CustomBookingNotifications() {
         const customersSnap = await getDocs(collection(db, "customers", branchCode, "users"));
         const branchUsers = customersSnap.docs
           .map((item) => ({ uid: item.id, data: item.data() || {} }))
-          .filter((item) => String(item.data.fcmToken || "").trim().length > 0)
+          // Include customers with either an FCM token or a WhatsApp-capable phone number.
+          .filter((item) =>
+            String(item.data.fcmToken || "").trim().length > 0 ||
+            String(item.data.phone || item.data.phoneNumber || item.data.mobileNumber || item.id).replace(/\\D/g, "").length >= 10
+          )
           .map(({ uid, data }) => ({
             uid,
             name: data.name || data.fullName || data.displayName || uid,
@@ -287,6 +294,7 @@ export default function CustomBookingNotifications() {
             email: data.email || data.emailAddress || "",
             role: data.role || data.userRole || (data.isPartner ? "Partner" : "Customer"),
             fcmToken: String(data.fcmToken || "").trim(),
+            whatsappOptIn: data.whatsappOptIn === true,
           }))
           .sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
@@ -301,6 +309,7 @@ export default function CustomBookingNotifications() {
           setPaymentNotification((current) => ({
             ...current,
             enabled: saved.enabled === true,
+            whatsappEnabled: saved.whatsappEnabled === true,
             title: saved.title || current.title,
             message: saved.message || current.message,
             imageUrl: saved.imageUrl || "",
@@ -331,6 +340,97 @@ export default function CustomBookingNotifications() {
       .some((value) => String(value || "").toLowerCase().includes(q));
   });
 
+  // Selection in this panel also records the customer's WhatsApp opt-in
+  // on that customer's own branch-scoped Firestore document.
+  const saveWhatsAppConsentForOwners = async (ownerIds, optedIn) => {
+    if (!branchCode || !ownerIds.length) return;
+
+    // Firestore batches are limited to 500 writes; keep a safety margin.
+    for (let start = 0; start < ownerIds.length; start += 450) {
+      const batch = writeBatch(db);
+      const chunk = ownerIds.slice(start, start + 450);
+
+      chunk.forEach((ownerId) => {
+        const customerRef = doc(db, "customers", branchCode, "users", ownerId);
+        batch.set(customerRef, {
+          whatsappOptIn: optedIn,
+          whatsappConsentUpdatedAt: serverTimestamp(),
+          whatsappConsentUpdatedBy: userData?.uid || userData?.id || "admin",
+        }, { merge: true });
+      });
+
+      await batch.commit();
+    }
+
+    setPaymentOwners((current) =>
+      current.map((owner) =>
+        ownerIds.includes(owner.uid)
+          ? { ...owner, whatsappOptIn: optedIn }
+          : owner
+      )
+    );
+  };
+
+  const handlePaymentOwnerToggle = async (owner) => {
+    const currentlySelected = selectedPaymentOwnerUids.includes(owner.uid);
+    const nextSelected = !currentlySelected;
+
+    setUpdatingOwnerIds((current) => [...new Set([...current, owner.uid])]);
+    try {
+      // Selecting records WhatsApp opt-in; deselecting withdraws it.
+      await saveWhatsAppConsentForOwners([owner.uid], nextSelected);
+      setSelectedPaymentOwnerUids((current) =>
+        nextSelected
+          ? [...new Set([...current, owner.uid])]
+          : current.filter((uid) => uid !== owner.uid)
+      );
+      notify(
+        nextSelected
+          ? `${owner.name} selected and WhatsApp opt-in saved.`
+          : `${owner.name} deselected and WhatsApp opt-in disabled.`
+      );
+    } catch (error) {
+      console.error("Could not update customer WhatsApp opt-in:", error);
+      notify(error?.message || "Could not update WhatsApp opt-in. Check Firestore rules.", "error");
+    } finally {
+      setUpdatingOwnerIds((current) => current.filter((uid) => uid !== owner.uid));
+    }
+  };
+
+  const selectVisiblePaymentOwners = async () => {
+    const ids = filteredPaymentOwners.map((owner) => owner.uid);
+    if (!ids.length) return;
+
+    setUpdatingOwnerIds((current) => [...new Set([...current, ...ids])]);
+    try {
+      await saveWhatsAppConsentForOwners(ids, true);
+      setSelectedPaymentOwnerUids((current) => [...new Set([...current, ...ids])]);
+      notify(`${ids.length} visible customer(s) selected; WhatsApp opt-in saved.`);
+    } catch (error) {
+      console.error("Could not select visible customers:", error);
+      notify(error?.message || "Could not update visible customers. Check Firestore rules.", "error");
+    } finally {
+      setUpdatingOwnerIds((current) => current.filter((uid) => !ids.includes(uid)));
+    }
+  };
+
+  const clearPaymentOwnerSelection = async () => {
+    const ids = [...selectedPaymentOwnerUids];
+    if (!ids.length) return;
+
+    setUpdatingOwnerIds((current) => [...new Set([...current, ...ids])]);
+    try {
+      await saveWhatsAppConsentForOwners(ids, false);
+      setSelectedPaymentOwnerUids([]);
+      notify(`Selection cleared; WhatsApp opt-in disabled for ${ids.length} customer(s).`);
+    } catch (error) {
+      console.error("Could not clear customer selection:", error);
+      notify(error?.message || "Could not clear selection. Check Firestore rules.", "error");
+    } finally {
+      setUpdatingOwnerIds((current) => current.filter((uid) => !ids.includes(uid)));
+    }
+  };
+
   const savePaymentOwnerSettings = async () => {
     if (!branchCode) return notify("Branch code is missing from your user profile.", "error");
     const validUids = new Set(paymentOwners.map((owner) => owner.uid));
@@ -348,6 +448,7 @@ export default function CustomBookingNotifications() {
         {
           branchCode,
           enabled: paymentNotification.enabled,
+          whatsappEnabled: paymentNotification.whatsappEnabled,
           ownerUids: safeUids,
           ownerCustomerIds: safeUids,
           title: paymentNotification.title.trim() || "New payment received",
@@ -383,7 +484,10 @@ export default function CustomBookingNotifications() {
         clickUrl: paymentNotification.clickUrl,
       });
       const result = response.data || {};
-      notify(`Test notification: ${result.sent || 0} sent, ${result.failed || 0} failed.`);
+      const whatsappText = result.whatsapp
+        ? ` WhatsApp: ${result.whatsapp.accepted ? "accepted by MSG91" : result.whatsapp.skipped ? "skipped" : "check delivery report"}.`
+        : "";
+      notify(`Test notification: ${result.sent || 0} push sent, ${result.failed || 0} failed.${whatsappText}`);
     } catch (error) {
       console.error("Payment owner test notification failed:", error);
       notify(error?.message || "Could not send test notification. Save settings first.", "error");
@@ -1001,30 +1105,51 @@ export default function CustomBookingNotifications() {
                   </label>
                 </div>
 
+                <label className="cbn-switch" style={{ marginTop: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={paymentNotification.whatsappEnabled}
+                    onChange={(event) => updatePaymentNotification({ whatsappEnabled: event.target.checked })}
+                  />
+                  <span />
+                  <b>{paymentNotification.whatsappEnabled ? "WhatsApp enabled" : "WhatsApp disabled"}</b>
+                </label>
+
                 <div className="cbn-payment-branch-banner">
                   <span>THIS PAGE'S BRANCH</span><strong>{branchCode || "Branch not assigned"}</strong>
                   <small>Owner selection and delivery are isolated to this branch.</small>
                 </div>
 
                 <div className="cbn-payment-owner-heading">
-                  <div><h3>Select branch owners</h3><p>Only customers stored under this branch with a registered FCM token can be selected.</p></div>
+                  <div><h3>Select WhatsApp recipients / branch owners</h3><p>Customers with a phone number or FCM token are listed. Selecting a customer writes <code>whatsappOptIn: true</code> to their branch customer document; deselecting writes <code>false</code>. Only do this after the customer has agreed to receive WhatsApp messages.</p></div>
                   <b>{selectedPaymentOwnerUids.length} selected</b>
                 </div>
                 <input className="cbn-payment-search" value={paymentOwnerSearch} onChange={(event) => setPaymentOwnerSearch(event.target.value)} placeholder="Search by owner name, mobile, email or role…" />
                 <div className="cbn-payment-owner-actions">
-                  <button type="button" onClick={() => setSelectedPaymentOwnerUids((current) => [...new Set([...current, ...filteredPaymentOwners.map((owner) => owner.uid)])])}>Select visible</button>
-                  <button type="button" onClick={() => setSelectedPaymentOwnerUids([])}>Clear selection</button>
+                  <button type="button" onClick={selectVisiblePaymentOwners} disabled={loadingPaymentOwners || updatingOwnerIds.length > 0}>Select visible</button>
+                  <button type="button" onClick={clearPaymentOwnerSelection} disabled={loadingPaymentOwners || updatingOwnerIds.length > 0 || selectedPaymentOwnerUids.length === 0}>Clear selection</button>
                 </div>
                 <div className="cbn-payment-owner-list">
                   {loadingPaymentOwners ? <div className="cbn-loading">Loading branch users…</div> :
                     filteredPaymentOwners.length ? filteredPaymentOwners.map((owner) => (
                       <label className="cbn-payment-owner" key={owner.uid}>
-                        <input type="checkbox" checked={selectedPaymentOwnerUids.includes(owner.uid)} onChange={() => setSelectedPaymentOwnerUids((current) => current.includes(owner.uid) ? current.filter((uid) => uid !== owner.uid) : [...current, owner.uid])} />
+                        <input
+                          type="checkbox"
+                          checked={selectedPaymentOwnerUids.includes(owner.uid)}
+                          disabled={updatingOwnerIds.includes(owner.uid)}
+                          onChange={() => handlePaymentOwnerToggle(owner)}
+                        />
                         <span className="cbn-payment-avatar">{String(owner.name || "U").slice(0, 1).toUpperCase()}</span>
                         <span className="cbn-payment-owner-details"><strong>{owner.name}</strong><small>{[owner.phone, owner.email, owner.role].filter(Boolean).join(" · ") || owner.uid}</small></span>
-                        <em>Branch {branchCode}</em>
+                        <em>
+                          {updatingOwnerIds.includes(owner.uid)
+                            ? "Updating…"
+                            : owner.whatsappOptIn
+                              ? "WhatsApp opted in"
+                              : "WhatsApp not opted in"}
+                        </em>
                       </label>
-                    )) : <div className="cbn-loading">No customers with an FCM token found for branch {branchCode || "—"}.</div>}
+                    )) : <div className="cbn-loading">No customers with a usable phone number or FCM token found for branch {branchCode || "—"}.</div>}
                 </div>
 
                 <label className="cbn-field">
@@ -1055,7 +1180,8 @@ export default function CustomBookingNotifications() {
 
                 <div className="cbn-note">
                   <strong>Branch security and trigger behavior</strong>
-                  <p>The trigger listens only to <code>products/{branchCode || "{branchCode}"}/payments/{`{paymentId}`}</code>. It verifies the payment document's branchCode and checks every selected owner's users/{`{uid}`}.branchCode before sending. Updating an existing payment document does not send another notification.</p>
+                  <p>The trigger listens only to <code>products/{branchCode || "{branchCode}"}/payments/{`{paymentId}`}</code>. It verifies the payment document's branchCode and checks every selected customer under <code>customers/{branchCode || "{branchCode}"}/users/{`{customerId}`}</code>. Updating an existing payment document does not send another notification.</p>
+                  <p>WhatsApp is sent only when WhatsApp is enabled here and the selected customer's document has <code>whatsappOptIn: true</code>. Selecting/deselecting above updates that field immediately. Selection must reflect the customer's actual consent.</p>
                   <p>Ensure your Cloud Function <code>notifySelectedBranchOwnersOnPaymentCreated</code> and callable <code>sendBranchPaymentOwnerTest</code> are deployed.</p>
                 </div>
 
