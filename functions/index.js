@@ -303,52 +303,27 @@ function normalizeIndianWhatsAppNumber(value) {
 
 
 function buildWhatsAppComponents(payment) {
-
+  // Matches the 13 placeholders in the concise booking-confirmation template.
   const values = [
-
-    payment.clientName || "",                       // {{1}}
-
-    payment.receiptNumber || "",                    // {{2}}
-
-    dateText(payment.pickupDate),                   // {{3}}
-
-    dateText(payment.returnDate),                   // {{4}}
-
-    getProductCodes(payment),                       // {{5}}
-
-    numberText(payment.grandTotalRent),             // {{6}}
-
-    numberText(payment.discountOnRent),             // {{7}}
-
-    numberText(payment.finalRent),                  // {{8}}
-
-    numberText(payment.rentCollected),              // {{9}}
-
-    numberText(payment.rentPending),                // {{10}}
-
-    numberText(payment.grandTotalDeposit),          // {{11}}
-
-    numberText(payment.depositCollected),           // {{12}}
-
-    numberText(payment.depositPending),             // {{13}}
-
-    numberText(payment.totalAmount),                // {{14}}
-
-    numberText(payment.amountPaid),                 // {{15}}
-
-    numberText(payment.balance),                    // {{16}}
-
+    payment.clientName || "",                 // {{1}} Customer
+    payment.receiptNumber || "",              // {{2}} Receipt number
+    dateText(payment.pickupDate),              // {{3}} Pickup
+    dateText(payment.returnDate),              // {{4}} Return
+    getProductCodes(payment),                  // {{5}} Product codes and quantities
+    numberText(payment.grandTotalRent),        // {{6}} Total rent
+    numberText(payment.discountOnRent),        // {{7}} Rent discount
+    numberText(payment.finalRent),             // {{8}} Final rent
+    numberText(payment.rentCollected),         // {{9}} Rent paid
+    numberText(payment.rentPending),            // {{10}} Rent pending
+    numberText(payment.grandTotalDeposit),     // {{11}} Total security deposit
+    numberText(payment.depositCollected),      // {{12}} Deposit paid
+    numberText(payment.depositPending),        // {{13}} Deposit pending
   ];
 
   return Object.fromEntries(values.map((value, index) => [
-
     `body_${index + 1}`, { type: "text", value: String(value ?? "") },
-
   ]));
-
 }
-
-
 
 async function sendMsg91WhatsApp({ customers, payment, authKey }) {
 
