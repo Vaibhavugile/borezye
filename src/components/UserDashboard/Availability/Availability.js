@@ -8,7 +8,8 @@ import { useUser } from '../../Auth/UserContext';
 import search from '../../../assets/Search.png';
 import { FaSearch, FaDownload, FaUpload, FaPlus, FaEdit, FaTrash, FaCopy, FaWhatsapp } from 'react-icons/fa';
 import Papa from 'papaparse';
-import './Availability.css'; // Create CSS for styling
+import './Availability.css'; // Existing dashboard styles
+import './WhatsAppDeliveryTracker.css'; // WhatsApp delivery tracker styles
 import { format } from 'date-fns';
 import { Label } from 'recharts';
 import { toast, ToastContainer } from 'react-toastify'; // Import react-toastify
@@ -146,6 +147,65 @@ const flattenBooking = (booking) => ({
 });
 
 
+
+// ================= WHATSAPP DELIVERY TRACKING =================
+const DELIVERY_STAGES = [
+  { key: "Booking", short: "B", label: "Booking" },
+  { key: "pickupPending", short: "PP", label: "Pickup Pending" },
+  { key: "pickup", short: "P", label: "Pickup" },
+  { key: "returnPending", short: "RP", label: "Return Pending" },
+  { key: "return", short: "R", label: "Return" },
+  { key: "successful", short: "S", label: "Successful" },
+];
+
+const getDeliveryState = (status) => {
+  if (["accepted", "sent", "delivered"].includes(status)) return "sent";
+  if (status === "failed") return "failed";
+  return "pending";
+};
+
+const getDeliveryTooltip = (record, stage) => {
+  if (!record) return `${stage.label}: Not sent yet`;
+  if (record.status === "accepted") return `${stage.label}: Accepted by MSG91`;
+  if (record.status === "sent") return `${stage.label}: Sent`;
+  if (record.status === "delivered") return `${stage.label}: Delivered`;
+  if (record.status === "failed") return `${stage.label}: Failed - ${record.error || "Unknown error"}`;
+  if (record.status === "skipped") return `${stage.label}: Not sent - ${record.reason || "Skipped"}`;
+  return `${stage.label}: Processing`;
+};
+
+const WhatsAppDeliveryTracker = ({ receiptNumber, deliveryStatus }) => {
+  const stageRecords = deliveryStatus || {};
+
+  return (
+    <div className="whatsapp-delivery-tracker" onClick={(e) => e.stopPropagation()}>
+      <div className="delivery-tracker-heading">
+        <span className="delivery-tracker-icon"><FaWhatsapp /></span>
+        <span>WhatsApp Status</span>
+      </div>
+      <div className="delivery-tracker-dots">
+        {DELIVERY_STAGES.map((stage) => {
+          const record = stageRecords[stage.key];
+          const state = getDeliveryState(record?.status);
+          return (
+            <div key={stage.key} className="delivery-stage-item" title={getDeliveryTooltip(record, stage)}>
+              <span className={`delivery-dot delivery-dot-${state}`}>
+                {state === "sent" && <span className="delivery-dot-check">✓</span>}
+                {state === "failed" && <span className="delivery-dot-cross">!</span>}
+              </span>
+              <span className="delivery-stage-label">{stage.short}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="delivery-tracker-legend">
+        <span><i className="legend-dot legend-sent" />Sent</span>
+        <span><i className="legend-dot legend-pending" />Pending</span>
+        <span><i className="legend-dot legend-failed" />Failed</span>
+      </div>
+    </div>
+  );
+};
 
 const BookingDashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -446,6 +506,58 @@ useEffect(() => {
         return dateB - dateA;
 
       });
+
+      // Load the WhatsApp delivery summary from each payment document.
+      // The Cloud Function writes whatsappDeliveryStatus directly to:
+      // products/{branchCode}/payments/{receiptNumber}
+      // This avoids querying the separate WhatsApp events collection.
+      const paymentDocs = await Promise.all(
+        bookingsArray.map(async (booking) => {
+          if (!booking.receiptNumber) {
+            return { receiptNumber: null, whatsappDeliveryStatus: {} };
+          }
+
+          try {
+            const paymentRef = doc(
+              db,
+              "products",
+              String(userData.branchCode),
+              "payments",
+              String(booking.receiptNumber)
+            );
+            const paymentSnap = await getDoc(paymentRef);
+
+            return {
+              receiptNumber: booking.receiptNumber,
+              whatsappDeliveryStatus: paymentSnap.exists()
+                ? paymentSnap.data()?.whatsappDeliveryStatus || {}
+                : {},
+            };
+          } catch (paymentStatusError) {
+            console.warn(
+              "Unable to read WhatsApp status for receipt:",
+              booking.receiptNumber,
+              paymentStatusError
+            );
+            return {
+              receiptNumber: booking.receiptNumber,
+              whatsappDeliveryStatus: {},
+            };
+          }
+        })
+      );
+
+      const paymentStatusByReceipt = Object.fromEntries(
+        paymentDocs
+          .filter((item) => item.receiptNumber)
+          .map((item) => [item.receiptNumber, item.whatsappDeliveryStatus])
+      );
+
+      bookingsArray = bookingsArray.map((booking) => ({
+        ...booking,
+        whatsappDeliveryStatus:
+          paymentStatusByReceipt[booking.receiptNumber] || {},
+      }));
 
       setBookings(bookingsArray);
 
@@ -1407,6 +1519,12 @@ useEffect(() => {
                         )}
                       </div>
                     </div>
+
+                    {/* WHATSAPP DELIVERY STATUS - LAST COLUMN */}
+                    <WhatsAppDeliveryTracker
+                      receiptNumber={booking.receiptNumber}
+                      deliveryStatus={booking.whatsappDeliveryStatus || {}}
+                    />
 
                     {/* ========= DYNAMIC FIELDS (NON-PRIMARY ONLY) ========= */}
                     <div className="booking-dynamic-fields">

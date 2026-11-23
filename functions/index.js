@@ -34,6 +34,15 @@ const logger = require("firebase-functions/logger");
 
 initializeApp();
 
+// Booking-stage notification trigger (FCM + MSG91 WhatsApp).
+// Import and export this trigger exactly once.
+const { notifyCustomerOnBookingStageChange } =
+  require("./bookingStageChangeNotifications");
+
+exports.notifyCustomerOnBookingStageChange =
+  notifyCustomerOnBookingStageChange;
+
+
 
 
 const db = getFirestore();
@@ -3435,3 +3444,168 @@ exports.submitProductReview = onCall(
   }
 );
 
+
+
+// ============================================================
+// DOR BOOKING-STAGE MSG91 TEMPLATE API + TEST SENDER
+// Append this block to functions/index.js.
+// Reuses the existing MSG91_AUTHKEY secret and existing REGION.
+// ============================================================
+
+const BOOKING_MSG91_INTEGRATED_NUMBER = "919096457700";
+const BOOKING_MSG91_TEMPLATES_URL = "https://control.msg91.com/api/v5/whatsapp/get-template-client";
+const BOOKING_MSG91_SEND_URL = "https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/";
+const BOOKING_MSG91_BRANCH = "7007";
+
+function extractMsg91TemplateArray(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+  const preferredKeys = ["templates", "data", "result", "records", "template_list", "templateList"];
+  for (const key of preferredKeys) {
+    const value = payload[key];
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === "object") {
+      const nested = extractMsg91TemplateArray(value);
+      if (nested.length) return nested;
+    }
+  }
+  for (const value of Object.values(payload)) {
+    if (Array.isArray(value) && value.some((item) => item && typeof item === "object")) return value;
+  }
+  return [];
+}
+
+function normalizeMsg91Template(item) {
+  const template = item || {};
+  const name = template.template_name || template.name || template.templateName || template.slug || "";
+  const language = template.template_language || template.language || template.language_code || template.languageCode || "en";
+  const status = String(template.template_status || template.status || "").toLowerCase();
+  return { ...template, name: String(name), language: String(language), status };
+}
+
+async function fetchMsg91BookingTemplates(authKey) {
+  const all = [];
+  for (let page = 1; page <= 5; page += 1) {
+    const url = new URL(`${BOOKING_MSG91_TEMPLATES_URL}/${BOOKING_MSG91_INTEGRATED_NUMBER}`);
+    url.searchParams.set("template_status", "approved");
+    url.searchParams.set("pagination", "true");
+    url.searchParams.set("page_size", "100");
+    url.searchParams.set("page_num", String(page));
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { accept: "application/json", "content-type": "application/json", authkey: authKey },
+    });
+    const responseText = await response.text();
+    let payload;
+    try { payload = JSON.parse(responseText); } catch { payload = { raw: responseText }; }
+    if (!response.ok) {
+      throw new HttpsError("internal", `MSG91 template request failed (${response.status}): ${responseText.slice(0, 700)}`);
+    }
+    const pageItems = extractMsg91TemplateArray(payload);
+    all.push(...pageItems.map(normalizeMsg91Template));
+    if (pageItems.length < 100) break;
+  }
+  const approved = all.filter((item) => item.name && (!item.status || item.status === "approved"));
+  const unique = new Map();
+  for (const item of approved) unique.set(`${item.name}::${item.language}`, item);
+  return [...unique.values()];
+}
+
+function buildBookingTestValues() {
+  return {
+    clientName: "DOR Test Customer", clientEmail: "test@example.com", CustomerBy: "DOR Team",
+    ReceiptBy: "DOR Team", Alterations: "Standard alteration", SpecialNote: "Test message",
+    GrandTotalRent: "2,000", DiscountOnRent: "200", FinalRent: "1,800",
+    GrandTotalDeposit: "1,000", DiscountOnDeposit: "0", FinalDeposit: "1,000",
+    AmountToBePaid: "2,800", AmountPaid: "1,000", Balance: "1,800", PaymentStatus: "Partially paid",
+    FirstPaymentDetails: "UPI", FirstPaymentMode: "UPI", SecondPaymentMode: "N/A",
+    SecondPaymentDetails: "N/A", Products: "DOR-001 : 1", Products1: "Test Dress",
+    createdAt: new Date().toLocaleDateString("en-IN"), pickupDate: "25/11/2026",
+    returnDate: "28/11/2026", receiptNumber: "DOR-TEST-001", stage: "Booking",
+    ContactNo: "9876543210", IdentityProof: "N/A", IdentityNumber: "N/A",
+    productImage: "", previousStage: "New booking",
+  };
+}
+
+function buildBookingStageMsg91Components(mapping, values) {
+  const components = {};
+  for (const [componentKey, placeholderKey] of Object.entries(mapping || {})) {
+    if (!/^(body|header)_\d+$/.test(componentKey)) continue;
+    if (!Object.prototype.hasOwnProperty.call(values, placeholderKey)) continue;
+    components[componentKey] = { type: "text", value: String(values[placeholderKey] ?? "N/A") };
+  }
+  return components;
+}
+
+async function sendBookingStageMsg91Test({ phone, settings, authKey }) {
+  const values = buildBookingTestValues();
+  const components = buildBookingStageMsg91Components(settings.whatsappVariableMapping, values);
+  if (!Object.keys(components).length) throw new HttpsError("failed-precondition", "Map at least one template variable before testing.");
+  const requestBody = {
+    integrated_number: BOOKING_MSG91_INTEGRATED_NUMBER,
+    content_type: "template",
+    payload: {
+      messaging_product: "whatsapp",
+      type: "template",
+      template: {
+        name: String(settings.msg91TemplateName || ""),
+        language: { code: String(settings.msg91LanguageCode || "en"), policy: "deterministic" },
+        to_and_components: [{ to: [phone], components }],
+      },
+    },
+  };
+  const response = await fetch(BOOKING_MSG91_SEND_URL, {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json", authkey: authKey },
+    body: JSON.stringify(requestBody),
+  });
+  const responseText = await response.text();
+  let providerResponse;
+  try { providerResponse = JSON.parse(responseText); } catch { providerResponse = { raw: responseText }; }
+  if (!response.ok) throw new HttpsError("internal", `MSG91 send failed (${response.status}): ${responseText.slice(0, 700)}`);
+  return providerResponse;
+}
+
+exports.getMsg91BookingTemplates = onCall(
+  { region: REGION, timeoutSeconds: 60, secrets: [MSG91_AUTHKEY] },
+  async (request) => {
+    if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Please sign in.");
+    const branchCode = String(request.data?.branchCode || "").trim();
+    if (branchCode !== BOOKING_MSG91_BRANCH) throw new HttpsError("permission-denied", "This WhatsApp integration is enabled only for branch 7007.");
+    try {
+      const templates = await fetchMsg91BookingTemplates(MSG91_AUTHKEY.value());
+      return { templates, count: templates.length, integratedNumber: BOOKING_MSG91_INTEGRATED_NUMBER };
+    } catch (error) {
+      logger.error("Could not fetch MSG91 booking templates", { message: error.message });
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError("internal", error.message || "Could not fetch MSG91 templates.");
+    }
+  }
+);
+
+exports.sendMsg91BookingStageTest = onCall(
+  { region: REGION, timeoutSeconds: 60, secrets: [MSG91_AUTHKEY] },
+  async (request) => {
+    if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Please sign in.");
+    const branchCode = String(request.data?.branchCode || "").trim();
+    const stage = String(request.data?.stage || "").trim();
+    const phone = normalizeIndianWhatsAppNumber(request.data?.phone || "");
+    if (branchCode !== BOOKING_MSG91_BRANCH) throw new HttpsError("permission-denied", "This WhatsApp integration is enabled only for branch 7007.");
+    if (!stage) throw new HttpsError("invalid-argument", "Booking stage is required.");
+    if (!phone) throw new HttpsError("invalid-argument", "Enter a valid Indian mobile number.");
+    if (request.data?.confirmedOptIn !== true) throw new HttpsError("failed-precondition", "Confirm that the test recipient has agreed to receive this WhatsApp message.");
+    const snap = await db.collection("bookingStageNotifications").doc(branchCode).collection("stages").doc(stage).get();
+    if (!snap.exists) throw new HttpsError("failed-precondition", "Save this stage's WhatsApp settings first.");
+    const settings = snap.data() || {};
+    if (settings.whatsappEnabled !== true) throw new HttpsError("failed-precondition", "Enable WhatsApp for this stage first.");
+    if (!settings.msg91TemplateName) throw new HttpsError("failed-precondition", "Select an approved MSG91 template first.");
+    try {
+      const providerResponse = await sendBookingStageMsg91Test({ phone, settings, authKey: MSG91_AUTHKEY.value() });
+      return { accepted: true, providerResponse };
+    } catch (error) {
+      logger.error("MSG91 booking-stage test send failed", { branchCode, stage, error: error.message });
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError("internal", error.message || "Could not send the test WhatsApp.");
+    }
+  }
+);

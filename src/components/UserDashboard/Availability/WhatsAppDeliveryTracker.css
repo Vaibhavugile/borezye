@@ -1,0 +1,125 @@
+/* WhatsApp delivery tracker - append-safe standalone styles */
+.whatsapp-delivery-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 190px;
+  max-width: 250px;
+  padding: 11px 13px;
+  border: 1px solid #e7eaf0;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.045);
+}
+
+.delivery-tracker-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #253247;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .025em;
+}
+
+.delivery-tracker-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 8px;
+  background: #e8f8ef;
+  color: #159653;
+  font-size: 13px;
+}
+
+.delivery-tracker-dots {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.delivery-stage-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.delivery-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border: 2px solid #eabf45;
+  border-radius: 50%;
+  background: #fff7d8;
+  color: #805b00;
+  box-sizing: border-box;
+}
+
+.delivery-dot-sent {
+  border-color: #20a464;
+  background: #20a464;
+  color: #fff;
+}
+
+.delivery-dot-failed {
+  border-color: #dc4b4b;
+  background: #fff0f0;
+  color: #c62828;
+}
+
+.delivery-dot-check,
+.delivery-dot-cross {
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.delivery-stage-label {
+  color: #687386;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.delivery-tracker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+  color: #778195;
+  font-size: 9px;
+}
+
+.delivery-tracker-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.delivery-tracker-legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-sent { background: #20a464; }
+.legend-pending { background: #eabf45; }
+.legend-failed { background: #dc4b4b; }
+
+@media (max-width: 700px) {
+  .whatsapp-delivery-tracker {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
