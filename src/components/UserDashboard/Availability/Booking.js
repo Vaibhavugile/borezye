@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../firebaseConfig';
-import { collection, doc, addDoc, getDoc, query, getDocs, orderBy, writeBatch, where, setDoc, updateDoc, arrayUnion,setDocs } from 'firebase/firestore';
+import { collection, doc, addDoc, getDoc, query, getDocs, orderBy, writeBatch, where, setDoc, updateDoc, arrayUnion, setDocs, runTransaction } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL, listAll } from "firebase/storage";
 import { Await, useNavigate } from 'react-router-dom';
 import UserHeader from '../../UserDashboard/UserHeader';
@@ -245,24 +245,54 @@ function Booking() {
   // Function to fetch product image, price, and deposit based on productCode
 
   const generateReceiptNumber = async (branchCode) => {
-    // New path inside products/{branchCode}/branchCounters/receipt
-    const receiptCounterRef = doc(db, `products/${branchCode}/branchCounters/receipt`);
-
-    // Fetch the current receipt number counter
-    const receiptCounterDoc = await getDoc(receiptCounterRef);
-
-    let receiptNumber = 1; // Default to 1 if no counter exists
-
-    if (receiptCounterDoc.exists()) {
-      const data = receiptCounterDoc.data();
-      receiptNumber = data.currentValue + 1; // Increment the counter
+    if (!branchCode) {
+      throw new Error("Branch code is required to generate a receipt number.");
     }
 
-    // Update the counter in Firestore
-    await setDoc(receiptCounterRef, { currentValue: receiptNumber });
+    const receiptCounterRef = doc(
+      db,
+      `products/${branchCode}/branchCounters/receipt`
+    );
 
-    // Format the receipt number
-    return `${branchCode}-REC-${String(receiptNumber).padStart(6, '0')}`;
+    // Keep the counter update and duplicate check in one transaction.
+    // If another booking updates the counter simultaneously, Firestore retries
+    // this transaction and checks the next available number again.
+    return await runTransaction(db, async (transaction) => {
+      const counterSnapshot = await transaction.get(receiptCounterRef);
+
+      let nextNumber = counterSnapshot.exists()
+        ? Number(counterSnapshot.data().currentValue || 0) + 1
+        : 1;
+
+      let candidateReceiptNumber = "";
+
+      // Skip any receipt number whose payment document already exists.
+      while (true) {
+        candidateReceiptNumber =
+          `${branchCode}-REC-${String(nextNumber).padStart(6, "0")}`;
+
+        const existingPaymentRef = doc(
+          db,
+          `products/${branchCode}/payments`,
+          candidateReceiptNumber
+        );
+
+        const existingPaymentSnapshot = await transaction.get(existingPaymentRef);
+
+        if (!existingPaymentSnapshot.exists()) {
+          break;
+        }
+
+        nextNumber += 1;
+      }
+
+      // Store the numeric counter value for the receipt number being reserved.
+      transaction.set(receiptCounterRef, {
+        currentValue: nextNumber
+      });
+
+      return candidateReceiptNumber;
+    });
   };
 
 
