@@ -1,0 +1,361 @@
+
+.banner-management-page {
+  min-height: 100vh;
+  padding: 32px;
+  background: #f7f8fc;
+  color: #202438;
+  font-family: inherit;
+}
+
+/* Header */
+
+.banner-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 36px 40px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #191b35, #30345b);
+  color: white;
+  margin-bottom: 38px;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-management-header::after {
+  content: "";
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.12);
+  right: 80px;
+  top: -150px;
+  box-shadow:
+    0 0 0 35px rgba(255,255,255,.025),
+    0 0 0 70px rgba(255,255,255,.025);
+  pointer-events: none;
+}
+
+.banner-management-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #b8b5ff;
+  margin-bottom: 15px;
+}
+
+.banner-management-header h1 {
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 750;
+  letter-spacing: -1px;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.banner-management-header p {
+  color: #c7c9df;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 570px;
+  margin: 0;
+}
+
+.banner-management-header-icon {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 22px;
+  color: #d4ceff;
+  z-index: 1;
+}
+
+/* Section heading */
+
+.banner-management-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.banner-management-section-heading h2 {
+  font-size: 21px;
+  font-weight: 750;
+  margin: 0 0 7px;
+  color: #202438;
+}
+
+.banner-management-section-heading p {
+  font-size: 13px;
+  color: #85899c;
+  margin: 0;
+}
+
+.banner-management-count {
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #e9eaf1;
+  border-radius: 30px;
+  color: #666b80;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Grid */
+
+.banner-management-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Cards */
+
+.banner-management-card {
+  text-decoration: none !important;
+  color: inherit !important;
+  background: #fff;
+  border: 1px solid #eceef4;
+  border-radius: 18px;
+  padding: 25px;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease,
+    border-color .3s ease;
+  animation: bannerCardAppear .5s ease both;
+}
+
+.banner-management-card:nth-child(2) {
+  animation-delay: .06s;
+}
+
+.banner-management-card:nth-child(3) {
+  animation-delay: .12s;
+}
+
+.banner-management-card:nth-child(4) {
+  animation-delay: .18s;
+}
+
+.banner-management-card:nth-child(5) {
+  animation-delay: .24s;
+}
+
+.banner-management-card::before {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  right: -75px;
+  top: -75px;
+  background: var(--card-bg);
+  transition: transform .4s ease;
+}
+
+.banner-management-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--card-accent);
+  box-shadow: 0 15px 40px rgba(25, 30, 60, .09);
+}
+
+.banner-management-card:hover::before {
+  transform: scale(1.7);
+}
+
+.banner-management-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.banner-management-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--card-bg);
+  color: var(--card-accent);
+  border-radius: 15px;
+  transition: transform .3s ease;
+}
+
+.banner-management-card:hover .banner-management-icon {
+  transform: rotate(-5deg) scale(1.08);
+}
+
+.banner-management-arrow {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #a0a3b1;
+  background: #f7f8fb;
+  transition: all .3s ease;
+}
+
+.banner-management-card:hover .banner-management-arrow {
+  color: white;
+  background: var(--card-accent);
+  transform: rotate(45deg);
+}
+
+.banner-management-tag {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 22px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: var(--card-bg);
+  color: var(--card-accent);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .4px;
+}
+
+.banner-management-card h3 {
+  font-size: 17px;
+  font-weight: 750;
+  margin: 13px 0 8px;
+  color: #25283d;
+}
+
+.banner-management-card > p {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #85899a;
+  margin: 0;
+  flex: 1;
+}
+
+.banner-management-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f1f5;
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--card-accent);
+}
+
+.banner-management-card-footer svg {
+  transition: transform .3s ease;
+}
+
+.banner-management-card:hover .banner-management-card-footer svg {
+  transform: translate(3px, -3px);
+}
+
+/* Footer */
+
+.banner-management-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border: 1px solid #eceef4;
+  padding: 19px 22px;
+  border-radius: 15px;
+  margin-top: 28px;
+}
+
+.banner-management-footer-icon {
+  width: 42px;
+  height: 42px;
+  background: #f0ecff;
+  color: #7c5cfc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-management-footer strong {
+  font-size: 13px;
+  color: #30334a;
+}
+
+.banner-management-footer p {
+  margin: 5px 0 0;
+  color: #898da0;
+  font-size: 12px;
+}
+
+/* Animation */
+
+@keyframes bannerCardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .banner-management-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .banner-management-page {
+    padding: 16px;
+  }
+
+  .banner-management-header {
+    padding: 27px 22px;
+    margin-bottom: 27px;
+  }
+
+  .banner-management-header-icon {
+    display: none;
+  }
+
+  .banner-management-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .banner-management-card {
+    min-height: 235px;
+    padding: 21px;
+  }
+
+  .banner-management-section-heading {
+    gap: 10px;
+  }
+
+  .banner-management-section-heading h2 {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-management-card {
+    animation: none;
+    transition: none;
+  }
+}

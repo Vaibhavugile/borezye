@@ -180,50 +180,37 @@ function formatDate(value) {
 
 
 
-function formatValue(value) {
-
-  if (value === null || value === undefined || value === "") {
-
-    return "N/A";
-
-  }
-
-
-
-  if (
-
-    value instanceof Date ||
-
-    (value && typeof value.toDate === "function")
-
-  ) {
-
-    return formatDate(value);
-
-  }
-
-
-
-  if (Array.isArray(value)) {
-
-    return value.map(formatValue).join(", ");
-
-  }
-
-
-
-  if (typeof value === "object") {
-
-    return JSON.stringify(value);
-
-  }
-
-
-
-  return String(value);
-
+// MSG91 rejects newline characters in WhatsApp template body values.
+// Apply this at the final boundary for every text parameter.
+function sanitizeMsg91BodyValue(value) {
+  return String(value ?? "N/A")
+    .replace(/[\r\n\u2028\u2029]+/g, " ")
+    .replace(/[\t\f\v ]{2,}/g, " ")
+    .trim();
 }
 
+function formatValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "N/A";
+  }
+
+  if (
+    value instanceof Date ||
+    (value && typeof value.toDate === "function")
+  ) {
+    return sanitizeMsg91BodyValue(formatDate(value));
+  }
+
+  if (Array.isArray(value)) {
+    return sanitizeMsg91BodyValue(value.map(formatValue).join(", "));
+  }
+
+  if (typeof value === "object") {
+    return sanitizeMsg91BodyValue(JSON.stringify(value));
+  }
+
+  return sanitizeMsg91BodyValue(value);
+}
 
 
 function normalizeIndianPhone(value) {
@@ -426,7 +413,7 @@ function buildPlaceholderValues(payment, stage, productImage) {
 
     })
 
-    .join("\n");
+    .join(", ");
 
 
 
@@ -877,7 +864,7 @@ function buildMsg91Components(mapping, values) {
 
       type: "text",
 
-      value: formatValue(values[placeholderKey]),
+      value: sanitizeMsg91BodyValue(formatValue(values[placeholderKey])),
 
     };
 
@@ -955,7 +942,7 @@ function buildBookingTemplateComponents(values) {
 
       type: "text",
 
-      value: formatValue(parameterValue),
+      value: sanitizeMsg91BodyValue(formatValue(parameterValue)),
 
       parameter_name: parameterName,
 
@@ -2090,6 +2077,11 @@ exports.notifyCustomerOnBookingStageChange = onDocumentWritten(
                 templateName: currentStage === "Booking"
                   ? BOOKING_TEMPLATE_NAME
                   : settings.msg91TemplateName,
+                phone: paymentPhone
+                  ? (normalizeIndianPhone(paymentPhone)
+                      ? `+${normalizeIndianPhone(paymentPhone)}`
+                      : paymentPhone)
+                  : null,
                 error: errorMessage,
               },
             });

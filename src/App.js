@@ -79,7 +79,8 @@ import ExpenseReport from './components/UserDashboard/Availability/ExpenseReport
 import BranchSettings from './components/UserDashboard/Availability/BranchSettings';
 import CallsPage from './components/UserDashboard/Availability/CallsPage';
 import CustomBookingNotifications from './components/Product/CustomBookingNotifications';
-
+import BannerManagementDashboard from
+  './components/UserDashboard/Banners/BannerManagementDashboard';
 const App = () => (
 
   <UserProvider>
@@ -363,6 +364,14 @@ const App = () => (
   <ManagePromotions/>
   </PrivateRoute>
 } />
+<Route
+  path="/banner-management"
+  element={
+    <PrivateRoute>
+      <BannerManagementDashboard />
+    </PrivateRoute>
+  }
+/>
 <Route path="/manage-subcollection" element={
   <PrivateRoute>
   <ManageSubCollections/>
